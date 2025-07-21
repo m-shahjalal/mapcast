@@ -1,5 +1,4 @@
 "use client";
-
 import { AppAdminSidebar } from "@/components/dashboard/app-admin-sidebar";
 import {
   Breadcrumb,
@@ -19,6 +18,7 @@ import {
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Globe } from "lucide-react";
 import { usePathname } from "next/navigation";
+import { Fragment } from "react";
 
 export default function DashboardLayout({
   children,
@@ -40,21 +40,21 @@ export default function DashboardLayout({
           />
           <Breadcrumb>
             <BreadcrumbList>
-              {routes.map((r, i) => (
-                <>
-                  <BreadcrumbItem key={new Date().getTime()}>
+              {routes.map((route, index) => (
+                <Fragment key={`breadcrumb-${route}-${index}`}>
+                  <BreadcrumbItem>
                     <BreadcrumbPage className="capitalize text-gray-900 dark:text-gray-100">
                       <BreadcrumbLink
-                        href={`/${routes.slice(0, i + 1).join("/")}`}
+                        href={`/${routes.slice(0, index + 1).join("/")}`}
                       >
-                        {r}
+                        {route}
                       </BreadcrumbLink>
                     </BreadcrumbPage>
                   </BreadcrumbItem>
-                  {i !== routes.length - 1 && (
+                  {index !== routes.length - 1 && (
                     <BreadcrumbSeparator className="hidden md:block dark:text-gray-600" />
                   )}
-                </>
+                </Fragment>
               ))}
             </BreadcrumbList>
           </Breadcrumb>

@@ -1,15 +1,14 @@
 import "dotenv/config";
-import { drizzle } from "drizzle-orm/node-postgres";
+import { drizzle, NodePgDatabase } from "drizzle-orm/node-postgres";
 import * as schema from "../schemas";
 
 const db = drizzle(process.env.DATABASE_URL, { schema });
 
 export const connectDatabase = (callback: () => any) => {
-  console.info("🌱 Connecting to database...");
   db.$client
     .connect()
-    .then((db: any) => {
-      console.info("🎉 Database connected successfully!");
+    .then(() => {
+      console.info("🎉 Database connected successfully");
       callback();
     })
     .catch((error: any) => {
@@ -18,5 +17,5 @@ export const connectDatabase = (callback: () => any) => {
     });
 };
 
-export type Database = typeof db;
+export type Database = NodePgDatabase<typeof schema>;
 export default db;

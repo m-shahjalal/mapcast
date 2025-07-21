@@ -2,11 +2,11 @@ import {
   LocationExtractor,
   RSSFeedResult,
 } from "@/server/jobs/location-extractor";
+import { urlUtils } from "@/server/utils/urls";
 import { Hono } from "hono";
 import Parser from "rss-parser";
 import { NewsService } from "../services/news.service";
 import { NewsSourceService } from "../services/rss.service";
-import { urlUtils } from "@/lib/urls";
 
 const cronRoutes = new Hono();
 const locationExtractor = new LocationExtractor();
@@ -22,9 +22,7 @@ const delay = (ms: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms));
 
 const sanitizeUrl = (url: string): string => {
-  if (!url.startsWith("http://") && !url.startsWith("https://")) {
-    return `https://${url}`;
-  }
+  if (!url.startsWith("http")) return `https://${url}`;
   return url;
 };
 

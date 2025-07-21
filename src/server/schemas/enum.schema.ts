@@ -8,7 +8,7 @@ import {
   frequencyList,
   subscriptionTierList,
   themeList,
-} from "@/utils/enum-list";
+} from "@/shared/enum-list";
 
 export const subscriptionTierEnum = generateEnum(subscriptionTierList);
 export const themeEnum = generateEnum(themeList);

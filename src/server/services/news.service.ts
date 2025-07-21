@@ -1,9 +1,9 @@
-// news.service.ts
 import { eq, inArray } from "drizzle-orm";
-import db from "../database";
 import { RSSFeedResult } from "../jobs/location-extractor";
 import { NewNews, news, newsSource } from "../schemas";
 import slugify from "slugify";
+import { getContext } from "hono/context-storage";
+import db from "../database";
 
 export const NewsService = {
   async saveArticle(newsData: RSSFeedResult[]): Promise<NewNews[]> {

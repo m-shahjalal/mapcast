@@ -71,7 +71,6 @@ export class LocationExtractor {
     item: RSSItem
   ): Promise<ProcessedArticle | null> {
     const content = await this.fetchContent(item.link);
-    console.log("🔘 processing article");
     const fullText = this.combineText(item, content);
 
     const locations = this.extractLocations(fullText);
