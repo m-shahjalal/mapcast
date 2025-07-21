@@ -12,7 +12,6 @@ import {
   primaryColumn,
   timestamps,
 } from "../utils/database";
-import { newsLocation } from "./news-location.schema";
 import { newsSource } from "./news-source.schema";
 import { newsTopics } from "./news-topic.schema";
 import { relations } from "drizzle-orm";
@@ -28,7 +27,6 @@ export const newsDetails = pgTable(
     authorName: varchar("author_name", { length: 255 }),
     sourceId: foreignId("source_id", () => newsSource.id),
     topicId: foreignId("topic_id", () => newsTopics.id),
-    locationId: foreignId("location_id", () => newsLocation.id),
 
     viewCount: integer("view_count").default(0),
     shareCount: integer("share_count").default(0),
@@ -60,9 +58,5 @@ export const newsDetailsRelations = relations(newsDetails, ({ one }) => ({
   topic: one(newsTopics, {
     fields: [newsDetails.topicId],
     references: [newsTopics.id],
-  }),
-  location: one(newsLocation, {
-    fields: [newsDetails.locationId],
-    references: [newsLocation.id],
   }),
 }));

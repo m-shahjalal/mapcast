@@ -1,3 +1,4 @@
+import { urlUtils } from "@/lib/urls";
 import { ApiPagination } from "@/types/api-response";
 import {
   and,
@@ -40,7 +41,6 @@ export const NewsSourceService = {
 
     if (filters?.minCredibilityScore !== undefined) {
       conditions.push(
-        // Convert decimal to number for comparison
         eq(newsSource.credibilityScore, filters.minCredibilityScore.toString())
       );
     }
@@ -49,10 +49,10 @@ export const NewsSourceService = {
       conditions.push(ilike(newsSource.domain, `%${filters.domain}%`));
     }
 
-    // Add pagination
     const page = filters?.page || 1;
     const limit = filters?.limit || 20;
     const offset = (page - 1) * limit;
+
     const [{ count }] = await db
       .select({ count: sql<number>`count(*)` })
       .from(newsSource);
@@ -74,7 +74,7 @@ export const NewsSourceService = {
 
     return { data, pagination };
   },
-  // Get active news sources only
+
   getActive: async () => {
     return db
       .select()
@@ -83,7 +83,6 @@ export const NewsSourceService = {
       .orderBy(desc(newsSource.credibilityScore), asc(newsSource.name));
   },
 
-  // Get news source by ID
   getById: async (id: string) => {
     const result = await db
       .select()
@@ -94,7 +93,6 @@ export const NewsSourceService = {
     return result[0] || null;
   },
 
-  // Get news source by domain
   getByDomain: async (domain: string) => {
     const result = await db
       .select()
@@ -105,12 +103,17 @@ export const NewsSourceService = {
     return result[0] || null;
   },
 
-  // Create new news source
   create: async (data: NewsSourceSchemaType) => {
+    const urlValidation = urlUtils.validateRssUrl(data.rssUrl || "");
+    if (!urlValidation.valid) {
+      throw new Error(`Invalid RSS URL: ${urlValidation.error}`);
+    }
+
     const result = await db
       .insert(newsSource)
       .values({
         ...data,
+        rssUrl: urlValidation.normalized,
         credibilityScore: data.credibilityScore.toString(),
       })
       .returning();
@@ -118,24 +121,6 @@ export const NewsSourceService = {
     return result[0];
   },
 
-  // Update news source
-  update: async (id: string, data: Partial<NewsSourceSchemaType>) => {
-    const result = await db
-      .update(newsSource)
-      .set({
-        ...{
-          ...data,
-          credibilityScore: data.credibilityScore?.toString(),
-        },
-        updatedAt: new Date(),
-      })
-      .where(eq(newsSource.id, id))
-      .returning();
-
-    return result[0] || null;
-  },
-
-  // Update last fetch time
   updateLastFetch: async (id: string) => {
     const result = await db
       .update(newsSource)
@@ -149,7 +134,6 @@ export const NewsSourceService = {
     return result[0] || null;
   },
 
-  // Update article count and success rate
   updateStats: async (
     id: string,
     articlesCount: number,
@@ -168,7 +152,6 @@ export const NewsSourceService = {
     return result[0] || null;
   },
 
-  // Update credibility score
   updateCredibilityScore: async (id: string, score: number) => {
     const result = await db
       .update(newsSource)
@@ -182,7 +165,6 @@ export const NewsSourceService = {
     return result[0] || null;
   },
 
-  // Toggle active status
   toggleActive: async (id: string) => {
     const current = await NewsSourceService.getById(id);
     if (!current) return null;
@@ -199,9 +181,7 @@ export const NewsSourceService = {
     return result[0] || null;
   },
 
-  // Delete news source (soft delete if deletedAt exists, otherwise hard delete)
   delete: async (id: string) => {
-    // Check if deletedAt field exists in timestamps
     try {
       const result = await db
         .update(newsSource)
@@ -214,7 +194,6 @@ export const NewsSourceService = {
 
       return result[0] || null;
     } catch {
-      // If soft delete fails (no deletedAt field), do hard delete
       const result = await db
         .delete(newsSource)
         .where(eq(newsSource.id, id))
@@ -224,38 +203,49 @@ export const NewsSourceService = {
     }
   },
 
-  // Get sources that need fetching (haven't been fetched recently)
   getSourcesForFetching: async (hoursAgo: number = 1) => {
+    console.log("🔘 Getting sources for fetching");
+
     const cutoffTime = new Date();
     cutoffTime.setHours(cutoffTime.getHours() - hoursAgo);
 
-    return db
-      .select()
-      .from(newsSource)
-      .where(
-        and(
-          eq(newsSource.isActive, true),
-          or(isNull(newsSource.lastFetch), lt(newsSource.lastFetch, cutoffTime))
-        )
-      )
-      .orderBy(asc(newsSource.lastFetch));
-  },
-
-  // Get sources by credibility score range
-  getByCredibilityRange: async (minScore: number, maxScore: number) => {
-    return db
+    const sources = await db
       .select()
       .from(newsSource)
       .where(
         and(
           eq(newsSource.isActive, true)
-          // Note: decimal comparison might need adjustment based on your setup
+          // or(isNull(newsSource.lastFetch), lt(newsSource.lastFetch, cutoffTime))
         )
       )
-      .orderBy(desc(newsSource.credibilityScore));
+      .orderBy(asc(newsSource.lastFetch));
+
+    // Validate and normalize URLs
+    const validatedSources = sources
+      .map((source) => {
+        const { normalized, valid, error } = urlUtils.validateRssUrl(
+          source.rssUrl || ""
+        );
+
+        if (!valid) {
+          return console.error(
+            `Invalid RSS URL for ${source.rssUrl} - ${error}`
+          );
+        }
+
+        return { ...source, rssUrl: normalized };
+      })
+      .filter(Boolean);
+
+    console.log(
+      `🔘 Found ${validatedSources.length} valid sources (${
+        sources.length - validatedSources.length
+      } invalid)`
+    );
+
+    return validatedSources;
   },
 
-  // Check if domain or RSS URL already exists
   checkUniqueness: async (
     domain?: string,
     rssUrl?: string,
@@ -277,7 +267,7 @@ export const NewsSourceService = {
 
     if (conditions.length === 0) return { exists: false };
 
-    let query = db
+    const query = db
       .select({
         id: newsSource.id,
         domain: newsSource.domain,

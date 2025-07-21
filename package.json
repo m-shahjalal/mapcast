@@ -6,6 +6,7 @@
     "dev:next": "next dev --turbopack",
     "dev:hono": "tsx watch src/server/index.ts",
     "dev": "concurrently \"npm run dev:next\" \"npm run dev:hono\"",
+    "start:hono": "tsx src/server/index.ts",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",

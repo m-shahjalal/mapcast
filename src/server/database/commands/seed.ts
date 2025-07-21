@@ -1,4 +1,3 @@
-import { seedLocation } from "../seeds/location";
 import { confirm } from "@inquirer/prompts";
 
 const seeder = async () => {
@@ -20,7 +19,6 @@ const seeder = async () => {
   console.info("🌱 Starting database seeding...");
   if (isCountry) {
     console.info("🌱 Seeding country data...");
-    await seedLocation();
   }
 };
 

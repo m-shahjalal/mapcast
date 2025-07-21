@@ -1,14 +1,10 @@
-import { index, pgTable, text, varchar } from "drizzle-orm/pg-core";
+// news.schema.ts
+import { index, pgTable, text, varchar, decimal } from "drizzle-orm/pg-core";
 import { foreignId, primaryColumn, timestamps } from "../utils/database";
 import { newsSource } from "./news-source.schema";
-import {
-  newsLocation,
-  newsNewsLocationSchema,
-  updateNewsLocationSchema,
-} from "./news-location.schema";
 import { relations } from "drizzle-orm";
 import { createInsertSchema, createUpdateSchema } from "drizzle-zod";
-import { z } from "zod"; // Add this import
+import { z } from "zod";
 
 export const news = pgTable(
   "news",
@@ -16,13 +12,24 @@ export const news = pgTable(
     id: primaryColumn("id"),
     title: varchar("title", { length: 500 }).notNull(),
     slug: varchar("slug", { length: 500 }).notNull(),
-    summary: text("summary").notNull(),
+    summary: text("summary").notNull().notNull(),
     sourceId: foreignId("source_id", () => newsSource.id),
-    locationId: foreignId("location_id", () => newsLocation.id),
+    newsUrl: varchar("news_url", { length: 500 }).notNull().unique(),
+
+    // Location data stored directly in news table
+    locationName: varchar("location_name", { length: 255 }),
+    locationCity: varchar("location_city", { length: 255 }),
+    locationState: varchar("location_state", { length: 255 }),
+    locationCountry: varchar("location_country", { length: 255 }),
+    latitude: decimal("latitude", { precision: 10, scale: 7 }),
+    longitude: decimal("longitude", { precision: 10, scale: 7 }),
+
     ...timestamps,
   },
-  ({ slug }) => ({
+  ({ slug, latitude, longitude, newsUrl }) => ({
     slugIdx: index("news_slug_idx").on(slug),
+    locationIdx: index("news_location_idx").on(latitude, longitude),
+    urlIdx: index("news_source_url_idx").on(newsUrl),
   })
 );
 
@@ -31,23 +38,21 @@ export const newsRelations = relations(news, ({ one }) => ({
     fields: [news.sourceId],
     references: [newsSource.id],
   }),
-  location: one(newsLocation, {
-    fields: [news.locationId],
-    references: [newsLocation.id],
-  }),
 }));
 
-export const createNewNewsSchema = createInsertSchema(news)
-  .pick({
-    title: true,
-    summary: true,
-    sourceId: true,
-  })
-  .extend({ location: newsNewsLocationSchema });
-
-export const updateNewsSchema = createUpdateSchema(news).extend({
-  location: updateNewsLocationSchema,
+export const createNewNewsSchema = createInsertSchema(news).pick({
+  title: true,
+  summary: true,
+  sourceId: true,
+  locationName: true,
+  locationCity: true,
+  locationState: true,
+  locationCountry: true,
+  latitude: true,
+  longitude: true,
 });
+
+export const updateNewsSchema = createUpdateSchema(news);
 
 export type NewNews = z.infer<typeof createNewNewsSchema>;
 export type UpdateNews = z.infer<typeof updateNewsSchema>;
