@@ -58,7 +58,7 @@ async function fetchFeedWithRetry(
 }
 
 async function processRSSFeeds(): Promise<RSSFeedResult[] | void> {
-  console.log("🔘 Starting RSS feed processing");
+  console.info("🔘 Starting RSS feed processing");
 
   const parser = new Parser({
     timeout: CONFIG.REQUEST_TIMEOUT,
@@ -69,7 +69,7 @@ async function processRSSFeeds(): Promise<RSSFeedResult[] | void> {
   });
 
   const rssList = await NewsSourceService.getSourcesForFetching();
-  console.log(`🔘 Found ${rssList.length} RSS sources`);
+  console.info(`🔘 Found ${rssList.length} RSS sources`);
 
   if (!rssList) return console.warn("No RSS sources found");
 
@@ -88,7 +88,7 @@ async function processRSSFeeds(): Promise<RSSFeedResult[] | void> {
       return null;
     }
 
-    console.log(`🔘 Processing: ${source?.name || sourceUrl}`);
+    console.info(`🔘 Processing: ${source?.name || sourceUrl}`);
 
     const feed = await fetchFeedWithRetry(parser, sourceUrl);
 
@@ -122,7 +122,7 @@ async function processRSSFeeds(): Promise<RSSFeedResult[] | void> {
         feed.title || "Unknown Feed"
       );
 
-      console.log(
+      console.info(
         `✅ Successfully processed: ${source?.name} (${rssItems.length} items)`
       );
       return result;
@@ -141,11 +141,11 @@ async function processRSSFeeds(): Promise<RSSFeedResult[] | void> {
   });
 
   // Log summary
-  console.log(
+  console.info(
     `☑️ Processing complete: ${results.length} successful, ${errors.length} failed`
   );
   if (errors.length > 0) {
-    console.log(
+    console.info(
       "❌ Failed sources:",
       errors.map((error) => error.source)
     );
@@ -155,16 +155,16 @@ async function processRSSFeeds(): Promise<RSSFeedResult[] | void> {
 }
 
 export const runRSSJob = async () => {
-  console.log("🔂 Starting RSS crawl job");
+  console.info("🔂 Starting RSS crawl job");
 
   try {
     const feeds = await processRSSFeeds();
     if (!feeds || feeds?.length === 0) return "No feeds found";
 
-    console.log("🔂 Saving to database...");
+    console.info("🔂 Saving to database...");
     const result = await NewsService.saveArticle(feeds);
 
-    console.log(`🎉 Job completed: ${result.length} article processed`);
+    console.info(`🎉 Job completed: ${result.length} article processed`);
     return result;
   } catch (error: any) {
     console.error("💥 Cron job failed:", error);

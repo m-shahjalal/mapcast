@@ -1,68 +1,59 @@
 import { urlUtils } from "@/server/utils/urls";
 import { ApiPagination } from "@/types/api-response";
 import { and, asc, desc, eq, ilike, or, sql, SQLWrapper } from "drizzle-orm";
-import { getContext } from "hono/context-storage";
+import db from "../database";
 import { NewsSourceFilters } from "../routes/rss.route";
 import { newsSource } from "../schemas";
 import {
   NewsSourceSchemaType,
   NewsSourceType,
 } from "../schemas/news-source.schema";
-import db from "../database";
+import { AppError } from "../utils/exception";
 
 export const NewsSourceService = {
-  getAll: async (
+  async getAll(
     filters?: NewsSourceFilters
-  ): Promise<{ pagination: ApiPagination; data: NewsSourceType[] }> => {
-    const conditions: SQLWrapper[] = [];
-
-    if (filters?.search) {
-      conditions.push(
-        or(
-          ilike(newsSource.name, `%${filters.search}%`),
-          ilike(newsSource.domain, `%${filters.search}%`)
-        ) as SQLWrapper
+  ): Promise<{ pagination: ApiPagination; data: NewsSourceType[] }> {
+    try {
+      const conditions = NewsSourceService.buildWhereConditions(filters);
+      const { page, limit, offset } = NewsSourceService.validatePagination(
+        filters?.page,
+        filters?.limit
       );
+
+      // Get total count with error handling
+      const countResult = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(newsSource)
+        .where(conditions.length > 0 ? and(...conditions) : undefined);
+
+      if (!countResult || countResult.length === 0) {
+        throw new AppError("Failed to get count from database");
+      }
+
+      const totalItems = Number(countResult[0].count) || 0;
+
+      // Get paginated data
+      const data = await db
+        .select()
+        .from(newsSource)
+        .where(conditions.length > 0 ? and(...conditions) : undefined)
+        .orderBy(desc(newsSource.credibilityScore), asc(newsSource.name))
+        .limit(limit)
+        .offset(offset);
+
+      const pagination: ApiPagination = {
+        currentPage: page,
+        pageSize: limit,
+        totalItems,
+        totalPages: Math.ceil(totalItems / limit),
+      };
+
+      return { data, pagination };
+    } catch (error) {
+      console.error("NewsSourceService.getAll error:", error);
+      throw new AppError("Failed to retrieve news sources");
     }
-
-    if (filters?.isActive !== undefined) {
-      conditions.push(eq(newsSource.isActive, filters.isActive));
-    }
-
-    if (filters?.minCredibilityScore !== undefined) {
-      conditions.push(
-        eq(newsSource.credibilityScore, filters.minCredibilityScore.toString())
-      );
-    }
-
-    if (filters?.domain) {
-      conditions.push(ilike(newsSource.domain, `%${filters.domain}%`));
-    }
-
-    const page = filters?.page || 1;
-    const limit = filters?.limit || 20;
-    const offset = (page - 1) * limit;
-
-    const [{ count }] = await db
-      .select({ count: sql<number>`count(*)` })
-      .from(newsSource);
-
-    const data = await db
-      .select()
-      .from(newsSource)
-      .where(and(...conditions))
-      .orderBy(desc(newsSource.credibilityScore), asc(newsSource.name))
-      .limit(limit)
-      .offset(offset);
-
-    const pagination: ApiPagination = {
-      currentPage: page,
-      pageSize: limit,
-      totalItems: count,
-      totalPages: Math.ceil(count / limit),
-    };
-
-    return { data, pagination };
   },
 
   getActive: async () => {
@@ -194,7 +185,7 @@ export const NewsSourceService = {
   },
 
   getSourcesForFetching: async (hoursAgo: number = 1) => {
-    console.log("🔘 Getting sources for fetching");
+    console.info("🔘 Getting sources for fetching");
 
     const cutoffTime = new Date();
     cutoffTime.setHours(cutoffTime.getHours() - hoursAgo);
@@ -227,7 +218,7 @@ export const NewsSourceService = {
       })
       .filter(Boolean);
 
-    console.log(
+    console.info(
       `🔘 Found ${validatedSources.length} valid sources (${
         sources.length - validatedSources.length
       } invalid)`
@@ -283,5 +274,35 @@ export const NewsSourceService = {
       exists: result.length > 0,
       conflicting: result[0] || null,
     };
+  },
+
+  buildWhereConditions: (filters?: NewsSourceFilters): SQLWrapper[] => {
+    const conditions: SQLWrapper[] = [];
+
+    if (filters?.search) {
+      conditions.push(
+        or(
+          ilike(newsSource.name, `%${filters.search}%`),
+          ilike(newsSource.domain, `%${filters.search}%`)
+        ) as SQLWrapper
+      );
+    }
+
+    if (filters?.isActive !== undefined) {
+      conditions.push(eq(newsSource.isActive, filters.isActive));
+    }
+
+    if (filters?.domain) {
+      conditions.push(ilike(newsSource.domain, `%${filters.domain}%`));
+    }
+
+    return conditions;
+  },
+  validatePagination: (page?: number, limit?: number) => {
+    const validatedPage = Math.max(1, page || 1);
+    const validatedLimit = Math.min(100, Math.max(1, limit || 20)); // Cap at 100
+    const offset = (validatedPage - 1) * validatedLimit;
+
+    return { page: validatedPage, limit: validatedLimit, offset };
   },
 };

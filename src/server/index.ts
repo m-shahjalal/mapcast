@@ -14,5 +14,5 @@ app.notFound(notFoundHandler);
 app.onError(errorHandler);
 
 serve({ fetch: app.fetch, port: 4000 }, () =>
-  connectDatabase(() => console.log("🚀 Server running on port 4000"))
+  connectDatabase(() => console.info("🚀 Server running on port 4000"))
 );

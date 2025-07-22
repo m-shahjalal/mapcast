@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import { api, fetcher } from "@/lib/api-client";
+import { api } from "@/lib/api-client";
 import { newsSourceSchema, NewsSourceSchemaType } from "@/server/schemas";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft, Save } from "lucide-react";
@@ -43,16 +43,12 @@ export function NewsSourceForm({
   });
 
   const handleSubmit = (data: NewsSourceSchemaType) => {
-    console.log(data);
     startTransition(async () => {
       try {
         const response = await api.rss.create(data);
-        console.log("Response:", response);
         if (response.success) router.push("/dashboard/sources");
-
-        console.log(response.error?.message);
       } catch (error) {
-        console.log(error);
+        console.error(error);
       }
     });
   };

@@ -1,11 +1,26 @@
-import { eq, inArray } from "drizzle-orm";
-import { RSSFeedResult } from "../jobs/location-extractor";
-import { NewNews, news, newsSource } from "../schemas";
+import { NewsFilters } from "@/types/query-filter";
+import { eq, inArray, sql } from "drizzle-orm";
 import slugify from "slugify";
-import { getContext } from "hono/context-storage";
 import db from "../database";
+import { RSSFeedResult } from "../jobs/location-extractor";
+import { NewNews, news, NewsSelect, newsSource } from "../schemas";
 
 export const NewsService = {
+  async findAll(filters: NewsFilters) {
+    const { page = 1, limit = 20 } = filters;
+    const [{ count }] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(news);
+
+    const result = await db
+      .select()
+      .from(news)
+      .limit(limit)
+      .offset((page - 1) * limit);
+
+    return { result, count };
+  },
+
   async saveArticle(newsData: RSSFeedResult[]): Promise<NewNews[]> {
     const articlesToInsert: Array<typeof news.$inferInsert> = [];
     const processedSlugs = new Set<string>();
@@ -43,7 +58,7 @@ export const NewsService = {
     }
 
     if (articlesToInsert.length === 0) {
-      console.log("🔘 No new articles to save");
+      console.info("🔘 No new articles to save");
       return [];
     }
 
@@ -55,7 +70,7 @@ export const NewsService = {
         .onConflictDoNothing()
         .returning();
 
-      console.log(`🔘 Saved ${results.length} new articles`);
+      console.info(`🔘 Saved ${results.length} new articles`);
       return results;
     } catch (error) {
       console.error("Failed to save articles:", error);

@@ -171,46 +171,4 @@ class ContentExtractor {
   }
 }
 
-// Usage examples with proper typing
-async function basicUsage(): Promise<void> {
-  const extractor = new ContentExtractor();
-
-  try {
-    const url = "https://example.com/article";
-
-    if (!ContentExtractor.isValidUrl(url)) {
-      throw new Error("Invalid URL provided");
-    }
-
-    const content: string = await extractor.fetchCleanContent(url);
-    console.log("Clean content:", content);
-  } catch (error) {
-    console.error(
-      "Error:",
-      error instanceof Error ? error.message : "Unknown error"
-    );
-  }
-}
-
-async function metaUsage(): Promise<void> {
-  const extractor = new ContentExtractor({
-    timeout: 15000,
-    userAgent: "MyBot/1.0",
-  });
-
-  try {
-    const result: ContentResult = await extractor.fetchContentWithMeta(
-      "https://example.com/article"
-    );
-    console.log(`Title: ${result.title}`);
-    console.log(`Content length: ${result.content.length}`);
-    console.log(`Extracted at: ${result.extractedAt}`);
-  } catch (error) {
-    console.error(
-      "Error:",
-      error instanceof Error ? error.message : "Unknown error"
-    );
-  }
-}
-
 export default ContentExtractor;

@@ -2,9 +2,15 @@
   "cSpell.words": [
     "addressdetails",
     "ilike",
+    "latlng",
+    "locationerror",
+    "locationfound",
     "Nominatim",
     "paralleldrive",
     "sonner",
-    "turbopack"
+    "turbopack",
+    "uidotdev",
+    "usehooks",
+    "zoomend"
   ]
 }

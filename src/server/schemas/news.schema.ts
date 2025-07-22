@@ -54,5 +54,6 @@ export const createNewNewsSchema = createInsertSchema(news).pick({
 
 export const updateNewsSchema = createUpdateSchema(news);
 
+export type NewsSelect = typeof news.$inferSelect;
 export type NewNews = z.infer<typeof createNewNewsSchema>;
 export type UpdateNews = z.infer<typeof updateNewsSchema>;
