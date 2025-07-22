@@ -26,17 +26,22 @@ const TOPICS: TopicItem[] = [
 ];
 
 export function PinPointMap({ news }: { news: NewsSelect[] | null }) {
-  console.log("news", news);
+  const validNews = news || [];
 
   const handleTopicSelect = (topic: TopicItem) => {
     console.info("Selected topic:", topic.label);
+    // Add filtering logic here if needed
   };
 
   return (
     <MapProvider>
       <div className="flex h-screen w-full overflow-hidden">
         <div className="relative flex-1 min-h-0">
-          <MapView topics={TOPICS} onTopicSelect={handleTopicSelect} />
+          <MapView
+            topics={TOPICS}
+            news={validNews}
+            onTopicSelect={handleTopicSelect}
+          />
         </div>
       </div>
     </MapProvider>
