@@ -17,7 +17,6 @@ const MapView = dynamic(
 );
 
 export function PinPointMap({ news }: { news: NewsSelect[] | null }) {
-  console.log(news);
   return (
     <MapProvider>
       <div className="flex h-screen w-full overflow-hidden">

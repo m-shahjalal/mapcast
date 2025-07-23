@@ -11,8 +11,6 @@ export default async function PinPointPage({
     ? `topics=${encodeURIComponent(params.topics)}`
     : "";
 
-  console.log("🔍 Server requesting with query:", queryString);
-
   const newsList = await api.news.map(queryString);
 
   return <PinPointMap news={newsList.data!} />;

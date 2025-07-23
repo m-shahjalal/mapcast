@@ -27,7 +27,7 @@ export function TopBar() {
             />
           </div>
           <div className="flex flex-1 justify-center min-w-0 mt-1">
-            <TopicFilters topics={newsTopicDropdown} />
+            <TopicFilters />
           </div>
         </div>
         <div className="flex-shrink-0">

@@ -8,31 +8,25 @@ import {
 import { useQueryParams } from "@/hooks/use-query";
 import { TopicItem } from "@/lib/map-context";
 import { cn } from "@/lib/utils";
-import { ChevronDown } from "lucide-react";
+import { newsTopicDropdown } from "@/shared/enum-list";
+import { ChevronDown, Eraser } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
-interface TopicFiltersProps {
-  topics: TopicItem[];
-}
-
-export function TopicFilters({ topics }: TopicFiltersProps) {
+export function TopicFilters() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [visibleItems, setVisibleItems] = useState(topics.length);
+  const [visibleItems, setVisibleItems] = useState(newsTopicDropdown.length);
   const measureRef = useRef<HTMLDivElement>(null);
 
-  const { get, updateParams } = useQueryParams();
+  const { get, updateParams, remove } = useQueryParams();
 
-  // Get selected topics as array of strings from URL params
   const getSelectedTopics = () => {
     const topicsParam = get("topics");
     if (!topicsParam) return [];
 
-    // Handle both array and string formats
     if (Array.isArray(topicsParam)) {
       return topicsParam.filter((t) => typeof t === "string");
     }
 
-    // If it's a string, split by comma
     if (typeof topicsParam === "string") {
       return topicsParam.split(",").filter((t) => t.trim());
     }
@@ -41,6 +35,7 @@ export function TopicFilters({ topics }: TopicFiltersProps) {
   };
 
   const selectedTopics = getSelectedTopics();
+  const hasSelectedTopics = selectedTopics.length > 0;
 
   const isTopicSelected = (topic: TopicItem) => {
     return selectedTopics.includes(topic.topic);
@@ -48,19 +43,19 @@ export function TopicFilters({ topics }: TopicFiltersProps) {
 
   const handleTopicClick = (topic: TopicItem) => {
     const isSelected = selectedTopics.includes(topic.topic);
-
     const newSelected = isSelected
       ? selectedTopics.filter((t: string) => t !== topic.topic)
       : [...selectedTopics, topic.topic];
 
-    // Update URL params - convert array to comma-separated string or remove param
     if (newSelected.length > 0) {
       updateParams({ topics: newSelected.join(",") });
     } else {
       updateParams({ topics: undefined });
     }
+  };
 
-    console.log("Selected topics:", newSelected); // Debugging line
+  const handleClearTopics = () => {
+    remove("topics");
   };
 
   useEffect(() => {
@@ -70,9 +65,8 @@ export function TopicFilters({ topics }: TopicFiltersProps) {
       const container = containerRef.current;
       const containerWidth = container.getBoundingClientRect().width;
 
-      // If container is very wide or no width yet, show all items initially
       if (containerWidth === 0) {
-        setVisibleItems(topics.length);
+        setVisibleItems(newsTopicDropdown.length);
         return;
       }
 
@@ -80,29 +74,34 @@ export function TopicFilters({ topics }: TopicFiltersProps) {
         "[data-topic-button]"
       );
       const moreButton = measureRef.current.querySelector("[data-more-button]");
-      const moreButtonWidth = moreButton
-        ? moreButton.getBoundingClientRect().width
-        : 80;
+      const clearButton = measureRef.current.querySelector(
+        "[data-clear-button]"
+      );
+
+      const moreButtonWidth = moreButton?.getBoundingClientRect().width || 80;
+      const clearButtonWidth = clearButton?.getBoundingClientRect().width || 70;
+      const gap = 8;
 
       let totalWidth = 0;
       let itemsCount = 0;
-      const gap = 8; // gap-2 = 8px
 
-      for (let i = 0; i < buttons.length && i < topics.length; i++) {
+      // Reserve space for clear button if topics are selected
+      const reservedWidth = hasSelectedTopics ? clearButtonWidth + gap : 0;
+
+      for (let i = 0; i < buttons.length && i < newsTopicDropdown.length; i++) {
         const button = buttons[i] as HTMLElement;
         const buttonWidth = button.getBoundingClientRect().width;
-
         const widthWithGap =
           totalWidth + buttonWidth + (itemsCount > 0 ? gap : 0);
-        const remainingItems = topics.length - (i + 1);
+        const remainingItems = newsTopicDropdown.length - (i + 1);
         const needsMoreButton = remainingItems > 0;
 
-        // Check if adding this button (plus more button if needed) exceeds container width
-        if (
-          widthWithGap + (needsMoreButton ? moreButtonWidth + gap : 0) >
-            containerWidth &&
-          itemsCount > 0
-        ) {
+        const totalRequiredWidth =
+          widthWithGap +
+          (needsMoreButton ? moreButtonWidth + gap : 0) +
+          reservedWidth;
+
+        if (totalRequiredWidth > containerWidth && itemsCount > 0) {
           break;
         }
 
@@ -110,22 +109,17 @@ export function TopicFilters({ topics }: TopicFiltersProps) {
         itemsCount++;
       }
 
-      // Ensure at least 1 item is visible
       itemsCount = Math.max(1, itemsCount);
 
-      // If all items fit, don't show more button
-      if (itemsCount >= topics.length) {
-        setVisibleItems(topics.length);
+      if (itemsCount >= newsTopicDropdown.length) {
+        setVisibleItems(newsTopicDropdown.length);
       } else {
         setVisibleItems(itemsCount);
       }
     };
 
-    // Small delay to ensure DOM is updated
     const timeoutId = setTimeout(calculateVisibleItems, 0);
-
     const resizeObserver = new ResizeObserver(() => {
-      // Debounce resize calculations
       setTimeout(calculateVisibleItems, 10);
     });
 
@@ -137,11 +131,44 @@ export function TopicFilters({ topics }: TopicFiltersProps) {
       clearTimeout(timeoutId);
       resizeObserver.disconnect();
     };
-  }, [topics]);
+  }, [newsTopicDropdown, hasSelectedTopics]);
 
-  const visibleTopics = topics.slice(0, visibleItems);
-  const hiddenTopics = topics.slice(visibleItems);
+  const visibleTopics = newsTopicDropdown.slice(0, visibleItems);
+  const hiddenTopics = newsTopicDropdown.slice(visibleItems);
   const showMoreButton = hiddenTopics.length > 0;
+
+  const TopicButton = ({
+    topic,
+    isSelected,
+  }: {
+    topic: TopicItem;
+    isSelected: boolean;
+  }) => (
+    <Button
+      variant={isSelected ? "default" : "outline"}
+      size="sm"
+      className={cn(
+        "rounded-full px-4 py-2 h-9 shadow-sm hover:bg-muted capitalize flex-shrink-0 transition-all duration-200",
+        isSelected && "font-bold text-white"
+      )}
+      style={
+        isSelected
+          ? {
+              backgroundColor: topic.color,
+              color: `${topic.color}/10`,
+            }
+          : { backgroundColor: `${topic.color}99` }
+      }
+      onClick={() => handleTopicClick(topic)}
+    >
+      {isSelected ? (
+        <span className="ml-2 text-xs opacity-90 font-extrabold">✓</span>
+      ) : (
+        <span className="text-sm mr-1">{topic.emoji}</span>
+      )}
+      {topic.topic}
+    </Button>
+  );
 
   return (
     <>
@@ -151,32 +178,11 @@ export function TopicFilters({ topics }: TopicFiltersProps) {
         className="fixed -top-96 left-0 opacity-0 pointer-events-none flex items-center gap-2"
         aria-hidden="true"
       >
-        {topics.map((topic, index) => {
-          const isSelected = isTopicSelected(topic);
-          return (
-            <Button
-              key={`measure-${topic.topic}-${index}`}
-              variant={isSelected ? "default" : "outline"}
-              size="sm"
-              data-topic-button
-              className={cn(
-                "rounded-full px-4 py-2 h-9 shadow-sm capitalize flex-shrink-0",
-                isSelected
-                  ? cn("text-white border-2 border-white", topic.color)
-                  : cn("text-white border border-white/30", topic.color)
-              )}
-            >
-              {isSelected ? (
-                <span className="ml-2 text-xs opacity-90 font-extrabold">
-                  ✓
-                </span>
-              ) : (
-                <span className="text-sm mr-1">{topic.emoji}</span>
-              )}
-              {topic.topic}
-            </Button>
-          );
-        })}
+        {newsTopicDropdown.map((topic, index) => (
+          <div key={`measure-${topic.topic}-${index}`} data-topic-button>
+            <TopicButton topic={topic} isSelected={isTopicSelected(topic)} />
+          </div>
+        ))}
         <Button
           variant="outline"
           size="sm"
@@ -187,45 +193,29 @@ export function TopicFilters({ topics }: TopicFiltersProps) {
           More
           <ChevronDown className="h-3 w-3 ml-1" />
         </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          data-clear-button
+          className="rounded-full px-6 py-2 h-9 shadow-sm text-gray-700 border border-gray-300 flex-shrink-0"
+        >
+          <Eraser className="h-3 w-3" />
+          Clear
+        </Button>
       </div>
 
       {/* Actual visible container */}
       <div
         ref={containerRef}
-        className="flex items-center gap-2 min-w-0 flex-1 overflow-hidden"
+        className="flex items-center gap-2 min-w-0 flex-1"
       >
-        {visibleTopics.map((topic, index) => {
-          const isSelected = isTopicSelected(topic);
-          return (
-            <Button
-              key={`${topic.topic}-${index}`}
-              variant={isSelected ? "default" : "outline"}
-              size="sm"
-              className={cn(
-                "rounded-full px-4 py-2 h-9 shadow-sm hover:bg-muted capitalize flex-shrink-0 transition-all duration-200",
-                isSelected
-                  ? cn(
-                      "text-white border-2 border-white shadow-lg transform scale-105 hover:text-gray-700 hover:border-white/90",
-                      topic.color
-                    )
-                  : cn(
-                      "text-white border border-white/30 hover:border-white/50",
-                      topic.color
-                    )
-              )}
-              onClick={() => handleTopicClick(topic)}
-            >
-              {isSelected ? (
-                <span className="ml-2 text-xs opacity-90 font-extrabold">
-                  ✓
-                </span>
-              ) : (
-                <span className="text-sm mr-1">{topic.emoji}</span>
-              )}
-              {topic.topic}
-            </Button>
-          );
-        })}
+        {visibleTopics.map((topic, index) => (
+          <TopicButton
+            key={`${topic.topic}-${index}`}
+            topic={topic}
+            isSelected={isTopicSelected(topic)}
+          />
+        ))}
 
         {showMoreButton && (
           <DropdownMenu>
@@ -233,7 +223,7 @@ export function TopicFilters({ topics }: TopicFiltersProps) {
               <Button
                 variant="outline"
                 size="sm"
-                className="rounded-full px-4 py-2 h-9 shadow-sm text-gray-700 hover:bg-muted flex-shrink-0 border border-gray-300"
+                className="rounded-full px-4 py-2 h-9 shadow-sm text-gray-700 hover:bg-muted flex-shrink-0 border border-gray-300 bg-muted/70"
               >
                 <span className="text-sm mr-1">+{hiddenTopics.length}</span>
                 More
@@ -265,6 +255,18 @@ export function TopicFilters({ topics }: TopicFiltersProps) {
               })}
             </DropdownMenuContent>
           </DropdownMenu>
+        )}
+
+        {hasSelectedTopics && (
+          <Button
+            onClick={handleClearTopics}
+            variant="outline"
+            className="px-6 py-2 h-9 shadow-sm hover:bg-muted flex-shrink-0 border border-gray-300 bg-red-200 text-red-400"
+            size="sm"
+          >
+            <Eraser className="h-3 w-3" />
+            Clear
+          </Button>
         )}
       </div>
     </>

@@ -1,7 +1,11 @@
+"use client";
+
+import type React from "react";
 import { Marker, Popup, Tooltip } from "react-leaflet";
 import L from "leaflet";
 import { memo, useMemo } from "react";
 import Link from "next/link";
+import { cn } from "@/lib/utils"; // Import cn for conditional class names
 
 interface LocationData {
   lat: string | number;
@@ -29,13 +33,13 @@ interface NewsMarkerProps {
 // Coordinate validation and normalization
 const normalizeCoords = (location: LocationData): [number, number] | null => {
   const lat =
-    typeof location.lat === "string" ? parseFloat(location.lat) : location.lat;
+    typeof location.lat === "string"
+      ? Number.parseFloat(location.lat)
+      : location.lat;
   const lng = location.lng || location.lon;
-  const lngNum = typeof lng === "string" ? parseFloat(lng) : lng;
-
+  const lngNum = typeof lng === "string" ? Number.parseFloat(lng) : lng;
   if (!lat || !lngNum || isNaN(lat) || isNaN(lngNum)) return null;
   if (lat < -90 || lat > 90 || lngNum < -180 || lngNum > 180) return null;
-
   return [lat, lngNum];
 };
 
@@ -60,39 +64,33 @@ const formatDate = (date: Date | string | undefined): string => {
 // Truncate text helper
 const truncateText = (text: string, maxLength: number): string => {
   if (text.length <= maxLength) return text;
-  return `${text.substring(0, maxLength).trim()}...`;
+  return text.substring(0, maxLength).trim() + "...";
 };
 
 const createEnhancedIcon = (
-  color: string = "#3b82f6",
+  color = "#3b82f6",
   size: "small" | "medium" | "large" = "medium",
-  pulseAnimation: boolean = true,
-  emoji: string = "📰"
+  pulseAnimation = true,
+  emoji = "📰"
 ) => {
   const { width, height, emoji: emojiSize, shadow } = SIZES[size];
-
   const pulseKeyframes = pulseAnimation
     ? `
     @keyframes markerPulse {
-      0% { 
-        box-shadow: 0 ${
-          shadow / 3
-        }px ${shadow}px rgba(0,0,0,0.2), 0 0 0 0 ${color}40; 
-      }
-      70% { 
-        box-shadow: 0 ${shadow / 3}px ${shadow}px rgba(0,0,0,0.2), 0 0 0 ${
+      0% {         box-shadow: 0 ${
+        shadow / 3
+      }px ${shadow}px rgba(0,0,0,0.2), 0 0 0 0 var(--marker-color-40);       }
+      70% {         box-shadow: 0 ${
+        shadow / 3
+      }px ${shadow}px rgba(0,0,0,0.2), 0 0 0 ${
         shadow * 1.2
-      }px transparent; 
-      }
-      100% { 
-        box-shadow: 0 ${
-          shadow / 3
-        }px ${shadow}px rgba(0,0,0,0.2), 0 0 0 0 transparent; 
-      }
+      }px transparent;       }
+      100% {         box-shadow: 0 ${
+        shadow / 3
+      }px ${shadow}px rgba(0,0,0,0.2), 0 0 0 0 transparent;       }
     }
     `
     : "";
-
   const animationStyle = pulseAnimation
     ? "animation: markerPulse 3s infinite;"
     : "";
@@ -100,25 +98,57 @@ const createEnhancedIcon = (
   return L.divIcon({
     className: "enhanced-marker-custom",
     html: `
-      <div class="marker-container relative bg-gradient-to-br rounded-full border-white border-4 cursor-pointer transition-all duration-300 ease-out shadow-lg hover:scale-115 hover:z-[1000]" style="
+      <div class="marker-container" style="
+        --marker-color: ${color};
+        --marker-color-light: ${color}cc;
+        --marker-color-30: ${color}30;
+        --marker-color-40: ${color}40;
         width: ${width}px;
         height: ${height}px;
-        background: linear-gradient(135deg, ${color} 0%, ${color}cc 100%);
+        position: relative;
+        border-radius: 9999px;
+        border: 3px solid white;
+        cursor: pointer;
         transform: translate(-50%, -50%);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        background: linear-gradient(135deg, var(--marker-color) 0%, var(--marker-color-light) 100%);
+        box-shadow: 0 ${shadow / 3}px ${shadow}px rgba(0,0,0,0.15);
         ${animationStyle}
       ">
-        <div class="marker-emoji absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 select-none transition-all duration-200 hover:scale-110" style="
+        <div class="marker-emoji" style="
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
           font-size: ${emojiSize}px;
           line-height: 1;
+          user-select: none;
+          transition: all 0.2s ease;
         ">${emoji}</div>
-        <div class="marker-ring absolute -inset-0.5 border-2 rounded-full opacity-0 transition-all duration-300 hover:opacity-100 hover:scale-120" style="
-          border-color: ${color}30;
+        <div class="marker-ring" style="
+          position: absolute;
+          top: -2px;
+          left: -2px;
+          right: -2px;
+          bottom: -2px;
+          border: 2px solid var(--marker-color-30);
+          border-radius: 50%;
+          opacity: 0;
+          transition: all 0.3s ease;
         "></div>
       </div>
-      <style>
-        ${pulseKeyframes}
+      <style>${pulseKeyframes}
         .marker-container:hover {
+          transform: translate(-50%, -50%) scale(1.15) !important;
           animation: bounce 0.6s ease-in-out !important;
+          z-index: 1000 !important;
+        }
+        .marker-container:hover .marker-ring {
+          opacity: 1 !important;
+          transform: scale(1.2) !important;
+        }
+        .marker-container:hover .marker-emoji {
+          transform: translate(-50%, -50%) scale(1.1) !important;
         }
         @keyframes bounce {
           0%, 20%, 53%, 80%, 100% { transform: translate(-50%, -50%) scale(1.15); }
@@ -165,14 +195,13 @@ export const NewsMarker = memo<NewsMarkerProps>(
         <Tooltip
           direction="top"
           offset={[0, -12]}
-          className="!shadow-lg !rounded-lg !p-2 !border"
+          className="shadow-lg rounded-lg p-2 border"
           permanent={false}
         >
           <div className="space-y-2">
             <div className="text-lg font-medium text-gray-900">
               {truncateText(displayTitle, 30)}
             </div>
-
             <div className="space-y-1">
               {location.source && (
                 <div className="flex items-center gap-1.5 text-sm text-gray-600">
@@ -182,7 +211,6 @@ export const NewsMarker = memo<NewsMarkerProps>(
                   </span>
                 </div>
               )}
-
               {formattedDate && (
                 <div className="flex items-center gap-1 text-xs text-gray-500 font-medium">
                   <span className="flex-shrink-0">📅</span>
@@ -192,54 +220,49 @@ export const NewsMarker = memo<NewsMarkerProps>(
             </div>
           </div>
         </Tooltip>
-
-        <Popup minWidth={200} maxWidth={320} closeButton={true}>
-          <div className="p-3.5 leading-relaxed font-sans bg-gradient-to-br from-white to-gray-50">
-            {/* Header */}
+        <Popup
+          minWidth={200}
+          maxWidth={320}
+          className="p-0! m-0!"
+          closeButton={true}
+        >
+          <div className="popup-content leading-relaxed font-sans my-6">
             <div
-              className={`flex items-center gap-2 font-bold text-base text-gray-900 leading-tight ${
-                hasDetails ? "mb-3" : ""
-              }`}
+              className={cn(
+                "flex items-center gap-2 font-bold text-base text-gray-900 leading-tight",
+                hasDetails && "mb-3"
+              )}
             >
-              <span className="text-lg">{emoji}</span>
+              <span className="text-2xl">{emoji}</span>
               <span className="flex-1 min-w-0">{displayTitle}</span>
             </div>
-
-            {/* Summary */}
             {location.summary && (
               <div
-                className="text-sm text-gray-600 mb-3.5 p-2.5 bg-gray-50 rounded-r-md leading-relaxed"
-                style={{ borderLeft: `3px solid ${color}` }}
+                className="summary-box text-sm text-gray-600 mb-3.5 px-2.5 border-l-4 rounded py-1 leading-relaxed my-6"
+                style={{ borderColor: color }}
               >
                 {truncateText(location.summary, 120)}
               </div>
             )}
-
-            {/* Details Grid */}
             {hasDetails && (
-              <div
-                className="grid gap-2 p-3 bg-slate-50 rounded-lg border mb-4"
-                style={{ borderColor: `${color}15` }}
-              >
+              <div className="details-grid grid gap-2 p-3 bg-slate-50 rounded-lg border mb-4 mt-6">
                 {location.newsUrl && (
                   <div className="flex items-center gap-1.5 text-sm text-gray-700 font-medium min-w-0">
                     <span className="flex-shrink-0">📰</span>
                     <Link
                       href={location.newsUrl}
-                      className="truncate min-w-0 hover:text-blue-600 transition-colors"
+                      className="news-link truncate min-w-0 transition-colors"
                     >
                       {location.newsUrl}
                     </Link>
                   </div>
                 )}
-
                 {formattedDate && (
                   <div className="flex items-center gap-1.5 text-sm text-gray-700 font-medium">
                     <span className="flex-shrink-0 w-4">📅</span>
                     <span>{formattedDate}</span>
                   </div>
                 )}
-
                 {location.address && (
                   <div className="flex items-start gap-1.5 text-sm text-gray-700 font-medium leading-tight">
                     <span className="flex-shrink-0 w-4 mt-0.5">📍</span>
@@ -250,22 +273,12 @@ export const NewsMarker = memo<NewsMarkerProps>(
                 )}
               </div>
             )}
-
             {/* Action Button */}
             {(location.newsUrl || location.slug) && (
               <button
                 onClick={() => (window.location.href = location.newsUrl ?? "")}
-                className="w-full px-4 py-2.5 text-white text-sm font-semibold rounded-lg transition-all duration-200 flex items-center justify-center gap-2 hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2"
-                style={{
-                  background: `linear-gradient(135deg, ${color} 0%, ${color}dd 100%)`,
-                  boxShadow: `0 2px 8px ${color}40`,
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.boxShadow = `0 4px 16px ${color}50`;
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.boxShadow = `0 2px 8px ${color}40`;
-                }}
+                style={{ backgroundColor: color }}
+                className="action-button w-full px-4 py-2.5 text-white text-sm font-semibold rounded-lg transition-all duration-200 flex items-center justify-center gap-2 hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2"
               >
                 <span className="text-base">📖</span>
                 <span>Read Full Story</span>
@@ -278,4 +291,4 @@ export const NewsMarker = memo<NewsMarkerProps>(
   }
 );
 
-NewsMarker.displayName = "Marker";
+NewsMarker.displayName = "NewsMarker";

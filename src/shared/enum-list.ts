@@ -63,51 +63,51 @@ export const newsTopicDropdown = [
   {
     topic: "politics",
     emoji: "🏛️",
-    color: "bg-red-500",
+    color: "#ef4444", // red-500
   },
   {
     topic: "business",
     emoji: "💼",
-    color: "bg-green-500",
+    color: "#22c55e", // green-500
   },
   {
     topic: "technology",
     emoji: "💻",
-    color: "bg-blue-500",
+    color: "#3b82f6", // blue-500
   },
   {
     topic: "health",
     emoji: "⚕️",
-    color: "bg-yellow-500",
+    color: "#eab308", // yellow-500
   },
   {
     topic: "science",
     emoji: "🔬",
-    color: "bg-purple-500",
+    color: "#a855f7", // purple-500
   },
   {
     topic: "entertainment",
     emoji: "🎉",
-    color: "bg-pink-500",
+    color: "#ec4899", // pink-500
   },
   {
     topic: "sports",
     emoji: "⚽️",
-    color: "bg-orange-500",
+    color: "#f97316", // orange-500
   },
   {
     topic: "environment",
     emoji: "🌿",
-    color: "bg-teal-500",
+    color: "#14b8a6", // teal-500
   },
   {
     topic: "education",
     emoji: "📚",
-    color: "bg-indigo-500",
+    color: "#6366f1", // indigo-500
   },
   {
     topic: "other",
     emoji: "📰",
-    color: "bg-gray-500",
+    color: "#6b7280", // gray-500
   },
 ];
