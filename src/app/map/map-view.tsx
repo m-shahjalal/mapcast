@@ -1,41 +1,30 @@
 "use client";
-
-import React, { useState, useCallback } from "react";
-import { MapContainer, TileLayer } from "react-leaflet";
-import { TopicItem, useMapContext } from "@/lib/map-context";
 import { useMapUpdates } from "@/hooks/use-map-update";
+import { useMapContext } from "@/lib/map-context";
 import { NewsSelect } from "@/server/schemas";
+import { useCallback, useState } from "react";
+import { MapContainer, TileLayer } from "react-leaflet";
 import { TopBar } from "./components/top-bar";
 import { NewsMarkers } from "./news-marker";
 import "leaflet/dist/leaflet.css";
-
-interface MapViewProps {
-  topics: TopicItem[];
-  news?: NewsSelect[];
-  onTopicSelect?: (topic: TopicItem) => void;
-}
+import { MAP_LAYERS } from "@/lib/map-constraint";
 
 function MapUpdater() {
   useMapUpdates();
   return null;
 }
 
-export function MapView({ topics, news = [], onTopicSelect }: MapViewProps) {
-  const { center, zoom } = useMapContext();
+type LayerKey = keyof typeof MAP_LAYERS;
+
+export function MapView({ news = [] }: { news?: NewsSelect[] }) {
+  const { center, zoom, currentLayer, setCurrentLayer } = useMapContext();
   const [isMapReady, setIsMapReady] = useState(false);
-  const [selectedTopic, setSelectedTopic] = useState<string>("");
 
   const handleMapReady = useCallback(() => {
     setIsMapReady(true);
   }, []);
 
-  const handleTopicSelect = useCallback(
-    (topic: TopicItem) => {
-      setSelectedTopic(topic.label);
-      onTopicSelect?.(topic);
-    },
-    [onTopicSelect]
-  );
+  const selectedLayer = MAP_LAYERS[currentLayer];
 
   return (
     <div className="h-full w-full relative">
@@ -57,16 +46,14 @@ export function MapView({ topics, news = [], onTopicSelect }: MapViewProps) {
         <MapUpdater />
 
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          key={currentLayer}
+          attribution={selectedLayer.attribution}
+          url={selectedLayer.url}
         />
 
+        {isMapReady && <NewsMarkers news={news} />}
         {isMapReady && (
-          <NewsMarkers news={news} selectedTopic={selectedTopic} />
-        )}
-
-        {isMapReady && (
-          <TopBar topics={topics} onTopicSelect={handleTopicSelect} />
+          <TopBar currentLayer={currentLayer} onLayerChange={setCurrentLayer} />
         )}
       </MapContainer>
 

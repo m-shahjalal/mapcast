@@ -6,6 +6,7 @@ import {
   flagStatusList,
   flagTypeList,
   frequencyList,
+  newsTopicList,
   subscriptionTierList,
   themeList,
 } from "@/shared/enum-list";
@@ -18,3 +19,5 @@ export const flagTypeEnum = generateEnum(flagTypeList);
 export const flagStatusEnum = generateEnum(flagStatusList);
 export const adLocationEnum = generateEnum(adLocationList);
 export const adPageEnum = generateEnum(adPageList);
+
+export const newsTopicEnum = generateEnum(newsTopicList);

@@ -17,7 +17,7 @@ const Providers = ({ children }: { children: ReactNode }) => {
   if (!isClient) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <Spinner variant="infinite" size={32} />
+        <Spinner variant="infinite" size={36} />
       </div>
     );
   }

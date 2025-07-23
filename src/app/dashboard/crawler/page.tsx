@@ -44,9 +44,7 @@ export default function CrawlerPage() {
   const triggerCrawler = async () => {
     setCrawlerStatus("running");
     try {
-      const response = await fetch("/api/crawler/trigger", {
-        method: "POST",
-      });
+      const response = await fetch("/api/cron/trigger");
       const result = await response.json();
 
       if (result.success) {
@@ -181,7 +179,10 @@ export default function CrawlerPage() {
                 <label className="text-sm font-medium">
                   Interval (minutes)
                 </label>
-                <select className="w-full p-2 border rounded-md text-sm">
+                <select
+                  defaultValue={"30"}
+                  className="w-full p-2 border rounded-md text-sm"
+                >
                   <option value="15">15 minutes</option>
                   <option value="30" selected>
                     30 minutes

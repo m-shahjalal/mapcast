@@ -4,7 +4,7 @@ import { useMap } from "react-leaflet";
 
 export function useMapControls() {
   const map = useMap();
-  const { setZoom } = useMapContext();
+  const { setZoom, currentLayer, setCurrentLayer } = useMapContext();
 
   const zoomIn = useCallback(() => {
     const newZoom = Math.min(map.getZoom() + 1, map.getMaxZoom());
@@ -35,5 +35,5 @@ export function useMapControls() {
     map.on("locationerror", handleLocationError);
   }, [map, setZoom]);
 
-  return { zoomIn, zoomOut, locateUser };
+  return { zoomIn, zoomOut, locateUser, currentLayer, setCurrentLayer };
 }

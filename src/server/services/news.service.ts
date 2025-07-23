@@ -50,6 +50,7 @@ export const NewsService = {
             locationCountry: locationPin?.country || null,
             latitude: locationPin?.latitude || null,
             longitude: locationPin?.longitude || null,
+            topic: article.topic,
           });
         }
       } catch (error) {

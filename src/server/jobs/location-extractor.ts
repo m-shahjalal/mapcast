@@ -1,3 +1,6 @@
+import { CATEGORY_KEYWORDS, LOCATION_VALIDATOR } from "@/lib/map-constraint";
+import { newsTopicList } from "@/shared/enum-list";
+
 // types.ts
 export interface LocationPin {
   latitude: string;
@@ -13,6 +16,7 @@ export interface ProcessedArticle {
   url: string;
   summary: string;
   locationPin: LocationPin | null;
+  topic: (typeof newsTopicList)[number];
 }
 
 export interface RSSFeedResult {
@@ -32,6 +36,11 @@ interface RSSItem {
 
 interface LocationMatch {
   location: string;
+  confidence: number;
+}
+
+interface CategoryMatch {
+  category: (typeof newsTopicList)[number];
   confidence: number;
 }
 
@@ -73,17 +82,16 @@ export class LocationExtractor {
     const content = await this.fetchContent(item.link);
     const fullText = this.combineText(item, content);
 
-    const locations = this.extractLocations(fullText);
-    const locationPin =
-      locations.length > 0
-        ? await this.geocodeLocation(locations[0].location)
-        : null;
+    const location = this.extractBestLocation(fullText);
+    const category = this.extractBestCategory(fullText);
+    const locationPin = await this.geocodeLocation(location?.location || "");
 
     return {
-      title: item.title || "Untitled",
-      url: item.link,
-      summary: item.contentSnippet || item.content || "",
       locationPin,
+      url: item.link,
+      title: item.title || "Untitled",
+      topic: category?.category || "other",
+      summary: item.contentSnippet || item.content || "",
     };
   }
 
@@ -98,43 +106,11 @@ export class LocationExtractor {
       });
 
       const $ = cheerio.load(data);
-      $(
-        [
-          "script",
-          "style",
-          "nav",
-          "header",
-          "footer",
-          "aside",
-          "noscript",
-          "iframe",
-          "object",
-          "embed",
-          "form",
-          "input",
-          "button",
-          "select",
-          "textarea",
-          "canvas",
-          "svg",
-          "video",
-          "audio",
-        ].join(", ")
-      ).remove();
+      const removable = `script, style, nav, header, footer, aside, noscript, iframe, object, embed, form, input, button, select, textarea, canvas, svg, video, audio`;
+      const addable = `article, .article-content, .entry-content, .post-content, .content-body, main, .content, .text-content, body`;
 
-      return $(
-        [
-          "article",
-          ".article-content",
-          ".entry-content",
-          ".post-content",
-          ".content-body",
-          "main",
-          ".content",
-          ".text-content",
-          "body",
-        ].join(", ")
-      )
+      $(removable).remove();
+      return $(addable)
         .first()
         .text()
         .replace(/\s+/g, " ")
@@ -151,96 +127,74 @@ export class LocationExtractor {
       .trim();
   }
 
-  private extractLocations(text: string): LocationMatch[] {
-    const locations = new Map<string, LocationMatch>();
-
+  private extractBestLocation(text: string): LocationMatch | null {
     const patterns = [
       {
-        regex:
-          /\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*),\s+([A-Z]{2,}),\s+([A-Z][a-z]+)\b/g,
+        regex: /\b([A-Z][a-z]+),\s+([A-Z]{2,}),\s+([A-Z][a-z]+)\b/g,
         confidence: 0.9,
       },
+      { regex: /\b([A-Z][a-z]+),\s+([A-Z]{2,})\b/g, confidence: 0.8 },
       {
-        regex: /\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*),\s+([A-Z]{2,})\b/g,
-        confidence: 0.8,
-      },
-      {
-        regex: /\b(?:in|at|from)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,2})\b/g,
+        regex: /(?:in|at|from)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)/g,
         confidence: 0.6,
       },
     ];
 
-    patterns.forEach(({ regex, confidence }) => {
-      let match;
-      while ((match = regex.exec(text)) !== null) {
-        const location = match[0].replace(/^(?:in|at|from)\s+/i, "").trim();
+    let bestMatch: LocationMatch | null = null;
 
+    for (const { regex, confidence } of patterns) {
+      const match = regex.exec(text);
+      if (match && (!bestMatch || confidence > bestMatch.confidence)) {
+        const location = match[0].replace(/^(?:in|at|from)\s+/i, "").trim();
         if (this.isValidLocation(location)) {
-          const key = location.toLowerCase();
-          if (
-            !locations.has(key) ||
-            locations.get(key)!.confidence < confidence
-          ) {
-            locations.set(key, { location, confidence });
-          }
+          bestMatch = { location, confidence };
         }
       }
-    });
+    }
 
-    return Array.from(locations.values())
-      .sort((a, b) => b.confidence - a.confidence)
-      .slice(0, 3);
+    return bestMatch;
+  }
+
+  private extractBestCategory(text: string): CategoryMatch | null {
+    const textLower = text.toLowerCase();
+    let bestMatch: CategoryMatch | null = null;
+
+    for (const [category, keywords] of Object.entries(CATEGORY_KEYWORDS)) {
+      const matches = keywords.filter((keyword) =>
+        textLower.includes(keyword)
+      ).length;
+
+      if (matches > 0) {
+        const confidence = Math.min(0.95, (matches / keywords.length) * 0.9);
+
+        if (!bestMatch || confidence > bestMatch.confidence) {
+          bestMatch = {
+            category: category as (typeof newsTopicList)[number],
+            confidence,
+          };
+        }
+      }
+    }
+
+    return bestMatch;
   }
 
   private isValidLocation(location: string): boolean {
-    const invalidTerms = [
-      "News",
-      "Reuters",
-      "AP",
-      "CNN",
-      "BBC",
-      "Today",
-      "Police",
-    ];
-    const dayNames = [
-      "Monday",
-      "Tuesday",
-      "Wednesday",
-      "Thursday",
-      "Friday",
-      "Saturday",
-      "Sunday",
-    ];
-    const months = [
-      "January",
-      "February",
-      "March",
-      "April",
-      "May",
-      "June",
-      "July",
-      "August",
-      "September",
-      "October",
-      "November",
-      "December",
-    ];
-
     return (
       location.length > 2 &&
       location.length < 50 &&
       /^[A-Z]/.test(location) &&
-      !invalidTerms.includes(location) &&
-      !dayNames.some((day) => location.startsWith(day)) &&
-      !months.some((month) => location.startsWith(month))
+      !LOCATION_VALIDATOR.invalidTerms.includes(location) &&
+      !LOCATION_VALIDATOR.dayNames.some((day) => location.startsWith(day)) &&
+      !LOCATION_VALIDATOR.months.some((month) => location.startsWith(month))
     );
   }
 
   private async geocodeLocation(location: string): Promise<LocationPin | null> {
+    if (!location) return null;
     try {
       const axios = require("axios");
 
-      // Using free Nominatim API
       const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
         location
       )}&limit=1&addressdetails=1`;
@@ -256,7 +210,7 @@ export class LocationExtractor {
         return {
           latitude: result.lat,
           longitude: result.lon,
-          location: location,
+          location,
           city: address.city || address.town || address.village || "",
           state: address.state || "",
           country: address.country || "",

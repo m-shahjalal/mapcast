@@ -5,6 +5,7 @@ import { newsSource } from "./news-source.schema";
 import { relations } from "drizzle-orm";
 import { createInsertSchema, createUpdateSchema } from "drizzle-zod";
 import { z } from "zod";
+import { newsTopicEnum } from "./enum.schema";
 
 export const news = pgTable(
   "news",
@@ -16,13 +17,14 @@ export const news = pgTable(
     sourceId: foreignId("source_id", () => newsSource.id),
     newsUrl: varchar("news_url", { length: 500 }).notNull().unique(),
 
-    // Location data stored directly in news table
     locationName: varchar("location_name", { length: 255 }),
     locationCity: varchar("location_city", { length: 255 }),
     locationState: varchar("location_state", { length: 255 }),
     locationCountry: varchar("location_country", { length: 255 }),
     latitude: decimal("latitude", { precision: 10, scale: 7 }),
     longitude: decimal("longitude", { precision: 10, scale: 7 }),
+
+    topic: newsTopicEnum("topic").notNull(),
 
     ...timestamps,
   },
@@ -50,6 +52,8 @@ export const createNewNewsSchema = createInsertSchema(news).pick({
   locationCountry: true,
   latitude: true,
   longitude: true,
+  newsUrl: true,
+  topic: true,
 });
 
 export const updateNewsSchema = createUpdateSchema(news);

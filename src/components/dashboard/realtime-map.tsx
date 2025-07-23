@@ -1,27 +1,40 @@
-"use client"
+"use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Globe, MapPin, Activity, Maximize2, RefreshCw } from "lucide-react"
-import { useState, useEffect } from "react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Globe, MapPin, Activity, Maximize2, RefreshCw } from "lucide-react";
+import { useState, useEffect } from "react";
 
 export function RealTimeMap() {
   const [activeRegions, setActiveRegions] = useState([
     { region: "North America", count: 1247, color: "bg-blue-500", pulse: true },
     { region: "Europe", count: 892, color: "bg-green-500", pulse: false },
     { region: "Asia", count: 1456, color: "bg-purple-500", pulse: true },
-    { region: "South America", count: 234, color: "bg-orange-500", pulse: false },
+    {
+      region: "South America",
+      count: 234,
+      color: "bg-orange-500",
+      pulse: false,
+    },
     { region: "Africa", count: 345, color: "bg-teal-500", pulse: false },
     { region: "Oceania", count: 123, color: "bg-pink-500", pulse: false },
-  ])
+  ]);
 
   const [recentActivity, setRecentActivity] = useState([
-    { location: "New York, US", event: "Breaking news", time: "1m ago", type: "urgent" },
-    { location: "London, UK", event: "Political update", time: "2m ago", type: "normal" },
-    { location: "Tokyo, JP", event: "Tech announcement", time: "3m ago", type: "normal" },
-    { location: "Sydney, AU", event: "Sports news", time: "5m ago", type: "normal" },
-  ])
+    {
+      location: "New York, US",
+      event: "Breaking news",
+      time: "1m ago",
+      type: "urgent",
+    },
+    {
+      location: "London, UK",
+      event: "Political update",
+      time: "2m ago",
+      type: "normal",
+    },
+  ]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -30,12 +43,12 @@ export function RealTimeMap() {
           ...region,
           count: region.count + Math.floor(Math.random() * 3),
           pulse: Math.random() > 0.7,
-        })),
-      )
-    }, 5000)
+        }))
+      );
+    }, 5000);
 
-    return () => clearInterval(interval)
-  }, [])
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-xl">
@@ -46,7 +59,10 @@ export function RealTimeMap() {
             Real-time Global Activity
           </span>
           <div className="flex items-center space-x-2">
-            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+            <Badge
+              variant="outline"
+              className="bg-green-50 text-green-700 border-green-200"
+            >
               <Activity className="h-3 w-3 mr-1" />
               Live
             </Badge>
@@ -76,7 +92,9 @@ export function RealTimeMap() {
             {activeRegions.map((region, index) => (
               <div
                 key={region.region}
-                className={`absolute w-4 h-4 ${region.color} rounded-full ${region.pulse ? "animate-ping" : ""}`}
+                className={`absolute w-4 h-4 ${region.color} rounded-full ${
+                  region.pulse ? "animate-ping" : ""
+                }`}
                 style={{
                   top: `${20 + index * 15}%`,
                   left: `${15 + index * 12}%`,
@@ -98,8 +116,15 @@ export function RealTimeMap() {
         {/* Regional stats */}
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 mt-4">
           {activeRegions.map((region) => (
-            <div key={region.region} className="flex items-center space-x-2 p-2 bg-gray-50 rounded-lg">
-              <div className={`w-3 h-3 ${region.color} rounded-full ${region.pulse ? "animate-pulse" : ""}`}></div>
+            <div
+              key={region.region}
+              className="flex items-center space-x-2 p-2 bg-gray-50 rounded-lg"
+            >
+              <div
+                className={`w-3 h-3 ${region.color} rounded-full ${
+                  region.pulse ? "animate-pulse" : ""
+                }`}
+              ></div>
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-medium truncate">{region.region}</p>
                 <p className="text-sm font-bold">{region.count}</p>
@@ -110,15 +135,26 @@ export function RealTimeMap() {
 
         {/* Recent activity */}
         <div className="mt-4 space-y-2">
-          <h4 className="text-sm font-medium text-gray-700 mb-2">Recent Activity</h4>
+          <h4 className="text-sm font-medium text-gray-700 mb-2">
+            Recent Activity
+          </h4>
           {recentActivity.map((activity, index) => (
-            <div key={index} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 transition-colors">
+            <div
+              key={index}
+              className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 transition-colors"
+            >
               <div
-                className={`w-2 h-2 rounded-full ${activity.type === "urgent" ? "bg-red-500 animate-pulse" : "bg-blue-500"}`}
+                className={`w-2 h-2 rounded-full ${
+                  activity.type === "urgent"
+                    ? "bg-red-500 animate-pulse"
+                    : "bg-blue-500"
+                }`}
               ></div>
               <MapPin className="h-3 w-3 text-gray-400" />
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium truncate">{activity.location}</p>
+                <p className="text-xs font-medium truncate">
+                  {activity.location}
+                </p>
                 <p className="text-xs text-gray-500">{activity.event}</p>
               </div>
               <span className="text-xs text-gray-400">{activity.time}</span>
@@ -127,5 +163,5 @@ export function RealTimeMap() {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

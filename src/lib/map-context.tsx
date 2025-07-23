@@ -7,6 +7,7 @@ import React, {
   useMemo,
   ReactNode,
 } from "react";
+import { MAP_LAYERS } from "./map-constraint";
 
 export interface LocationData {
   lat: number;
@@ -16,8 +17,9 @@ export interface LocationData {
 }
 
 export interface TopicItem {
-  icon: React.ReactNode;
-  label: string;
+  topic: string;
+  emoji: string;
+  color: string;
 }
 
 export interface MapState {
@@ -27,6 +29,8 @@ export interface MapState {
   searchQuery: string;
   searchResults: LocationData[];
   isLoading: boolean;
+  topics: TopicItem[];
+  currentLayer: keyof typeof MAP_LAYERS;
 }
 
 export interface MapActions {
@@ -37,6 +41,8 @@ export interface MapActions {
   setSearchResults: (results: LocationData[]) => void;
   clearSearch: () => void;
   selectLocation: (location: LocationData) => void;
+  setTopics: (topics: TopicItem[]) => void;
+  setCurrentLayer: (layer: keyof typeof MAP_LAYERS) => void;
 }
 
 type MapContextType = MapState & MapActions;
@@ -50,7 +56,9 @@ type MapAction =
   | { type: "SET_SEARCH_RESULTS"; payload: LocationData[] }
   | { type: "SET_LOADING"; payload: boolean }
   | { type: "CLEAR_SEARCH" }
-  | { type: "SELECT_LOCATION"; payload: LocationData };
+  | { type: "SELECT_LOCATION"; payload: LocationData }
+  | { type: "SET_TOPICS"; payload: TopicItem[] }
+  | { type: "SET_CURRENT_LAYER"; payload: keyof typeof MAP_LAYERS };
 
 const initialState: MapState = {
   center: [34.052235, -118.243683],
@@ -59,6 +67,8 @@ const initialState: MapState = {
   searchQuery: "",
   searchResults: [],
   isLoading: false,
+  topics: [],
+  currentLayer: "openstreetmap",
 };
 
 function mapReducer(state: MapState, action: MapAction): MapState {
@@ -89,6 +99,10 @@ function mapReducer(state: MapState, action: MapAction): MapState {
         center: [action.payload.lat, action.payload.lng],
         zoom: 15,
       };
+    case "SET_TOPICS":
+      return { ...state, topics: action.payload };
+    case "SET_CURRENT_LAYER":
+      return { ...state, currentLayer: action.payload };
     default:
       return state;
   }
@@ -101,7 +115,7 @@ interface MapProviderProps {
 export function MapProvider({ children }: MapProviderProps) {
   const [state, dispatch] = useReducer(mapReducer, initialState);
 
-  const actions: MapActions = useMemo(
+  const actions = useMemo<MapActions>(
     () => ({
       setCenter: (center: [number, number]) =>
         dispatch({ type: "SET_CENTER", payload: center }),
@@ -115,6 +129,10 @@ export function MapProvider({ children }: MapProviderProps) {
       clearSearch: () => dispatch({ type: "CLEAR_SEARCH" }),
       selectLocation: (location: LocationData) =>
         dispatch({ type: "SELECT_LOCATION", payload: location }),
+      setTopics: (topics: TopicItem[]) =>
+        dispatch({ type: "SET_TOPICS", payload: topics }),
+      setCurrentLayer: (layer: keyof typeof MAP_LAYERS) =>
+        dispatch({ type: "SET_CURRENT_LAYER", payload: layer }),
     }),
     []
   );

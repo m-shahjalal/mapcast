@@ -56,7 +56,7 @@ export function Combobox({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="flex items-center max-w-[200px] justify-start bg-white rounded-full shadow-md h-12 pr-2 min-w-xs"
+          className="flex items-center max-w-[200px] justify-start bg-white rounded-full shadow-md h-12 pr-2 min-w-xs mb-4"
         >
           <Search className="h-5 w-5 text-muted-foreground mr-2" />
           <span className="truncate overflow-hidden whitespace-nowrap">

@@ -1,16 +1,26 @@
-"use client"
+"use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { LineChart, BarChart3, TrendingUp, Download, Filter } from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  LineChart,
+  BarChart3,
+  TrendingUp,
+  Download,
+  Filter,
+} from "lucide-react";
 
 interface AdvancedChartProps {
-  title: string
-  timeRange: string
-  onTimeRangeChange: (range: string) => void
+  title: string;
+  timeRange: string;
+  onTimeRangeChange: (range: string) => void;
 }
 
-export function AdvancedChart({ title, timeRange, onTimeRangeChange }: AdvancedChartProps) {
+export function AdvancedChart({
+  title,
+  timeRange,
+  onTimeRangeChange,
+}: AdvancedChartProps) {
   return (
     <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-xl">
       <CardHeader>
@@ -49,13 +59,19 @@ export function AdvancedChart({ title, timeRange, onTimeRangeChange }: AdvancedC
           </div>
 
           <div className="text-center z-10">
-            <BarChart3 className="h-16 w-16 mx-auto mb-4 text-blue-500 animate-bounce" />
-            <p className="text-lg font-semibold text-gray-700">Interactive Chart Visualization</p>
-            <p className="text-sm text-gray-500 mt-2">Real-time article processing data</p>
+            <BarChart3 className="h-16 w-16 mx-auto mb-4 text-blue-500" />
+            <p className="text-lg font-semibold text-gray-700">
+              Interactive Chart Visualization
+            </p>
+            <p className="text-sm text-gray-500 mt-2">
+              Real-time article processing data
+            </p>
             <div className="flex items-center justify-center mt-4 space-x-4">
               <div className="flex items-center space-x-2">
                 <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                <span className="text-xs text-gray-600">Articles Processed</span>
+                <span className="text-xs text-gray-600">
+                  Articles Processed
+                </span>
               </div>
               <div className="flex items-center space-x-2">
                 <div className="w-3 h-3 bg-green-500 rounded-full"></div>
@@ -98,5 +114,5 @@ export function AdvancedChart({ title, timeRange, onTimeRangeChange }: AdvancedC
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

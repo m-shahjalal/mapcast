@@ -1,16 +1,22 @@
 {
   "cSpell.words": [
     "addressdetails",
+    "Aerogrid",
+    "CARTO",
+    "FIFA",
+    "Getmapping",
     "ilike",
     "latlng",
     "locationerror",
     "locationfound",
     "Nominatim",
+    "openstreetmap",
     "paralleldrive",
     "sonner",
     "turbopack",
     "uidotdev",
     "usehooks",
+    "USGS",
     "zoomend"
   ]
 }

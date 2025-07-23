@@ -17,6 +17,7 @@ import {
   Activity,
   BarChart3,
   MapPinCheck,
+  Newspaper,
   RefreshCw,
   Rss,
   Server,
@@ -48,15 +49,16 @@ export function AppAdminSidebar() {
       icon: Rss,
     },
     {
+      id: "news",
+      title: "News List",
+      icon: Newspaper,
+    },
+    {
       id: "analytics",
       title: "Analytics",
       icon: Activity,
     },
-    {
-      id: "system",
-      title: "System",
-      icon: Server,
-    },
+
     {
       id: "users",
       title: "User Management",

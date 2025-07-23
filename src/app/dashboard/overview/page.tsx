@@ -55,7 +55,7 @@ export default function Page() {
   return (
     <div className="space-y-6">
       {/* Enhanced Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
         <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white border-0 shadow-xl">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -98,28 +98,6 @@ export default function Page() {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-purple-500 to-purple-600 text-white border-0 shadow-xl">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-purple-100 text-sm font-medium">
-                  Active Users
-                </p>
-                <p className="text-3xl font-bold">
-                  {stats.activeUsers.toLocaleString()}
-                </p>
-                <div className="flex items-center mt-2">
-                  {getTrendIcon(15.3)}
-                  <span className="text-xs text-purple-100 ml-1">
-                    +15.3% vs last week
-                  </span>
-                </div>
-              </div>
-              <Users className="h-8 w-8 text-purple-200" />
-            </div>
-          </CardContent>
-        </Card>
-
         <Card className="bg-gradient-to-br from-orange-500 to-orange-600 text-white border-0 shadow-xl">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -138,26 +116,6 @@ export default function Page() {
                 </div>
               </div>
               <Eye className="h-8 w-8 text-orange-200" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-indigo-500 to-indigo-600 text-white border-0 shadow-xl">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-indigo-100 text-sm font-medium">API Calls</p>
-                <p className="text-3xl font-bold">
-                  {stats.apiCalls.toLocaleString()}
-                </p>
-                <div className="flex items-center mt-2">
-                  {getTrendIcon(5.8)}
-                  <span className="text-xs text-indigo-100 ml-1">
-                    +5.8% vs yesterday
-                  </span>
-                </div>
-              </div>
-              <Zap className="h-8 w-8 text-indigo-200" />
             </div>
           </CardContent>
         </Card>
@@ -181,102 +139,53 @@ export default function Page() {
         </Card>
       </div>
 
-      {/* Enhanced System Metrics */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-xl">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center text-lg">
-              <Cpu className="h-5 w-5 mr-2 text-blue-600" />
-              CPU Usage
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Current</span>
-                <span className="text-2xl font-bold text-blue-600">
-                  {stats.cpuUsage.toFixed(1)}%
-                </span>
-              </div>
-              <Progress value={stats.cpuUsage} className="h-3" />
-              <div className="flex justify-between text-xs text-gray-500">
-                <span>Optimal: &lt;70%</span>
-                <span
-                  className={
-                    stats.cpuUsage > 70 ? "text-red-500" : "text-green-500"
-                  }
-                >
-                  {stats.cpuUsage > 70 ? "High" : "Normal"}
-                </span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-xl">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center text-lg">
-              <MemoryStick className="h-5 w-5 mr-2 text-green-600" />
-              Memory Usage
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Current</span>
-                <span className="text-2xl font-bold text-green-600">
-                  {stats.memoryUsage.toFixed(1)}%
-                </span>
-              </div>
-              <Progress value={stats.memoryUsage} className="h-3" />
-              <div className="flex justify-between text-xs text-gray-500">
-                <span>Optimal: &lt;80%</span>
-                <span
-                  className={
-                    stats.memoryUsage > 80 ? "text-red-500" : "text-green-500"
-                  }
-                >
-                  {stats.memoryUsage > 80 ? "High" : "Normal"}
-                </span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-xl">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center text-lg">
-              <HardDrive className="h-5 w-5 mr-2 text-purple-600" />
-              Storage Usage
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Current</span>
-                <span className="text-2xl font-bold text-purple-600">
-                  {stats.storageUsed.toFixed(1)}%
-                </span>
-              </div>
-              <Progress value={stats.storageUsed} className="h-3" />
-              <div className="flex justify-between text-xs text-gray-500">
-                <span>Total: 1TB</span>
-                <span className="text-gray-600">
-                  {(stats.storageUsed * 10.24).toFixed(1)}GB used
-                </span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        <AdvancedChart
-          title="Article Processing Timeline"
-          timeRange={timeRange}
-          onTimeRangeChange={setTimeRange}
-        />
         <RealTimeMap />
+        <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-xl">
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              <span className="flex items-center">
+                <Globe className="h-5 w-5 mr-2" />
+                Geographic Distribution
+              </span>
+              <Button variant="ghost" size="sm">
+                <Search className="h-4 w-4" />
+              </Button>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {[
+                { country: "United States", count: 2341, flag: "🇺🇸" },
+                { country: "United Kingdom", count: 1876, flag: "🇬🇧" },
+                { country: "Germany", count: 1234, flag: "🇩🇪" },
+                { country: "France", count: 987, flag: "🇫🇷" },
+                { country: "Japan", count: 876, flag: "🇯🇵" },
+                { country: "Canada", count: 654, flag: "🇨🇦" },
+                { country: "Australia", count: 543, flag: "🇦🇺" },
+                { country: "Other", count: 1432, flag: "🌍" },
+              ].map((item, index) => (
+                <div
+                  key={item.country}
+                  className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  <div className="flex items-center space-x-3">
+                    <span className="text-lg">{item.flag}</span>
+                    <span className="font-medium">{item.country}</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm text-gray-500">
+                      {item.count} articles
+                    </span>
+                    <Badge variant="outline" className="text-xs">
+                      #{index + 1}
+                    </Badge>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -356,52 +265,11 @@ export default function Page() {
             </div>
           </CardContent>
         </Card>
-
-        <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-xl">
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <span className="flex items-center">
-                <Globe className="h-5 w-5 mr-2" />
-                Geographic Distribution
-              </span>
-              <Button variant="ghost" size="sm">
-                <Search className="h-4 w-4" />
-              </Button>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {[
-                { country: "United States", count: 2341, flag: "🇺🇸" },
-                { country: "United Kingdom", count: 1876, flag: "🇬🇧" },
-                { country: "Germany", count: 1234, flag: "🇩🇪" },
-                { country: "France", count: 987, flag: "🇫🇷" },
-                { country: "Japan", count: 876, flag: "🇯🇵" },
-                { country: "Canada", count: 654, flag: "🇨🇦" },
-                { country: "Australia", count: 543, flag: "🇦🇺" },
-                { country: "Other", count: 1432, flag: "🌍" },
-              ].map((item, index) => (
-                <div
-                  key={item.country}
-                  className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  <div className="flex items-center space-x-3">
-                    <span className="text-lg">{item.flag}</span>
-                    <span className="font-medium">{item.country}</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <span className="text-sm text-gray-500">
-                      {item.count} articles
-                    </span>
-                    <Badge variant="outline" className="text-xs">
-                      #{index + 1}
-                    </Badge>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        <AdvancedChart
+          title="Article Processing Timeline"
+          timeRange={timeRange}
+          onTimeRangeChange={setTimeRange}
+        />
       </div>
     </div>
   );
