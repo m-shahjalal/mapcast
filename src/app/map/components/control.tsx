@@ -1,6 +1,5 @@
 "use client";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useMapControls } from "@/hooks/use-map-controls";
 import { MAP_LAYERS } from "@/lib/map-constraint";
@@ -165,17 +164,10 @@ function LayerSelector() {
 }
 
 export function MapControls() {
-  const { zoomIn, zoomOut, locateUser, currentLayer, setCurrentLayer } =
-    useMapControls();
-
-  const handleLayerChange = (layer: LayerKey) => {
-    setCurrentLayer(layer);
-    console.log(`Map layer changed to: ${layer}`);
-  };
+  const { zoomIn, zoomOut, locateUser } = useMapControls();
 
   return (
     <div className="flex items-center flex-col-reverse gap-2">
-      {/* Zoom In Button */}
       <Button
         size="icon"
         variant="outline"
@@ -186,7 +178,6 @@ export function MapControls() {
         <Plus className="h-4 w-4" />
       </Button>
 
-      {/* Zoom Out Button */}
       <Button
         size="icon"
         variant="outline"
@@ -197,7 +188,6 @@ export function MapControls() {
         <Minus className="h-4 w-4" />
       </Button>
 
-      {/* Locate User Button */}
       <Button
         size="icon"
         variant="outline"
@@ -208,21 +198,7 @@ export function MapControls() {
         <Locate className="h-4 w-4" />
       </Button>
 
-      {/* LayerSelector: Placed before the Avatar button in JSX to appear visually below it due to flex-col-reverse */}
       <LayerSelector />
-
-      {/* User Profile Avatar Button */}
-      <Button
-        variant="ghost"
-        size="icon"
-        className="rounded-full shadow-md bg-white h-10 w-10 overflow-hidden p-0"
-        aria-label="User profile"
-      >
-        <Avatar className="h-8 w-8">
-          <AvatarImage src="https://github.com/m-shahjalal.png" alt="Profile" />
-          <AvatarFallback>JS</AvatarFallback>
-        </Avatar>
-      </Button>
     </div>
   );
 }

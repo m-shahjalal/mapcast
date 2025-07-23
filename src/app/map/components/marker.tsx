@@ -18,14 +18,12 @@ interface LocationData {
   topic?: string;
 }
 
-interface FancyMarkerProps {
+interface NewsMarkerProps {
   location: LocationData | null;
   color?: string;
-  showTooltip?: boolean;
   size?: "small" | "medium" | "large";
   pulseAnimation?: boolean;
   emoji?: string;
-  onLinkClick?: (url: string) => void;
 }
 
 // Coordinate validation and normalization
@@ -35,13 +33,8 @@ const normalizeCoords = (location: LocationData): [number, number] | null => {
   const lng = location.lng || location.lon;
   const lngNum = typeof lng === "string" ? parseFloat(lng) : lng;
 
-  if (!lat || !lngNum || isNaN(lat) || isNaN(lngNum)) {
-    return null;
-  }
-
-  if (lat < -90 || lat > 90 || lngNum < -180 || lngNum > 180) {
-    return null;
-  }
+  if (!lat || !lngNum || isNaN(lat) || isNaN(lngNum)) return null;
+  if (lat < -90 || lat > 90 || lngNum < -180 || lngNum > 180) return null;
 
   return [lat, lngNum];
 };
@@ -67,7 +60,7 @@ const formatDate = (date: Date | string | undefined): string => {
 // Truncate text helper
 const truncateText = (text: string, maxLength: number): string => {
   if (text.length <= maxLength) return text;
-  return text.substring(0, maxLength).trim() + "...";
+  return `${text.substring(0, maxLength).trim()}...`;
 };
 
 const createEnhancedIcon = (
@@ -107,54 +100,29 @@ const createEnhancedIcon = (
   return L.divIcon({
     className: "enhanced-marker-custom",
     html: `
-      <div class="marker-container" style="
-        position: relative;
+      <div class="marker-container relative bg-gradient-to-br rounded-full border-white border-4 cursor-pointer transition-all duration-300 ease-out shadow-lg hover:scale-115 hover:z-[1000]" style="
         width: ${width}px;
         height: ${height}px;
         background: linear-gradient(135deg, ${color} 0%, ${color}cc 100%);
-        border: 3px solid white;
-        border-radius: 50%;
-        cursor: pointer;
         transform: translate(-50%, -50%);
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         ${animationStyle}
-        box-shadow: 0 ${shadow / 3}px ${shadow}px rgba(0,0,0,0.15);
       ">
-        <div class="marker-emoji" style="
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
+        <div class="marker-emoji absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 select-none transition-all duration-200 hover:scale-110" style="
           font-size: ${emojiSize}px;
           line-height: 1;
-          user-select: none;
-          transition: all 0.2s ease;
         ">${emoji}</div>
-        <div class="marker-ring" style="
-          position: absolute;
-          top: -2px;
-          left: -2px;
-          right: -2px;
-          bottom: -2px;
-          border: 2px solid ${color}30;
-          border-radius: 50%;
-          opacity: 0;
-          transition: all 0.3s ease;
+        <div class="marker-ring absolute -inset-0.5 border-2 rounded-full opacity-0 transition-all duration-300 hover:opacity-100 hover:scale-120" style="
+          border-color: ${color}30;
         "></div>
       </div>
       <style>
         ${pulseKeyframes}
         .marker-container:hover {
-          transform: translate(-50%, -50%) scale(1.15) !important;
           animation: bounce 0.6s ease-in-out !important;
-          z-index: 1000 !important;
         }
-        .marker-container:hover .marker-ring {
-          opacity: 1 !important;
-          transform: scale(1.2) !important;
-        }
-        .marker-container:hover .marker-emoji {
-          transform: translate(-50%, -50%) scale(1.1) !important;
+        @keyframes bounce {
+          0%, 20%, 53%, 80%, 100% { transform: translate(-50%, -50%) scale(1.15); }
+          40%, 43% { transform: translate(-50%, -50%) scale(1.25); }
         }
       </style>
     `,
@@ -165,15 +133,13 @@ const createEnhancedIcon = (
   });
 };
 
-export const FancyMarker = memo<FancyMarkerProps>(
+export const NewsMarker = memo<NewsMarkerProps>(
   ({
     location,
     color = "#3b82f6",
-    showTooltip = true,
     size = "medium",
     pulseAnimation = true,
     emoji = "📰",
-    onLinkClick,
   }) => {
     const position = useMemo(() => {
       if (!location) return null;
@@ -202,28 +168,25 @@ export const FancyMarker = memo<FancyMarkerProps>(
           className="!shadow-lg !rounded-lg !p-2 !border"
           permanent={false}
         >
-          <div>
-            <div className="text-lg mb-4">{truncateText(displayTitle, 30)}</div>
+          <div className="space-y-2">
+            <div className="text-lg font-medium text-gray-900">
+              {truncateText(displayTitle, 30)}
+            </div>
 
-            <div>
+            <div className="space-y-1">
               {location.source && (
-                <div>
-                  <span>📰</span> {truncateText(location.newsUrl ?? "", 20)}
+                <div className="flex items-center gap-1.5 text-sm text-gray-600">
+                  <span className="flex-shrink-0">📰</span>
+                  <span className="truncate">
+                    {truncateText(location.newsUrl ?? "", 20)}
+                  </span>
                 </div>
               )}
 
               {formattedDate && (
-                <div
-                  style={{
-                    fontSize: "11px",
-                    color: "#6b7280",
-                    fontWeight: "500",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "4px",
-                  }}
-                >
-                  <span>📅</span> {formattedDate}
+                <div className="flex items-center gap-1 text-xs text-gray-500 font-medium">
+                  <span className="flex-shrink-0">📅</span>
+                  <span>{formattedDate}</span>
                 </div>
               )}
             </div>
@@ -231,111 +194,56 @@ export const FancyMarker = memo<FancyMarkerProps>(
         </Tooltip>
 
         <Popup minWidth={200} maxWidth={320} closeButton={true}>
-          <div
-            style={{
-              padding: "14px 10px",
-              lineHeight: "1.5",
-              fontFamily:
-                "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-              background: "rgba(255, 255, 255, 0.98)",
-            }}
-          >
+          <div className="p-3.5 leading-relaxed font-sans bg-gradient-to-br from-white to-gray-50">
+            {/* Header */}
             <div
-              style={{
-                fontWeight: "700",
-                fontSize: "16px",
-                marginBottom: hasDetails ? "12px" : "0",
-                color: "#111827",
-                lineHeight: "1.3",
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-              }}
+              className={`flex items-center gap-2 font-bold text-base text-gray-900 leading-tight ${
+                hasDetails ? "mb-3" : ""
+              }`}
             >
-              <span style={{ fontSize: "18px" }}>{emoji}</span>
-              <span>{displayTitle}</span>
+              <span className="text-lg">{emoji}</span>
+              <span className="flex-1 min-w-0">{displayTitle}</span>
             </div>
 
+            {/* Summary */}
             {location.summary && (
               <div
-                style={{
-                  fontSize: "14px",
-                  color: "#4b5563",
-                  marginBottom: "14px",
-                  lineHeight: "1.4",
-                  padding: "10px",
-                  background: "#f9fafb",
-                  borderLeft: `3px solid ${color}`,
-                  borderRadius: "0 6px 6px 0",
-                }}
+                className="text-sm text-gray-600 mb-3.5 p-2.5 bg-gray-50 rounded-r-md leading-relaxed"
+                style={{ borderLeft: `3px solid ${color}` }}
               >
                 {truncateText(location.summary, 120)}
               </div>
             )}
 
+            {/* Details Grid */}
             {hasDetails && (
               <div
-                style={{
-                  display: "grid",
-                  gap: "8px",
-                  marginBottom:
-                    location.newsUrl || location.slug ? "16px" : "0",
-                  padding: "12px",
-                  background: "#f8fafc",
-                  borderRadius: "8px",
-                  border: `1px solid ${color}15`,
-                }}
+                className="grid gap-2 p-3 bg-slate-50 rounded-lg border mb-4"
+                style={{ borderColor: `${color}15` }}
               >
                 {location.newsUrl && (
-                  <div
-                    style={{
-                      fontSize: "13px",
-                      color: "#374151",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "6px",
-                      fontWeight: "500",
-                    }}
-                  >
-                    <span style={{ minWidth: "16px" }}>📰</span>
-                    <span className="truncate w-2/3 overflow-hidden">
-                      <Link href={location.newsUrl}>{location.newsUrl}</Link>
-                    </span>
+                  <div className="flex items-center gap-1.5 text-sm text-gray-700 font-medium min-w-0">
+                    <span className="flex-shrink-0">📰</span>
+                    <Link
+                      href={location.newsUrl}
+                      className="truncate min-w-0 hover:text-blue-600 transition-colors"
+                    >
+                      {location.newsUrl}
+                    </Link>
                   </div>
                 )}
 
                 {formattedDate && (
-                  <div
-                    style={{
-                      fontSize: "13px",
-                      color: "#374151",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "6px",
-                      fontWeight: "500",
-                    }}
-                  >
-                    <span style={{ minWidth: "16px" }}>📅</span>
+                  <div className="flex items-center gap-1.5 text-sm text-gray-700 font-medium">
+                    <span className="flex-shrink-0 w-4">📅</span>
                     <span>{formattedDate}</span>
                   </div>
                 )}
 
                 {location.address && (
-                  <div
-                    style={{
-                      fontSize: "13px",
-                      color: "#374151",
-                      lineHeight: "1.3",
-                      display: "flex",
-                      alignItems: "flex-start",
-                      gap: "6px",
-                      fontWeight: "500",
-                    }}
-                  >
-                    <span style={{ minWidth: "16px", marginTop: "1px" }}>
-                      📍
-                    </span>
-                    <span className="whitespace-pre-wrap w-3xs">
+                  <div className="flex items-start gap-1.5 text-sm text-gray-700 font-medium leading-tight">
+                    <span className="flex-shrink-0 w-4 mt-0.5">📍</span>
+                    <span className="whitespace-pre-wrap break-words">
                       {location.address}
                     </span>
                   </div>
@@ -347,33 +255,19 @@ export const FancyMarker = memo<FancyMarkerProps>(
             {(location.newsUrl || location.slug) && (
               <button
                 onClick={() => (window.location.href = location.newsUrl ?? "")}
+                className="w-full px-4 py-2.5 text-white text-sm font-semibold rounded-lg transition-all duration-200 flex items-center justify-center gap-2 hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2"
                 style={{
-                  width: "100%",
-                  padding: "10px 16px",
                   background: `linear-gradient(135deg, ${color} 0%, ${color}dd 100%)`,
-                  color: "white",
-                  border: "none",
-                  borderRadius: "8px",
-                  fontSize: "14px",
-                  fontWeight: "600",
-                  cursor: "pointer",
-                  transition: "all 0.2s ease",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: "8px",
                   boxShadow: `0 2px 8px ${color}40`,
                 }}
-                onMouseOver={(e) => {
-                  e.currentTarget.style.transform = "translateY(-2px)";
+                onMouseEnter={(e) => {
                   e.currentTarget.style.boxShadow = `0 4px 16px ${color}50`;
                 }}
-                onMouseOut={(e) => {
-                  e.currentTarget.style.transform = "translateY(0)";
+                onMouseLeave={(e) => {
                   e.currentTarget.style.boxShadow = `0 2px 8px ${color}40`;
                 }}
               >
-                <span style={{ fontSize: "16px" }}>📖</span>
+                <span className="text-base">📖</span>
                 <span>Read Full Story</span>
               </button>
             )}
@@ -383,3 +277,5 @@ export const FancyMarker = memo<FancyMarkerProps>(
     );
   }
 );
+
+NewsMarker.displayName = "Marker";

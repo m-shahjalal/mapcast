@@ -1,10 +1,10 @@
 import { useMapContext } from "@/lib/map-context";
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import { useMap } from "react-leaflet";
 
 export function useMapControls() {
   const map = useMap();
-  const { setZoom, currentLayer, setCurrentLayer } = useMapContext();
+  const { setZoom } = useMapContext();
 
   const zoomIn = useCallback(() => {
     const newZoom = Math.min(map.getZoom() + 1, map.getMaxZoom());
@@ -35,5 +35,16 @@ export function useMapControls() {
     map.on("locationerror", handleLocationError);
   }, [map, setZoom]);
 
-  return { zoomIn, zoomOut, locateUser, currentLayer, setCurrentLayer };
+  useEffect((): void | (() => void) => {
+    if (!map) return;
+
+    const handleZoomEnd = () => {
+      setZoom(map.getZoom());
+    };
+
+    map.on("zoomend", handleZoomEnd);
+    return () => map.off("zoomend", handleZoomEnd);
+  }, [map, setZoom]);
+
+  return { zoomIn, zoomOut, locateUser };
 }

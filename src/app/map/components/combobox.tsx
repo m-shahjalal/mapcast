@@ -67,7 +67,7 @@ export function Combobox({
       <PopoverContent className="min-w-[320px] h-full min-h-[calc(100vh/2)]">
         <Command className="h-full">
           <CommandInput
-            value={value} // Make CommandInput controlled by the 'value' state
+            value={value}
             onValueChange={onInputChange}
             placeholder="Search..."
             className="h-9"
@@ -76,12 +76,16 @@ export function Combobox({
             <CommandEmpty />
             {data?.map((i) => (
               <CommandItem
-                key={i.lat}
-                value={`${i.name}-${i.lat}-${i.lng}`} // Use a unique value for cmdk's internal logic
-                onSelect={() => handleSelect(i)} // Pass the item directly to the handler
+                key={i.lat + i.lng + i.name}
+                value={`${i.name}-${i.lat}-${i.lng}`}
+                onSelect={() => handleSelect(i)}
               >
                 <div className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-muted cursor-pointer transition-colors text-left h-fit">
-                  <MapPin className="h-4 w-4 text-muted-foreground shrink-0" />
+                  {i.address ? (
+                    <MapPin className="h-5 w-5 text-muted-foreground" />
+                  ) : (
+                    <Search className="h-5 w-5 text-muted-foreground" />
+                  )}
                   <div className="min-w-0 flex-1">
                     <div className="font-medium text-sm truncate">{i.name}</div>
                     <div className="text-xs text-muted-foreground">

@@ -2,14 +2,9 @@ import { NewsSelect, NewsSourceType as Source } from "@/server/schemas";
 import { ApiResponse as Response } from "@/types/api-response";
 import axios from "axios";
 
-const fetcher = axios.create({
-  baseURL:
-    process.env.NODE_ENV === "production"
-      ? "https://your-domain.com/"
-      : "http://localhost:3000/",
-  headers: {
-    "Content-Type": "application/json",
-  },
+export const fetcher = axios.create({
+  baseURL: `${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}/api`,
+  headers: { "Content-Type": "application/json" },
   validateStatus: (status) => status >= 200 && status < 500,
 });
 
@@ -45,24 +40,22 @@ fetcher.interceptors.response.use(
     };
   },
   (error) => {
-    let errorResponse: Response = {
-      success: false,
-      message: "Network error",
-      error: {
-        code: "NETWORK_ERROR",
-        message: "Please check your internet connection",
-      },
-      statusCode: 503,
-    };
-
-    if (error.response) {
-      errorResponse = {
-        success: false,
-        message: "No response from server",
-        error: { code: "NO_RESPONSE", message: "Server is unreachable" },
-        statusCode: 504,
-      };
-    }
+    const errorResponse: Response = error.response
+      ? {
+          success: false,
+          message: "No response from server",
+          error: { code: "NO_RESPONSE", message: "Server is unreachable" },
+          statusCode: 504,
+        }
+      : {
+          success: false,
+          message: "Network error",
+          error: {
+            code: "NETWORK_ERROR",
+            message: "Please check your internet connection",
+          },
+          statusCode: 503,
+        };
 
     return Promise.resolve(errorResponse);
   }
@@ -70,12 +63,15 @@ fetcher.interceptors.response.use(
 
 type Res<T> = Promise<Response<T>>;
 
-export const api = {
+const api = {
   rss: {
-    list: (): Promise<Response<Source[]>> => fetcher.get(`/api/rss`),
-    create: (d: any): Promise<Response<Source>> => fetcher.post(`/api/rss`, d),
+    list: (queries = ""): Res<Source[]> => fetcher.get(`/rss?${queries}`),
+    create: (d: any): Res<Source> => fetcher.post(`/rss`, d),
   },
   news: {
-    list: (): Res<NewsSelect[]> => fetcher.get("/api/news"),
+    map: (q = ""): Res<NewsSelect[]> => fetcher.get(`/news/map?${q}`),
+    list: (q = ""): Res<NewsSelect[]> => fetcher.get(`/news?${q}`),
   },
 };
+
+export default api;

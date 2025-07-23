@@ -90,16 +90,17 @@ export const NewsSourceService = {
       throw new Error(`Invalid RSS URL: ${urlValidation.error}`);
     }
 
-    const result = await db
+    const [result] = await db
       .insert(newsSource)
       .values({
         ...data,
         rssUrl: urlValidation.normalized,
         credibilityScore: data.credibilityScore.toString(),
       })
+      .onConflictDoNothing()
       .returning();
 
-    return result[0];
+    return result;
   },
 
   updateLastFetch: async (id: string) => {
@@ -193,12 +194,7 @@ export const NewsSourceService = {
     const sources = await db
       .select()
       .from(newsSource)
-      .where(
-        and(
-          eq(newsSource.isActive, true)
-          // or(isNull(newsSource.lastFetch), lt(newsSource.lastFetch, cutoffTime))
-        )
-      )
+      .where(and(eq(newsSource.isActive, true)))
       .orderBy(asc(newsSource.lastFetch));
 
     // Validate and normalize URLs
@@ -227,55 +223,6 @@ export const NewsSourceService = {
     return validatedSources;
   },
 
-  checkUniqueness: async (
-    domain?: string,
-    rssUrl?: string,
-    excludeId?: string
-  ) => {
-    const conditions = [];
-
-    if (domain) {
-      conditions.push(eq(newsSource.domain, domain));
-    }
-
-    if (rssUrl) {
-      conditions.push(eq(newsSource.rssUrl, rssUrl));
-    }
-
-    if (excludeId) {
-      conditions.push(eq(newsSource.id, excludeId));
-    }
-
-    if (conditions.length === 0) return { exists: false };
-
-    const query = db
-      .select({
-        id: newsSource.id,
-        domain: newsSource.domain,
-        rssUrl: newsSource.rssUrl,
-      })
-      .from(newsSource);
-
-    if (domain && rssUrl) {
-      query.where(
-        or(eq(newsSource.domain, domain), eq(newsSource.rssUrl, rssUrl))
-      );
-    } else {
-      query.where(and(...conditions.slice(0, -1)));
-    }
-
-    if (excludeId) {
-      query.where(and(or(...conditions.slice(0, -1))));
-    }
-
-    const result = await query.limit(1);
-
-    return {
-      exists: result.length > 0,
-      conflicting: result[0] || null,
-    };
-  },
-
   buildWhereConditions: (filters?: NewsSourceFilters): SQLWrapper[] => {
     const conditions: SQLWrapper[] = [];
 
@@ -298,6 +245,7 @@ export const NewsSourceService = {
 
     return conditions;
   },
+
   validatePagination: (page?: number, limit?: number) => {
     const validatedPage = Math.max(1, page || 1);
     const validatedLimit = Math.min(100, Math.max(1, limit || 20)); // Cap at 100

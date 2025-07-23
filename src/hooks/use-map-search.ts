@@ -1,6 +1,7 @@
-import { useEffect } from "react";
+import api, { fetcher } from "@/lib/api-client";
+import { useMapContext } from "@/lib/map-context";
 import { useDebounce } from "@uidotdev/usehooks";
-import { LocationData, useMapContext } from "@/lib/map-context";
+import { useEffect } from "react";
 
 export function useMapSearch() {
   const {
@@ -16,24 +17,33 @@ export function useMapSearch() {
   useEffect(() => {
     const searchLocation = async () => {
       if (!debouncedSearchTerm.trim()) {
-        setSearchResults([]);
-        return;
+        return setSearchResults([]);
       }
 
       try {
-        const response = await fetch(
-          `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
-            debouncedSearchTerm
-          )}&format=json&limit=5`
-        );
-        const data = await response.json();
+        const [{ data: locations }, { data: newsList }] = await Promise.all([
+          fetcher.get(
+            `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
+              debouncedSearchTerm
+            )}&format=json&limit=5`
+          ),
+          api.news.list(`?search=${debouncedSearchTerm}`),
+        ]);
 
-        const results: LocationData[] = data.map((item: any) => ({
-          lat: parseFloat(item.lat),
-          lng: parseFloat(item.lon),
-          name: item.name || item.display_name.split(",")[0],
-          address: item.display_name,
-        }));
+        const results = [
+          ...locations.map((item: any) => ({
+            lat: parseFloat(item.lat),
+            lng: parseFloat(item.lon),
+            name: item.name || item.display_name.split(",")[0],
+            address: item.display_name,
+          })),
+          ...(newsList?.map((item: any) => ({
+            lat: parseFloat(item.latitude ?? "0"),
+            lng: parseFloat(item.longitude ?? "0"),
+            name: item.title || "",
+            address: "",
+          })) || []),
+        ];
 
         setSearchResults(results);
       } catch (error) {

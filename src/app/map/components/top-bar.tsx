@@ -2,40 +2,17 @@
 
 import { Combobox } from "@/app/map/components/combobox";
 import { useMapSearch } from "@/hooks/use-map-search";
-import { TopicItem } from "@/lib/map-context";
 import { newsTopicDropdown } from "@/shared/enum-list";
 import { MapControls } from "./control";
 import { TopicFilters } from "./topic-filter";
-import { useState } from "react";
-import { MAP_LAYERS } from "@/lib/map-constraint";
 
-type LayerKey = keyof typeof MAP_LAYERS;
-
-export function TopBar({
-  currentLayer,
-  onLayerChange,
-}: {
-  currentLayer: LayerKey;
-  onLayerChange: (layer: LayerKey) => void;
-}) {
-  const [selectedTopics, setSelectedTopics] = useState<TopicItem[]>([]);
-
+export function TopBar() {
   const {
     searchResults,
     setSelectedLocation,
     setSearchQuery,
     selectedLocation,
   } = useMapSearch();
-
-  const handleTopicSelect = (topic: TopicItem) => {
-    if (selectedTopics.some((selected) => selected.topic === topic.topic)) {
-      setSelectedTopics(
-        selectedTopics.filter((selected) => selected.topic !== topic.topic)
-      );
-    } else {
-      setSelectedTopics([...selectedTopics, topic]);
-    }
-  };
 
   return (
     <div className="absolute top-4 left-4 right-4 z-[999]">
@@ -50,11 +27,7 @@ export function TopBar({
             />
           </div>
           <div className="flex flex-1 justify-center min-w-0 mt-1">
-            <TopicFilters
-              topics={newsTopicDropdown}
-              onTopicSelect={handleTopicSelect}
-              selectedTopics={selectedTopics}
-            />
+            <TopicFilters topics={newsTopicDropdown} />
           </div>
         </div>
         <div className="flex-shrink-0">

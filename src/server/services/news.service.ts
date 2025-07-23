@@ -1,13 +1,52 @@
-import { NewsFilters } from "@/types/query-filter";
-import { eq, inArray, sql } from "drizzle-orm";
+import { NewsFilters, NewsMapFilters } from "@/types/query-filter";
+import {
+  and,
+  desc,
+  eq,
+  inArray,
+  isNotNull,
+  sql,
+  SQLWrapper,
+} from "drizzle-orm";
 import slugify from "slugify";
 import db from "../database";
 import { RSSFeedResult } from "../jobs/location-extractor";
-import { NewNews, news, NewsSelect, newsSource } from "../schemas";
+import { NewNews, news, newsSource } from "../schemas";
 
 export const NewsService = {
   async findAll(filters: NewsFilters) {
     const { page = 1, limit = 20 } = filters;
+    const conditions: SQLWrapper[] = [];
+
+    if (filters.sourceId) {
+      conditions.push(eq(news.sourceId, filters.sourceId));
+    }
+
+    if (filters.topics) {
+      const topics = filters.topics[0]
+        .split(",")
+        .map((t) => t.trim())
+        .filter(Boolean);
+
+      if (topics.length > 0) {
+        conditions.push(inArray(news.topic, topics as any));
+      }
+    }
+
+    if (filters.location) {
+      conditions.push(
+        sql`lower(${news.locationName}) like lower(${`%${filters.location}%`})`
+      );
+    }
+
+    if (filters.search) {
+      conditions.push(
+        sql`to_tsvector('english', ${news.title} || ' ' || ${news.summary} || ' ' || ${news.locationName}) @@ plainto_tsquery('english', ${filters.search})`
+      );
+    }
+
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
     const [{ count }] = await db
       .select({ count: sql<number>`count(*)` })
       .from(news);
@@ -15,25 +54,53 @@ export const NewsService = {
     const result = await db
       .select()
       .from(news)
+      .where(whereClause)
       .limit(limit)
-      .offset((page - 1) * limit);
+      .offset((page - 1) * limit)
+      .orderBy(desc(news.createdAt));
 
     return { result, count };
+  },
+
+  async getMapData(filters: NewsMapFilters) {
+    const conditions: SQLWrapper[] = [isNotNull(news.locationName)];
+
+    if (filters.topics) {
+      const topics = filters.topics[0]
+        .split(",")
+        .map((t) => t.trim())
+        .filter(Boolean);
+
+      if (topics.length > 0) {
+        conditions.push(inArray(news.topic, topics as any));
+      }
+    }
+
+    if (filters.search) {
+      conditions.push(
+        sql`to_tsvector('english', ${news.title} || ' ' || ${news.summary} || ' ' || ${news.locationName}) @@ plainto_tsquery('english', ${filters.search})`
+      );
+    }
+
+    return await db
+      .select()
+      .from(news)
+      .where(and(...conditions))
+      .limit(1000)
+      .orderBy(desc(news.createdAt));
   },
 
   async saveArticle(newsData: RSSFeedResult[]): Promise<NewNews[]> {
     const articlesToInsert: Array<typeof news.$inferInsert> = [];
     const processedSlugs = new Set<string>();
 
-    // Process all feeds and prepare articles for bulk insert
     for (const feed of newsData) {
       try {
-        const sourceId = await this.ensureNewsSource(feed.source, feed.title);
+        const sourceId = await this.ensureNewsSource(feed.source);
 
         for (const article of feed.articles) {
           const slug = slugify(article.title, { lower: true, strict: true });
 
-          // Skip duplicates within the batch
           if (processedSlugs.has(slug)) continue;
           processedSlugs.add(slug);
 
@@ -79,7 +146,7 @@ export const NewsService = {
     }
   },
 
-  async ensureNewsSource(sourceUrl: string, title: string): Promise<string> {
+  async ensureNewsSource(sourceUrl: string): Promise<string | null> {
     const existing = await db
       .select({ id: newsSource.id })
       .from(newsSource)
@@ -88,16 +155,7 @@ export const NewsService = {
 
     if (existing.length > 0) return existing[0].id;
 
-    const [newSource] = await db
-      .insert(newsSource)
-      .values({
-        name: title,
-        domain: this.extractDomain(sourceUrl),
-        rssUrl: sourceUrl,
-      })
-      .returning({ id: newsSource.id });
-
-    return newSource.id;
+    return null;
   },
 
   async getExistingSlugs(slugs: string[]): Promise<Set<string>> {

@@ -1,3 +1,5 @@
+import { newsTopicList } from "@/shared/enum-list";
+
 interface BaseFilters {
   search?: string;
   limit?: number;
@@ -15,6 +17,11 @@ export interface LocationFilters extends BaseFilters {
 
 export interface NewsFilters extends BaseFilters {
   sourceId?: string;
-  topicId?: string;
-  locationId?: string;
+  topics?: (typeof newsTopicList)[number][];
+  location?: string;
+}
+
+export interface NewsMapFilters {
+  topics: (typeof newsTopicList)[number][];
+  search?: string;
 }

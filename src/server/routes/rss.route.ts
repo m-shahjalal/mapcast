@@ -31,15 +31,6 @@ rssRoutes.get("/", zValidator("query", newsSourceFiltersSchema), async (c) => {
 rssRoutes.post("/", zValidator("json", newsSourceSchema), async (c) => {
   const data = c.req.valid("json");
 
-  const uniqueCheck = await NewsSourceService.checkUniqueness(
-    data.domain,
-    data.rssUrl
-  );
-
-  if (uniqueCheck.exists) {
-    throw new BadRequestError("Domain or RSS URL already exists");
-  }
-
   const source = await NewsSourceService.create(data);
   return c.apiCreated({
     message: "News source created successfully",

@@ -1,7 +1,6 @@
 import { CATEGORY_KEYWORDS, LOCATION_VALIDATOR } from "@/lib/map-constraint";
 import { newsTopicList } from "@/shared/enum-list";
 
-// types.ts
 export interface LocationPin {
   latitude: string;
   longitude: string;
@@ -15,7 +14,7 @@ export interface ProcessedArticle {
   title: string;
   url: string;
   summary: string;
-  locationPin: LocationPin | null;
+  locationPin: LocationPin;
   topic: (typeof newsTopicList)[number];
 }
 
@@ -84,7 +83,9 @@ export class LocationExtractor {
 
     const location = this.extractBestLocation(fullText);
     const category = this.extractBestCategory(fullText);
+
     const locationPin = await this.geocodeLocation(location?.location || "");
+    if (!locationPin) return null;
 
     return {
       locationPin,
