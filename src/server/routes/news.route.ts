@@ -1,6 +1,7 @@
 import { NewsFilters, NewsMapFilters } from "@/types/query-filter";
 import { Hono } from "hono";
 import { NewsService } from "../services/news.service";
+import { NewsProxyService } from "../services/news-proxy.service";
 
 const newsRoutes = new Hono();
 
@@ -27,6 +28,15 @@ newsRoutes.get("/map", async (c) => {
   const filters = c.req.queries();
   const mapData = await NewsService.getMapData(filters as any);
   return c.apiJson(mapData);
+});
+
+newsRoutes.get("/proxy/:url", async (c) => {
+  const url = c.req.param("url");
+  const newsProxyService = new NewsProxyService();
+
+  const content = await newsProxyService.fetchAndExtract(url);
+
+  return c.json(content);
 });
 
 export default newsRoutes;

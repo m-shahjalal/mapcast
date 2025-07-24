@@ -1,11 +1,12 @@
 "use client";
 
-import type React from "react";
-import { Marker, Popup, Tooltip } from "react-leaflet";
+import { Sheet } from "@/components/ui/sheet";
+import { cn, formatDate, truncateText } from "@/lib/utils";
 import L from "leaflet";
-import { memo, useMemo } from "react";
 import Link from "next/link";
-import { cn } from "@/lib/utils"; // Import cn for conditional class names
+import { memo, useMemo } from "react";
+import { Marker, Popup, Tooltip } from "react-leaflet";
+import { NewsReader } from "../news-reader";
 
 interface LocationData {
   lat: string | number;
@@ -30,7 +31,6 @@ interface NewsMarkerProps {
   emoji?: string;
 }
 
-// Coordinate validation and normalization
 const normalizeCoords = (location: LocationData): [number, number] | null => {
   const lat =
     typeof location.lat === "string"
@@ -43,35 +43,18 @@ const normalizeCoords = (location: LocationData): [number, number] | null => {
   return [lat, lngNum];
 };
 
-// Size configurations
 const SIZES = {
   small: { width: 28, height: 28, emoji: 14, shadow: 8 },
   medium: { width: 36, height: 36, emoji: 18, shadow: 12 },
   large: { width: 44, height: 44, emoji: 22, shadow: 16 },
 } as const;
 
-// Format date helper
-const formatDate = (date: Date | string | undefined): string => {
-  if (!date) return "";
-  const d = typeof date === "string" ? new Date(date) : date;
-  return d.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-};
-
-// Truncate text helper
-const truncateText = (text: string, maxLength: number): string => {
-  if (text.length <= maxLength) return text;
-  return text.substring(0, maxLength).trim() + "...";
-};
-
 const createEnhancedIcon = (
   color = "#3b82f6",
   size: "small" | "medium" | "large" = "medium",
   pulseAnimation = true,
-  emoji = "📰"
+  emoji = "📰",
+  title = ""
 ) => {
   const { width, height, emoji: emojiSize, shadow } = SIZES[size];
   const pulseKeyframes = pulseAnimation
@@ -135,8 +118,28 @@ const createEnhancedIcon = (
           border-radius: 50%;
           opacity: 0;
           transition: all 0.3s ease;
-        "></div>
+        ">
+        </div>
+        
       </div>
+      <div style="
+          margin-top: -20px;
+          margin-left: -60px;
+          background: rgba(255, 255, 255, 0.70);
+          backdrop-filter: blur(8px);
+          border: 1px solid rgba(0, 0, 0, 0.1);
+          border-radius: 6px;
+          padding: 5px 8px;
+          font-size: 12px;
+          color: #000;
+          text-align: center;
+          line-height: 1.2;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+          min-width: 150px;
+          transition: all 0.3s ease;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        ">${truncateText(title, 20)}</div>
       <style>${pulseKeyframes}
         .marker-container:hover {
           transform: translate(-50%, -50%) scale(1.15) !important;
@@ -176,7 +179,13 @@ export const NewsMarker = memo<NewsMarkerProps>(
       return normalizeCoords(location);
     }, [location]);
 
-    const icon = createEnhancedIcon(color, size, pulseAnimation, emoji);
+    const icon = createEnhancedIcon(
+      color,
+      size,
+      pulseAnimation,
+      emoji,
+      location?.title
+    );
 
     if (!location || !position) {
       if (location) {
@@ -226,65 +235,62 @@ export const NewsMarker = memo<NewsMarkerProps>(
           className="p-0! m-0!"
           closeButton={true}
         >
-          <div className="popup-content leading-relaxed font-sans my-6">
-            <div
-              className={cn(
-                "flex items-center gap-2 font-bold text-base text-gray-900 leading-tight",
-                hasDetails && "mb-3"
-              )}
-            >
-              <span className="text-2xl">{emoji}</span>
-              <span className="flex-1 min-w-0">{displayTitle}</span>
-            </div>
-            {location.summary && (
+          <Sheet>
+            <div className="popup-content leading-relaxed font-sans my-6">
               <div
-                className="summary-box text-sm text-gray-600 mb-3.5 px-2.5 border-l-4 rounded py-1 leading-relaxed my-6"
-                style={{ borderColor: color }}
+                className={cn(
+                  "flex items-center gap-2 font-bold text-base text-gray-900 leading-tight",
+                  hasDetails && "mb-3"
+                )}
               >
-                {truncateText(location.summary, 120)}
+                <span className="text-2xl">{emoji}</span>
+                <span className="flex-1 min-w-0">{displayTitle}</span>
               </div>
-            )}
-            {hasDetails && (
-              <div className="details-grid grid gap-2 p-3 bg-slate-50 rounded-lg border mb-4 mt-6">
-                {location.newsUrl && (
-                  <div className="flex items-center gap-1.5 text-sm text-gray-700 font-medium min-w-0">
-                    <span className="flex-shrink-0">📰</span>
-                    <Link
-                      href={location.newsUrl}
-                      className="news-link truncate min-w-0 transition-colors"
-                    >
-                      {location.newsUrl}
-                    </Link>
-                  </div>
-                )}
-                {formattedDate && (
-                  <div className="flex items-center gap-1.5 text-sm text-gray-700 font-medium">
-                    <span className="flex-shrink-0 w-4">📅</span>
-                    <span>{formattedDate}</span>
-                  </div>
-                )}
-                {location.address && (
-                  <div className="flex items-start gap-1.5 text-sm text-gray-700 font-medium leading-tight">
-                    <span className="flex-shrink-0 w-4 mt-0.5">📍</span>
-                    <span className="whitespace-pre-wrap break-words">
-                      {location.address}
-                    </span>
-                  </div>
-                )}
-              </div>
-            )}
-            {/* Action Button */}
-            {(location.newsUrl || location.slug) && (
-              <button
-                onClick={() => (window.location.href = location.newsUrl ?? "")}
-                style={{ backgroundColor: color }}
-                className="action-button w-full px-4 py-2.5 text-white text-sm font-semibold rounded-lg transition-all duration-200 flex items-center justify-center gap-2 hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2"
-              >
-                <span className="text-base">📖</span>
-                <span>Read Full Story</span>
-              </button>
-            )}
-          </div>
+              {location.summary && (
+                <div
+                  className="summary-box text-sm text-gray-600 mb-3.5 px-2.5 border-l-4 rounded py-1 leading-relaxed my-6"
+                  style={{ borderColor: color }}
+                >
+                  {truncateText(location.summary, 120)}
+                </div>
+              )}
+              {hasDetails && (
+                <div className="details-grid grid gap-2 p-3 bg-slate-50 rounded-lg border mb-4 mt-6">
+                  {location.newsUrl && (
+                    <div className="flex items-center gap-1.5 text-sm text-gray-700 font-medium min-w-0">
+                      <span className="flex-shrink-0">📰</span>
+                      <Link
+                        href={location.newsUrl}
+                        className="news-link truncate min-w-0 transition-colors"
+                      >
+                        {location.newsUrl}
+                      </Link>
+                    </div>
+                  )}
+                  {formattedDate && (
+                    <div className="flex items-center gap-1.5 text-sm text-gray-700 font-medium">
+                      <span className="flex-shrink-0 w-4">📅</span>
+                      <span>{formattedDate}</span>
+                    </div>
+                  )}
+                  {location.address && (
+                    <div className="flex items-start gap-1.5 text-sm text-gray-700 font-medium leading-tight">
+                      <span className="flex-shrink-0 w-4 mt-0.5">📍</span>
+                      <span className="whitespace-pre-wrap break-words">
+                        {location.address}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <NewsReader
+              url={location.newsUrl ?? ""}
+              color={color}
+              title={location.title}
+            />
+          </Sheet>
         </Popup>
       </Marker>
     );

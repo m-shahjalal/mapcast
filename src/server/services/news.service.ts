@@ -1,3 +1,7 @@
+// server/services/NewsService.ts
+// Copy your existing NewsService.ts content here exactly as it is
+// This is just a placeholder to show where it should go
+
 import { NewsFilters, NewsMapFilters } from "@/types/query-filter";
 import {
   and,

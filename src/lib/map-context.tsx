@@ -62,13 +62,13 @@ type MapAction =
 
 const initialState: MapState = {
   center: [34.052235, -118.243683],
-  zoom: 13,
+  zoom: 3,
   selectedLocation: null,
   searchQuery: "",
   searchResults: [],
   isLoading: false,
   topics: [],
-  currentLayer: "openstreetmap",
+  currentLayer: "satellite",
 };
 
 function mapReducer(state: MapState, action: MapAction): MapState {
