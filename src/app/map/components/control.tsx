@@ -6,6 +6,7 @@ import { MAP_LAYERS } from "@/lib/map-constraint";
 import { useMapContext } from "@/lib/map-context";
 import {
   Check,
+  Layers,
   Locate,
   Map,
   Minus,
@@ -71,7 +72,7 @@ function LayerSelector() {
             
           `}
           >
-            {getLayerIcon(currentLayer)}
+            <Layers className="h-4 w-4" />
           </div>
         </div>
       </Button>
