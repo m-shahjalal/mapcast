@@ -1,16 +1,27 @@
 FROM node:20-bookworm-slim
 
-# Install Git and clean up
+# Install Git and other necessary tools
 RUN apt-get update && apt-get install -y \
     git \
     && rm -rf /var/lib/apt/lists/*
 
+# Install pnpm globally
+RUN npm install -g pnpm
+
+# Set working directory
 WORKDIR /app
-COPY . /app
+
+# Copy package files first for better caching
+COPY package.json pnpm-lock.yaml* ./
 
 # Install dependencies
-RUN npm install pnpm --global
-RUN pnpm install --force
+RUN pnpm install --frozen-lockfile
 
+# Copy the rest of the application
+COPY . .
+
+# Expose port
 EXPOSE 8080
-CMD ["npm", "run", "start:hono"]
+
+# Start the application
+CMD ["pnpm", "run", "start:hono"]
