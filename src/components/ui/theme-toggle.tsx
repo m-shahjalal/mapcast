@@ -10,7 +10,7 @@ export function ThemeToggle({
   className,
   onThemeChange,
 }: {
-  className: React.HtmlHTMLAttributes<HTMLDivElement>["className"];
+  className?: React.HtmlHTMLAttributes<HTMLDivElement>["className"];
   onThemeChange?: (theme: string) => void;
 }) {
   const { setTheme, theme } = useTheme();
