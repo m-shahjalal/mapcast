@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 2,
   "builds": [
     {
       "src": "src/server/index.ts",
@@ -19,5 +19,8 @@
       "src": "/(.*)",
       "dest": "/$1"
     }
-  ]
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  }
 }
