@@ -19,20 +19,32 @@ export function useMapControls() {
   }, [map, setZoom]);
 
   const locateUser = useCallback(() => {
-    map.locate({ setView: true, maxZoom: 16 });
-
     const handleLocationFound = (e: any) => {
       setZoom(map.getZoom());
+
+      // Clean up event listeners
       map.off("locationfound", handleLocationFound);
+      map.off("locationerror", handleLocationError);
     };
 
     const handleLocationError = (e: any) => {
       alert(`Location access denied: ${e.message}`);
+
+      map.off("locationfound", handleLocationFound);
       map.off("locationerror", handleLocationError);
     };
 
     map.on("locationfound", handleLocationFound);
     map.on("locationerror", handleLocationError);
+
+    console.log("locate user", map);
+
+    map.locate({
+      setView: true,
+      maxZoom: 16,
+      enableHighAccuracy: true,
+      timeout: 10_000,
+    });
   }, [map, setZoom]);
 
   useEffect((): void | (() => void) => {

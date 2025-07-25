@@ -2,7 +2,6 @@
 
 import { Combobox } from "@/app/map/components/combobox";
 import { useMapSearch } from "@/hooks/use-map-search";
-import { newsTopicDropdown } from "@/shared/enum-list";
 import { MapControls } from "./control";
 import { TopicFilters } from "./topic-filter";
 
@@ -16,8 +15,8 @@ export function TopBar() {
 
   return (
     <div className="absolute top-4 left-4 right-4 z-[999]">
-      <div className="flex items-start gap-4 justify-between">
-        <div className="flex items-start gap-5 flex-1 min-w-0">
+      <div className="flex items-start gap-4 sm:justify-between justify-end">
+        <div className="items-start gap-5 flex-1 min-w-0 hidden sm:flex">
           <div className="flex-shrink-0">
             <Combobox
               selectedLocation={selectedLocation}

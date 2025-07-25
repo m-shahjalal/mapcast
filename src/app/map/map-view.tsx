@@ -7,6 +7,7 @@ import { MapContainer, TileLayer } from "react-leaflet";
 import { TopBar } from "./components/top-bar";
 import { NewsMarkers } from "./news-marker";
 import "leaflet/dist/leaflet.css";
+import { MobileBottomBar } from "./components/mobile-bottom-bar";
 
 export function MapView({ news }: { news?: NewsSelect[] | null }) {
   const { center, zoom, currentLayer } = useMapContext();
@@ -22,7 +23,7 @@ export function MapView({ news }: { news?: NewsSelect[] | null }) {
       <MapContainer
         center={center}
         zoom={zoom}
-        minZoom={2}
+        minZoom={3}
         className="h-full w-full"
         zoomControl={false}
         maxZoom={18}
@@ -30,22 +31,17 @@ export function MapView({ news }: { news?: NewsSelect[] | null }) {
           [-85, -180],
           [85, 180],
         ]}
-        maxBoundsViscosity={0.1}
+        maxBoundsViscosity={1.0}
         whenReady={handleMapReady}
         style={{ height: "100%", width: "100%", zIndex: 0 }}
-        touchZoom={true}
-        doubleClickZoom={true}
-        scrollWheelZoom={true}
-        boxZoom={true}
-        keyboard={true}
-        dragging={true}
-        zoomSnap={0.5}
-        zoomDelta={0.5}
       >
         <TileLayer key={currentLayer} url={selectedLayer.url} />
+
         {isMapReady && news && <NewsMarkers news={news} />}
         {isMapReady && <TopBar />}
+        {isMapReady && <MobileBottomBar />}
       </MapContainer>
+
       {!isMapReady && (
         <div className="absolute inset-0 flex items-center justify-center bg-gray-100 z-10">
           <div className="text-gray-500">Loading map...</div>
