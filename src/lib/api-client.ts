@@ -1,4 +1,4 @@
-import { NewsSelect, NewsSourceType as Source } from "@/server/schemas";
+import { NewsSelect, NewsSourceType as Source } from "@/database/schemas";
 import { ApiResponse as Response } from "@/types/api-response";
 import axios from "axios";
 

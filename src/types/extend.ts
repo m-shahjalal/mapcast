@@ -1,8 +1,6 @@
+import { Database } from "@/database";
 import { ApiPagination, HttpStatusCode } from "@/types/api-response";
-import { AppError } from "../server/utils/exception";
-import { NodePgDatabase } from "drizzle-orm/node-postgres";
-import * as schema from "../server/schemas";
-import { Database } from "@/server/database";
+import { AppError } from "../utils/exception";
 
 export type JsonOptions = {
   statusCode?: HttpStatusCode;

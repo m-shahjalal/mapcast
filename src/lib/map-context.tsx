@@ -7,7 +7,7 @@ import React, {
   useMemo,
   ReactNode,
 } from "react";
-import { MAP_LAYERS } from "./map-constraint";
+import { MAP_LAYERS } from "../config/map-constraint";
 
 export interface LocationData {
   lat: number;

@@ -7,12 +7,12 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Spinner } from "@/components/ui/spinner";
-import { parseRootDomain } from "@/lib/parse-domain";
 import { BookOpen, ExternalLink, EyeOff } from "lucide-react";
 import { useEffect, useState } from "react";
 import { parseArticle } from "./action";
 import Link from "next/link";
 import { DialogTitle } from "@/components/ui/dialog";
+import { parseRootDomain } from "@/utils/urls";
 
 export const NewsReader = ({
   url,

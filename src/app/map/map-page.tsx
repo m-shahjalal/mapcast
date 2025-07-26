@@ -1,8 +1,8 @@
 "use client";
 
 import { Spinner } from "@/components/ui/spinner";
+import { NewsSelect } from "@/database/schemas";
 import { MapProvider } from "@/lib/map-context";
-import { NewsSelect } from "@/server/schemas";
 import dynamic from "next/dynamic";
 
 const Spin = () => (

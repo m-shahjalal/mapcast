@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { useMapControls } from "@/hooks/use-map-controls";
-import { MAP_LAYERS } from "@/lib/map-constraint";
+import { MAP_LAYERS } from "@/config/map-constraint";
 import { useMapContext } from "@/lib/map-context";
 import {
   Check,

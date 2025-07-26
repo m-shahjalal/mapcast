@@ -6,8 +6,8 @@ if (!process.env.DATABASE_URL) {
 }
 
 export default defineConfig({
-  schema: "./src/server/schemas",
-  out: "./src/server/database/migrations",
+  schema: "./src/database/schemas",
+  out: "./src/database/migrations",
   dialect: "postgresql",
   casing: "snake_case",
   introspect: {
