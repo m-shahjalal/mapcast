@@ -13,6 +13,5 @@
       "runtime": "vercel/node@22.x",
       "maxDuration": 300
     }
-  },
-  "env": { "CRON_SECRET": "@cron_secret" }
+  }
 }

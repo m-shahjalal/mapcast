@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 type RouteContext = { params: Promise<{ batch: string }> };
 
-async function processBatchRequest(req: NextRequest, context: RouteContext) {
+async function processBatchRequest(_req: NextRequest, context: RouteContext) {
   const { batch } = await context.params;
   const batchIndex = parseInt(batch);
 
@@ -15,11 +15,7 @@ async function processBatchRequest(req: NextRequest, context: RouteContext) {
     );
   }
 
-  const authHeader = req.headers.get("authorization");
-  const triggeredBy =
-    authHeader === `Bearer ${process.env.CRON_SECRET}` ? "cron" : "api";
-
-  const result = await RSSBatchProcessor.processBatch(batchIndex, triggeredBy);
+  const result = await RSSBatchProcessor.processBatch(batchIndex);
   return NextResponse.json(result);
 }
 
