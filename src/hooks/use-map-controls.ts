@@ -1,4 +1,4 @@
-import { useMapContext } from "@/lib/map-context";
+import { useMapContext } from "@/config/map-context";
 import { useCallback, useEffect } from "react";
 import { useMap } from "react-leaflet";
 

@@ -5,8 +5,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { TopicItem } from "@/config/map-context";
 import { useQueryParams } from "@/hooks/use-query";
-import { TopicItem } from "@/lib/map-context";
 import { cn } from "@/lib/utils";
 import { newsTopicDropdown } from "@/shared/enum-list";
 import { ChevronDown, Eraser } from "lucide-react";

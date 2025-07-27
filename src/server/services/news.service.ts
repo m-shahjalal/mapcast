@@ -1,7 +1,7 @@
 // server/services/NewsService.ts
-// Copy your existing NewsService.ts content here exactly as it is
-// This is just a placeholder to show where it should go
 
+import { NewNews, news, newsSource } from "@/server/database/schemas";
+import { ApiPagination } from "@/types/api-response";
 import { NewsFilters, NewsMapFilters } from "@/types/query-filter";
 import {
   and,
@@ -13,10 +13,8 @@ import {
   SQLWrapper,
 } from "drizzle-orm";
 import slugify from "slugify";
-import db from "../database";
-import { RSSFeedResult } from "../lib/location-extractor";
-import { NewNews, news, newsSource } from "@/database/schemas";
-import { ApiPagination } from "@/types/api-response";
+import db from "@/server/database";
+import { RSSFeedResult } from "@/server/feed-reader/location-extractor";
 
 export const NewsService = {
   async findAll(filters: NewsFilters) {

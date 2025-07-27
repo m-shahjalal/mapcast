@@ -1,7 +1,5 @@
-// server/services/NewsProxyService.ts
 import * as cheerio from "cheerio";
 import { createHash } from "crypto";
-import { HTTPException } from "hono/http-exception";
 
 interface NewsContent {
   title: string;
@@ -36,9 +34,7 @@ export class NewsProxyService {
       });
 
       if (!response.ok) {
-        throw new HTTPException(response.status as 400, {
-          message: `Failed to fetch: ${response.status} ${response.statusText}`,
-        });
+        throw new Error("Failed to fetch the URL");
       }
 
       const html = await response.text();
@@ -49,12 +45,8 @@ export class NewsProxyService {
 
       return content;
     } catch (error) {
-      if (error instanceof HTTPException) {
-        throw error;
-      }
-
-      console.error("Fetch error:", error);
-      throw new HTTPException(500, { message: "Network error occurred" });
+      console.error("Error fetching or extracting content:", error);
+      throw new Error("Error fetching or extracting content");
     }
   }
 

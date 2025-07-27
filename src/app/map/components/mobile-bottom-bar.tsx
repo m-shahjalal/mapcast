@@ -173,7 +173,7 @@ export function MobileBottomBar({ className }: { className?: string }) {
             </div>
           </Button>
         </SheetTrigger>
-        <MobileControlsSheet open={isSheetOpen} setOpen={setIsSheetOpen} />
+        <MobileControlsSheet setOpen={setIsSheetOpen} />
       </Sheet>
     </div>
   );

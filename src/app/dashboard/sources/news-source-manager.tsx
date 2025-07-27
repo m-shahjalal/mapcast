@@ -19,7 +19,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { NewsSourceType } from "@/database/schemas";
+import { NewsSourceType } from "@/server/database/schemas";
 import {
   CheckCircle,
   ChevronLeft,

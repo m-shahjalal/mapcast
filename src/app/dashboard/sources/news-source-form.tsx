@@ -13,8 +13,11 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import api from "@/lib/api-client";
-import { newsSourceSchema, NewsSourceSchemaType } from "@/database/schemas";
+import { creteRssFeed } from "@/server/actions/rss-feed.action";
+import {
+  newsSourceSchema,
+  NewsSourceSchemaType,
+} from "@/server/database/schemas";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft, Save } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -45,8 +48,8 @@ export function NewsSourceForm({
   const handleSubmit = (data: NewsSourceSchemaType) => {
     startTransition(async () => {
       try {
-        const response = await api.rss.create(data);
-        if (response.success) router.push("/dashboard/sources");
+        const response = await creteRssFeed(data);
+        if (response) router.push("/dashboard/sources");
       } catch (error) {
         console.error(error);
       }

@@ -1,4 +1,4 @@
-import api from "@/lib/api-client";
+import { getNews } from "@/server/actions/news.action";
 import { PinPointMap } from "./map/map-page";
 
 export default async function PinPointPage({
@@ -11,7 +11,11 @@ export default async function PinPointPage({
     ? `topics=${encodeURIComponent(params.topics)}`
     : "";
 
-  const newsList = await api.news.map(queryString);
+  const newsList = await getNews({
+    topics: params.topics
+      ? (params.topics.split(",") as "politics"[])
+      : undefined,
+  });
 
-  return <PinPointMap news={newsList.data!} />;
+  return <PinPointMap news={newsList.result!} />;
 }

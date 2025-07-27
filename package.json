@@ -17,8 +17,6 @@
     "db:seed": "tsx ./src/server/database/commands/seed.ts"
   },
   "dependencies": {
-    "@hono/node-server": "^1.17.1",
-    "@hono/zod-validator": "^0.7.2",
     "@hookform/resolvers": "^5.2.0",
     "@inquirer/prompts": "^7.7.1",
     "@paralleldrive/cuid2": "^2.2.2",
@@ -47,13 +45,11 @@
     "drizzle-kit": "^0.31.4",
     "drizzle-orm": "^0.44.3",
     "drizzle-zod": "^0.8.2",
-    "hono": "^4.8.9",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.526.0",
     "next": "15.4.4",
     "next-themes": "^0.4.6",
     "nextjs-toploader": "^3.8.16",
-    "node-cron": "^4.2.1",
     "pg": "^8.16.3",
     "react": "19.1.0",
     "react-dom": "19.1.0",

@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
+import { startReadingFeeds } from "@/server/feed-reader/rss-processor";
 import {
   Activity,
   CheckCircle,
@@ -18,23 +19,6 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 
-const stats = {
-  totalArticles: 15247,
-  todayArticles: 342,
-  activeSources: 18,
-  countries: 67,
-  avgProcessingTime: "1.8s",
-  systemHealth: 98.5,
-  activeUsers: 1247,
-  pageViews: 23456,
-  apiCalls: 45678,
-  errorRate: 0.12,
-  uptime: "99.97%",
-  storageUsed: 67.3,
-  memoryUsage: 45.2,
-  cpuUsage: 23.8,
-};
-
 export default function CrawlerPage() {
   const [crawlerStatus, setCrawlerStatus] = useState<
     "idle" | "running" | "error"
@@ -44,10 +28,9 @@ export default function CrawlerPage() {
   const triggerCrawler = async () => {
     setCrawlerStatus("running");
     try {
-      const response = await fetch("/api/rss/trigger");
-      const result = await response.json();
+      const result = await startReadingFeeds();
 
-      if (result.success) {
+      if (result) {
         setLastCrawl(new Date().toLocaleString());
         setCrawlerStatus("idle");
       } else {
@@ -92,7 +75,7 @@ export default function CrawlerPage() {
                   </div>
                   <div className="flex items-center space-x-1">
                     <Activity className="h-4 w-4 text-gray-500" />
-                    <span>Avg processing: {stats.avgProcessingTime}</span>
+                    <span>Avg processing: {"30s"}</span>
                   </div>
                 </div>
               </div>

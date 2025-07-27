@@ -187,7 +187,7 @@ export function buildSortByOrder<T extends PgTable>(
 
 export function buildSortingQuery<
   T extends PgTable,
-  U extends keyof T["_"]["columns"] | PgColumn | string,
+  U extends keyof T["_"]["columns"] | PgColumn | string
 >(table: T, order: "asc" | "desc", sort: U) {
   // let sortBy: SQL<unknown> | undefined;
 

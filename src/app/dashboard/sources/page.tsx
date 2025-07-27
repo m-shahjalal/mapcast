@@ -1,18 +1,14 @@
-import api from "@/lib/api-client";
+import { getRssFeedList } from "@/server/actions/rss-feed.action";
+import { NewsSourceFilters } from "@/utils/validator";
 import { NewsSourceManager } from "./news-source-manager";
 
 export default async function SourcesPage({
   params,
 }: {
-  params: Promise<{ topics?: string }>;
+  params: Promise<NewsSourceFilters>;
 }) {
   const paramsData = await params;
-  const queryString = paramsData.topics
-    ? `topics=${encodeURIComponent(paramsData.topics)}`
-    : "";
-  const sources = await api.rss.list(queryString);
 
-  console.log(sources);
-
-  return <NewsSourceManager sources={sources.data ?? []} />;
+  const list = await getRssFeedList(paramsData);
+  return <NewsSourceManager sources={list.data ?? []} />;
 }

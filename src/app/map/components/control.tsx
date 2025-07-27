@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { useMapControls } from "@/hooks/use-map-controls";
 import { MAP_LAYERS } from "@/config/map-constraint";
-import { useMapContext } from "@/lib/map-context";
 import {
   Check,
   ChevronDown,
@@ -22,6 +21,7 @@ import {
 } from "lucide-react";
 
 import { useState } from "react";
+import { useMapContext } from "@/config/map-context";
 
 type LayerKey = keyof typeof MAP_LAYERS;
 

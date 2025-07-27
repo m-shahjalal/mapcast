@@ -6,15 +6,13 @@ import { TopicFilters } from "@/app/map/components/topic-filter";
 import { useMapSearch } from "@/hooks/use-map-search";
 import { cn } from "@/lib/utils";
 import { useRef } from "react";
-import { LocationData } from "@/lib/map-context";
+import { LocationData } from "@/config/map-context";
 
 export function MobileControlsSheet({
   className,
-  open,
   setOpen,
 }: {
   className?: string;
-  open?: boolean;
   setOpen: (open: boolean) => void;
 }) {
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);

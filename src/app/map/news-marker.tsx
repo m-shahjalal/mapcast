@@ -1,7 +1,7 @@
 import { memo } from "react";
 import { NewsMarker } from "./components/marker";
 import { newsTopicDropdown } from "@/shared/enum-list";
-import { NewsSelect } from "@/database/schemas";
+import { NewsSelect } from "@/server/database/schemas";
 
 interface NewsMarkersProps {
   news: NewsSelect[];

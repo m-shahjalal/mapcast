@@ -1,13 +1,13 @@
 "use client";
 import { MAP_LAYERS } from "@/config/map-constraint";
-import { useMapContext } from "@/lib/map-context";
 import { useCallback, useState } from "react";
 import { MapContainer, TileLayer } from "react-leaflet";
 import { TopBar } from "./components/top-bar";
 import { NewsMarkers } from "./news-marker";
 import "leaflet/dist/leaflet.css";
 import { MobileBottomBar } from "./components/mobile-bottom-bar";
-import { NewsSelect } from "@/database/schemas";
+import { NewsSelect } from "@/server/database/schemas";
+import { useMapContext } from "@/config/map-context";
 
 export function MapView({ news }: { news?: NewsSelect[] | null }) {
   const { center, zoom, currentLayer } = useMapContext();

@@ -14,9 +14,9 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import type { LocationData } from "@/lib/map-context";
 import { useMap } from "react-leaflet";
 import { useEffect, useState } from "react";
+import { LocationData } from "@/config/map-context";
 
 interface ComboboxProps {
   data: LocationData[];

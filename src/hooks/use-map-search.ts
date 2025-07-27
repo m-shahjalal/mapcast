@@ -1,5 +1,5 @@
-import api, { fetcher } from "@/lib/api-client";
-import { useMapContext } from "@/lib/map-context";
+import { useMapContext } from "@/config/map-context";
+import { getNews } from "@/server/actions/news.action";
 import { useDebounce } from "@uidotdev/usehooks";
 import { useEffect } from "react";
 
@@ -21,13 +21,13 @@ export function useMapSearch() {
       }
 
       try {
-        const [{ data: locations }, { data: newsList }] = await Promise.all([
-          fetcher.get(
+        const [{ data: locations }, { result: newsList }] = await Promise.all([
+          fetch(
             `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
               debouncedSearchTerm
             )}&format=json&limit=5`
-          ),
-          api.news.list(`?search=${debouncedSearchTerm}`),
+          ).then((res) => res.json()),
+          getNews({ search: debouncedSearchTerm }),
         ]);
 
         const results = [

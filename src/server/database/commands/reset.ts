@@ -1,7 +1,7 @@
 import { confirm } from "@inquirer/prompts";
 import { sql } from "drizzle-orm";
-import { execSync } from "child_process";
-import db from "..";
+
+import db from "@/server/database";
 
 if (!("DATABASE_URL" in process.env))
   throw new Error("DATABASE_URL not found in .env");

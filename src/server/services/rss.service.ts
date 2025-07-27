@@ -1,14 +1,15 @@
-import { urlUtils } from "@/utils/urls";
-import { ApiPagination } from "@/types/api-response";
-import { and, asc, desc, eq, ilike, or, sql, SQLWrapper } from "drizzle-orm";
-import db from "../database";
+import "server-only";
+
 import {
   newsSource,
   NewsSourceSchemaType,
   NewsSourceType,
-} from "@/database/schemas/news-source.schema";
-import { AppError } from "../utils/exception";
+} from "@/server/database/schemas/news-source.schema";
+import { ApiPagination } from "@/types/api-response";
+import { urlUtils } from "@/utils/urls";
 import { NewsSourceFilters } from "@/utils/validator";
+import { and, asc, desc, eq, ilike, or, sql, SQLWrapper } from "drizzle-orm";
+import db from "../database";
 
 export const NewsSourceService = {
   async getAll(
@@ -28,7 +29,7 @@ export const NewsSourceService = {
         .where(conditions.length > 0 ? and(...conditions) : undefined);
 
       if (!countResult || countResult.length === 0) {
-        throw new AppError("Failed to get count from database");
+        throw new Error("Failed to get count from database");
       }
 
       const totalItems = Number(countResult[0].count) || 0;
@@ -52,7 +53,7 @@ export const NewsSourceService = {
       return { data, pagination };
     } catch (error) {
       console.error("NewsSourceService.getAll error:", error);
-      throw new AppError("Failed to retrieve news sources");
+      throw new Error("Failed to retrieve news sources");
     }
   },
 
