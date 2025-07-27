@@ -1,45 +1,18 @@
 {
   "crons": [
-    {
-      "path": "/api/rss/0",
-      "schedule": "0 */6 * * *"
-    },
-    {
-      "path": "/api/rss/1",
-      "schedule": "2 */6 * * *"
-    },
-    {
-      "path": "/api/rss/2",
-      "schedule": "4 */6 * * *"
-    },
-    {
-      "path": "/api/rss/3",
-      "schedule": "6 */6 * * *"
-    },
-    {
-      "path": "/api/rss/4",
-      "schedule": "8 */6 * * *"
-    },
-    {
-      "path": "/api/rss/5",
-      "schedule": "10 */6 * * *"
-    },
-    {
-      "path": "/api/rss/6",
-      "schedule": "12 */6 * * *"
-    }
+    { "path": "/api/rss/0", "schedule": "0 0 * * *" },
+    { "path": "/api/rss/1", "schedule": "2 0 * * *" },
+    { "path": "/api/rss/2", "schedule": "4 0 * * *" }
   ],
   "functions": {
     "app/api/rss/[batch]/route.ts": {
-      "runtime": "vercel/node@22.x",
+      "runtime": "nodejs18.x",
       "maxDuration": 30
     },
     "app/api/rss/trigger/route.ts": {
-      "runtime": "vercel/node@22.x",
+      "runtime": "nodejs18.x",
       "maxDuration": 300
     }
   },
-  "env": {
-    "CRON_SECRET": "@cron_secret"
-  }
+  "env": { "CRON_SECRET": "@cron_secret" }
 }
