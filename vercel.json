@@ -1,18 +1,43 @@
 {
-  "$schema": "https://openapi.vercel.sh/vercel.json",
-  "functions": {
-    "server/index.ts": {
-      "runtime": "edge"
-    }
-  },
-  "rewrites": [
+  "crons": [
     {
-      "source": "/api/(.*)",
-      "destination": "/api/index.ts"
+      "path": "/api/rss/0",
+      "schedule": "0 */6 * * *"
     },
     {
-      "source": "/(.*)",
-      "destination": "/api/index.ts"
+      "path": "/api/rss/1",
+      "schedule": "2 */6 * * *"
+    },
+    {
+      "path": "/api/rss/2",
+      "schedule": "4 */6 * * *"
+    },
+    {
+      "path": "/api/rss/3",
+      "schedule": "6 */6 * * *"
+    },
+    {
+      "path": "/api/rss/4",
+      "schedule": "8 */6 * * *"
+    },
+    {
+      "path": "/api/rss/5",
+      "schedule": "10 */6 * * *"
+    },
+    {
+      "path": "/api/rss/6",
+      "schedule": "12 */6 * * *"
     }
-  ]
+  ],
+  "functions": {
+    "app/api/rss/[batch]/route.ts": {
+      "maxDuration": 30
+    },
+    "app/api/rss/trigger/route.ts": {
+      "maxDuration": 300
+    }
+  },
+  "env": {
+    "CRON_SECRET": "@cron_secret"
+  }
 }
