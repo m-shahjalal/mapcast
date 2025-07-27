@@ -31,9 +31,11 @@
   ],
   "functions": {
     "app/api/rss/[batch]/route.ts": {
+      "runtime": "vercel/node@22.x",
       "maxDuration": 30
     },
     "app/api/rss/trigger/route.ts": {
+      "runtime": "vercel/node@22.x",
       "maxDuration": 300
     }
   },
