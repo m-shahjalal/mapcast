@@ -1,7 +1,7 @@
 import { RSSBatchProcessor } from "@/lib/rss-processor";
 import { NextRequest, NextResponse } from "next/server";
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   const totalBatches = await RSSBatchProcessor.getTotalBatches();
   return NextResponse.json({
     totalBatches,
@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
   });
 }
 
-export async function POST(req: NextRequest) {
+export async function POST() {
   const result = await RSSBatchProcessor.processAllBatches();
   return NextResponse.json(result);
 }
