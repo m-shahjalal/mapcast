@@ -123,3 +123,12 @@
     display: none;
   }
 }
+
+.leaflet-popup {
+  max-width: 80vw;
+  @apply dark:bg-gray-800 dark:text-gray-100 rounded-lg;
+}
+
+.leaflet-popup-content-wrapper {
+  @apply dark:bg-gray-800 dark:text-gray-100 rounded-lg;
+}

@@ -7,12 +7,13 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Spinner } from "@/components/ui/spinner";
-import { BookOpen, ExternalLink, EyeOff } from "lucide-react";
+import { BookOpen, X, ExternalLink } from "lucide-react";
 import { useEffect, useState } from "react";
 import { parseArticle } from "./action";
 import Link from "next/link";
 import { DialogTitle } from "@/components/ui/dialog";
 import { parseRootDomain } from "@/utils/urls";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export const NewsReader = ({
   url,
@@ -27,6 +28,7 @@ export const NewsReader = ({
   const [err, setErr] = useState<string | null>(null);
   const [article, setArticle] = useState<any>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const isMobile = useIsMobile();
 
   const domain = parseRootDomain(url) ?? "Unknown Source";
 
@@ -72,14 +74,27 @@ export const NewsReader = ({
         <ActionButton color={color} />
       </SheetTrigger>
 
-      <SheetContent className="min-w-[80vw] border-l-0 rounded-l-2xl bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 shadow-2xl [&>button:first-of-type]:hidden">
-        <div className="h-full flex flex-col">
+      <SheetContent
+        side={isMobile ? "bottom" : "right"}
+        className={`
+          border-l-0 bg-gradient-to-br from-gray-50 to-white 
+          dark:from-gray-900 dark:to-gray-800 shadow-2xl
+          ${
+            isMobile
+              ? "h-[90vh] max-h-[90vh] rounded-t-2xl border-t"
+              : "rounded-l-2xl h-full min-w-5xl max-w-full"
+          }
+          [&>button:first-of-type]:hidden
+        `}
+      >
+        <div className="h-full flex flex-col overflow-hidden">
           <SheetHeader
             color={color}
             title={title}
             domain={domain}
             openInNewTab={openInNewTab}
             setIsSheetOpen={setIsSheetOpen}
+            isMobile={isMobile}
           />
 
           <SheetBody
@@ -97,7 +112,12 @@ export const NewsReader = ({
 
 const ActionButton = ({ color }: { color: string }) => (
   <div
-    className="group relative overflow-hidden overflow-y-auto action-button mb-6 w-full px-6 py-3.5 text-white dark:text-gray-100 text-sm font-semibold rounded-xl transition-all duration-300 flex items-center justify-center gap-3 hover:shadow-lg hover:scale-[1.02] focus:outline-none focus:ring-3 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-gray-800 dark:focus:ring-gray-600 active:scale-[0.98]"
+    className="group relative overflow-hidden action-button mb-6 w-full px-6 py-3.5 
+               text-white dark:text-gray-100 text-sm font-semibold rounded-xl 
+               transition-all duration-300 flex items-center justify-center gap-3 
+               hover:shadow-lg hover:scale-[1.02] focus:outline-none focus:ring-3 
+               focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-gray-800 
+               dark:focus:ring-gray-600 active:scale-[0.98]"
     style={{
       backgroundColor: color,
       boxShadow: `0 4px 14px 0 ${color}33`,
@@ -111,7 +131,11 @@ const ActionButton = ({ color }: { color: string }) => (
     />
     <BookOpen className="relative z-10 w-5 h-5 transition-transform duration-300 group-hover:rotate-12" />
     <span className="relative z-10 font-medium">Read Full Story</span>
-    <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+    <div
+      className="absolute inset-0 -translate-x-full group-hover:translate-x-full 
+                    transition-transform duration-700 bg-gradient-to-r from-transparent 
+                    via-white/20 to-transparent"
+    />
   </div>
 );
 
@@ -121,37 +145,62 @@ const SheetHeader = ({
   domain,
   openInNewTab,
   setIsSheetOpen,
+  isMobile,
 }: {
   color: string;
   title: string;
   domain: string;
   openInNewTab: () => void;
   setIsSheetOpen: (open: boolean) => void;
+  isMobile: boolean;
 }) => (
-  <div className="flex items-center justify-between p-6 border-b bg-white/80 dark:bg-gray-800/80 dark:border-gray-700 backdrop-blur-sm rounded-tl-2xl flex-shrink-0">
-    <div className="flex items-center gap-3">
+  <div
+    className={`
+    flex items-center justify-between border-b bg-white/80 dark:bg-gray-800/80 
+    dark:border-gray-700 backdrop-blur-sm flex-shrink-0
+    ${isMobile ? "p-4 rounded-t-2xl" : "p-6 rounded-tl-2xl"}
+  `}
+  >
+    <div className="flex items-center gap-3 min-w-0 flex-1">
       <div
-        className="w-3 h-3 rounded-full animate-pulse"
+        className="w-3 h-3 rounded-full animate-pulse flex-shrink-0"
         style={{ backgroundColor: color }}
       />
-      <div>
-        <DialogTitle className="text-lg font-semibold text-gray-800 dark:text-gray-100">
+      <div className="min-w-0 flex-1">
+        <DialogTitle
+          className={`
+          font-semibold text-gray-800 dark:text-gray-100 truncate
+          ${isMobile ? "text-base underline" : "text-lg"}
+        `}
+          onClick={() => isMobile && openInNewTab()}
+        >
           {title}
         </DialogTitle>
-        <p className="text-sm text-gray-500 dark:text-gray-400">{domain}</p>
+        <p
+          className={`
+          text-gray-500 dark:text-gray-400 truncate
+          ${isMobile ? "text-xs" : "text-sm"}
+        `}
+        >
+          {domain}
+        </p>
       </div>
     </div>
 
-    <div className="flex gap-1">
-      <HeaderButton
-        onClick={openInNewTab}
-        icon={ExternalLink}
-        label="Open in new tab"
-      />
+    <div className="flex gap-1 flex-shrink-0 ml-2">
+      {!isMobile && (
+        <HeaderButton
+          onClick={openInNewTab}
+          icon={ExternalLink}
+          label="Open in new tab"
+          isMobile={isMobile}
+        />
+      )}
       <HeaderButton
         onClick={() => setIsSheetOpen(false)}
-        icon={EyeOff}
+        icon={X}
         label="Close news reader"
+        isMobile={isMobile}
       />
     </div>
   </div>
@@ -161,17 +210,26 @@ const HeaderButton = ({
   onClick,
   icon: Icon,
   label,
+  isMobile,
 }: {
   onClick: () => void;
   icon: React.ComponentType<{ className?: string }>;
   label: string;
+  isMobile: boolean;
 }) => (
   <button
     onClick={onClick}
-    className="p-2 px-3 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+    className={`
+      hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors
+      ${isMobile ? "p-1.5" : "p-2 px-3"}
+    `}
     aria-label={label}
   >
-    <Icon className="h-4 w-4 text-gray-600 dark:text-gray-300" />
+    <Icon
+      className={`text-gray-600 dark:text-gray-300 ${
+        isMobile ? "h-4 w-4" : "h-4 w-4"
+      }`}
+    />
   </button>
 );
 
@@ -188,7 +246,7 @@ const SheetBody = ({
   article: any;
   color: string;
 }) => (
-  <div className="flex-1 overflow-y-auto">
+  <div className="flex-1 overflow-y-auto overscroll-contain">
     {isLoading && <LoadingState color={color} />}
     {err && <ErrorState err={err} url={url} />}
     {article && !isLoading && <ArticleContent article={article} />}
@@ -207,13 +265,17 @@ const LoadingState = ({ color }: { color: string }) => (
 );
 
 const ErrorState = ({ err, url }: { err: string; url: string }) => (
-  <div className="p-6">
-    <p className="text-red-600 dark:text-red-400">Error: {err}</p>
-    <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">URL: {url}</p>
+  <div className="p-4 sm:p-6">
+    <p className="text-red-600 dark:text-red-400 text-sm sm:text-base">
+      Error: {err}
+    </p>
+    <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-2 break-all">
+      URL: {url}
+    </p>
     <Link
       target="_blank"
       href={url}
-      className="text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 underline transition-colors"
+      className="text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 underline transition-colors text-sm inline-block mt-2"
     >
       Try to read from the original source
     </Link>
@@ -221,19 +283,19 @@ const ErrorState = ({ err, url }: { err: string; url: string }) => (
 );
 
 const ArticleContent = ({ article }: { article: any }) => (
-  <div className="max-w-4xl mx-auto p-8">
-    <SheetTitle className="text-3xl font-bold mb-4 text-gray-800 dark:text-gray-100">
+  <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8">
+    <SheetTitle className="text-xl sm:text-2xl lg:text-3xl font-bold mb-3 sm:mb-4 text-gray-800 dark:text-gray-100 leading-tight">
       {article.title}
     </SheetTitle>
 
     {article.author && (
-      <p className="text-gray-600 dark:text-gray-300 mb-2">
+      <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 mb-2">
         By {article.author}
       </p>
     )}
 
     {article.date_published && (
-      <p className="text-gray-500 dark:text-gray-400 mb-6">
+      <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mb-4 sm:mb-6">
         {new Date(article.date_published).toLocaleDateString()}
       </p>
     )}
@@ -242,12 +304,13 @@ const ArticleContent = ({ article }: { article: any }) => (
       <img
         src={article.lead_image_url || "/placeholder.svg"}
         alt={article.title || "Article lead image"}
-        className="w-full mb-6 rounded-lg"
+        className="w-full mb-4 sm:mb-6 rounded-lg max-h-64 sm:max-h-80 object-cover"
+        loading="lazy"
       />
     )}
 
     <div
-      className="prose prose-gray dark:prose-invert max-w-none"
+      className="prose prose-sm sm:prose-base prose-gray dark:prose-invert max-w-none [&>*]:leading-relaxed"
       dangerouslySetInnerHTML={{ __html: article.content ?? "" }}
     />
   </div>

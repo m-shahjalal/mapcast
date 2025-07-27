@@ -60,17 +60,23 @@ const createEnhancedIcon = (
   const pulseKeyframes = pulseAnimation
     ? `
     @keyframes markerPulse {
-      0% {         box-shadow: 0 ${
-        shadow / 3
-      }px ${shadow}px rgba(0,0,0,0.2), 0 0 0 0 var(--marker-color-40);       }
-      70% {         box-shadow: 0 ${
-        shadow / 3
-      }px ${shadow}px rgba(0,0,0,0.2), 0 0 0 ${
+      0% {         
+        box-shadow: 0 ${
+          shadow / 3
+        }px ${shadow}px rgba(0,0,0,var(--shadow-opacity)), 0 0 0 0 var(--marker-color-40);       
+      }
+      70% {         
+        box-shadow: 0 ${
+          shadow / 3
+        }px ${shadow}px rgba(0,0,0,var(--shadow-opacity)), 0 0 0 ${
         shadow * 1.2
-      }px transparent;       }
-      100% {         box-shadow: 0 ${
-        shadow / 3
-      }px ${shadow}px rgba(0,0,0,0.2), 0 0 0 0 transparent;       }
+      }px transparent;       
+      }
+      100% {         
+        box-shadow: 0 ${
+          shadow / 3
+        }px ${shadow}px rgba(0,0,0,var(--shadow-opacity)), 0 0 0 0 transparent;       
+      }
     }
     `
     : "";
@@ -95,7 +101,9 @@ const createEnhancedIcon = (
         transform: translate(-50%, -50%);
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         background: linear-gradient(135deg, var(--marker-color) 0%, var(--marker-color-light) 100%);
-        box-shadow: 0 ${shadow / 3}px ${shadow}px rgba(0,0,0,0.15);
+        box-shadow: 0 ${
+          shadow / 3
+        }px ${shadow}px rgba(0,0,0,var(--shadow-opacity));
         ${animationStyle}
       ">
         <div class="marker-emoji" style="
@@ -118,29 +126,52 @@ const createEnhancedIcon = (
           border-radius: 50%;
           opacity: 0;
           transition: all 0.3s ease;
+          z-index: 99999;
         ">
         </div>
-        
       </div>
-      <div style="
+      <div class="marker-label" style="
           margin-top: -20px;
           margin-left: -60px;
-          background: rgba(255, 255, 255, 0.70);
+          background: var(--bg-color);
           backdrop-filter: blur(8px);
-          border: 1px solid rgba(0, 0, 0, 0.1);
+          border: 1px solid var(--border-color);
           border-radius: 6px;
           padding: 5px 8px;
           font-size: 12px;
-          color: #000;
+          color: var(--text-color);
           text-align: center;
           line-height: 1.2;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+          box-shadow: 0 2px 8px rgba(0, 0, 0, var(--shadow-opacity));
           min-width: 150px;
           transition: all 0.3s ease;
           overflow: hidden;
           text-overflow: ellipsis;
         ">${truncateText(title, 20)}</div>
-      <style>${pulseKeyframes}
+      <style>
+        :root {
+          --theme-marker-bg:  rgba(39, 39, 42, 0.9);
+          --theme-text-color: #ffffff;
+          --theme-border-color: rgba(255, 255, 255, 0.1);
+          --theme-shadow-opacity: 0.15;
+          --bg-color: #ffffff;
+          --text-color: #000000;
+          --border-color: var(--theme-border-color);
+          --shadow-opacity: var(--theme-shadow-opacity);
+        }
+        
+        [data-theme="dark"], .dark {
+          --theme-marker-bg: rgba(255, 255, 255, 0.9);
+          --theme-text-color: #000000;
+          --theme-border-color:  rgba(0, 0, 0, 0.1);
+          --theme-shadow-opacity: 0.25;
+          --bg-color: #101828;
+          --text-color: var(--theme-marker-bg);
+          --border-color: var(--theme-border-color);
+          --shadow-opacity: var(--theme-shadow-opacity);
+        }
+        
+        ${pulseKeyframes}
         .marker-container:hover {
           transform: translate(-50%, -50%) scale(1.15) !important;
           animation: bounce 0.6s ease-in-out !important;
@@ -204,16 +235,16 @@ export const NewsMarker = memo<NewsMarkerProps>(
         <Tooltip
           direction="top"
           offset={[0, -12]}
-          className="shadow-lg rounded-lg p-2 border"
+          className="shadow-lg !rounded-md !p-3 border border-gray-200 dark:!border-gray-700 bg-white dark:!bg-gray-800"
           permanent={false}
         >
           <div className="space-y-2">
-            <div className="text-lg font-medium text-gray-900">
+            <div className="text-lg font-bold text-gray-900 dark:text-gray-100">
               {truncateText(displayTitle, 30)}
             </div>
             <div className="space-y-1">
               {location.source && (
-                <div className="flex items-center gap-1.5 text-sm text-gray-600">
+                <div className="flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-400">
                   <span className="flex-shrink-0">📰</span>
                   <span className="truncate">
                     {truncateText(location.newsUrl ?? "", 20)}
@@ -221,7 +252,7 @@ export const NewsMarker = memo<NewsMarkerProps>(
                 </div>
               )}
               {formattedDate && (
-                <div className="flex items-center gap-1 text-xs text-gray-500 font-medium">
+                <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400 font-medium">
                   <span className="flex-shrink-0">📅</span>
                   <span>{formattedDate}</span>
                 </div>
@@ -229,17 +260,12 @@ export const NewsMarker = memo<NewsMarkerProps>(
             </div>
           </div>
         </Tooltip>
-        <Popup
-          minWidth={200}
-          maxWidth={320}
-          className="p-0! m-0!"
-          closeButton={true}
-        >
+        <Popup minWidth={200} maxWidth={320} closeButton={true}>
           <Sheet>
-            <div className="popup-content leading-relaxed font-sans my-6">
+            <div className="popup-content leading-relaxed font-sans my-6 text-gray-900 dark:text-gray-100">
               <div
                 className={cn(
-                  "flex items-center gap-2 font-bold text-base text-gray-900 leading-tight",
+                  "flex items-center gap-2 font-bold text-base text-gray-900 dark:text-gray-100 leading-tight",
                   hasDetails && "mb-3"
                 )}
               >
@@ -248,33 +274,33 @@ export const NewsMarker = memo<NewsMarkerProps>(
               </div>
               {location.summary && (
                 <div
-                  className="summary-box text-sm text-gray-600 mb-3.5 px-2.5 border-l-4 rounded py-1 leading-relaxed my-6"
+                  className="summary-box text-sm text-gray-600 dark:text-gray-300 mb-3.5 px-2.5 border-l-4 rounded py-1 leading-relaxed my-6 bg-gray-50 dark:bg-gray-800/50"
                   style={{ borderColor: color }}
                 >
                   {truncateText(location.summary, 120)}
                 </div>
               )}
               {hasDetails && (
-                <div className="details-grid grid gap-2 p-3 bg-slate-50 rounded-lg border mb-4 mt-6">
+                <div className="details-grid grid gap-2 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700 mb-4 mt-6">
                   {location.newsUrl && (
-                    <div className="flex items-center gap-1.5 text-sm text-gray-700 font-medium min-w-0">
+                    <div className="flex items-center gap-1.5 text-sm text-gray-700 dark:text-gray-300 font-medium min-w-0">
                       <span className="flex-shrink-0">📰</span>
                       <Link
                         href={location.newsUrl}
-                        className="news-link truncate min-w-0 transition-colors"
+                        className="news-link truncate min-w-0 transition-colors text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
                       >
                         {location.newsUrl}
                       </Link>
                     </div>
                   )}
                   {formattedDate && (
-                    <div className="flex items-center gap-1.5 text-sm text-gray-700 font-medium">
+                    <div className="flex items-center gap-1.5 text-sm text-gray-700 dark:text-gray-300 font-medium">
                       <span className="flex-shrink-0 w-4">📅</span>
                       <span>{formattedDate}</span>
                     </div>
                   )}
                   {location.address && (
-                    <div className="flex items-start gap-1.5 text-sm text-gray-700 font-medium leading-tight">
+                    <div className="flex items-start gap-1.5 text-sm text-gray-700 dark:text-gray-300 font-medium leading-tight">
                       <span className="flex-shrink-0 w-4 mt-0.5">📍</span>
                       <span className="whitespace-pre-wrap break-words">
                         {location.address}
