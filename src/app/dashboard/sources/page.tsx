@@ -12,5 +12,7 @@ export default async function SourcesPage({
     : "";
   const sources = await api.rss.list(queryString);
 
+  console.log(sources);
+
   return <NewsSourceManager sources={sources.data ?? []} />;
 }
