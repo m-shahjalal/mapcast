@@ -1,6 +1,7 @@
 import { useMapContext } from "@/config/map-context";
 import { getNews } from "@/server/actions/news.action";
 import { useDebounce } from "@uidotdev/usehooks";
+import axios from "axios";
 import { useEffect } from "react";
 
 export function useMapSearch() {
@@ -22,11 +23,11 @@ export function useMapSearch() {
 
       try {
         const [{ data: locations }, { result: newsList }] = await Promise.all([
-          fetch(
+          axios.get(
             `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
               debouncedSearchTerm
             )}&format=json&limit=5`
-          ).then((res) => res.json()),
+          ),
           getNews({ search: debouncedSearchTerm }),
         ]);
 
