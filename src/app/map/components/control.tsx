@@ -2,50 +2,27 @@
 
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
-import { useMapControls } from "@/hooks/use-map-controls";
 import { MAP_LAYERS } from "@/config/map-constraint";
+import { useMapControls } from "@/hooks/use-map-controls";
 import {
   Check,
   ChevronDown,
   ChevronUp,
   Layers,
   Locate,
-  Map,
   Minus,
-  Moon,
-  Mountain,
   Navigation,
   Plus,
-  Satellite,
-  Sun,
 } from "lucide-react";
 
-import { useState } from "react";
 import { useMapContext } from "@/config/map-context";
+import { cn } from "@/lib/utils";
+import { useTheme } from "next-themes";
+import { useCallback, useMemo, useState } from "react";
 
-type LayerKey = keyof typeof MAP_LAYERS;
+export type LayerKey = keyof typeof MAP_LAYERS;
 
-const LAYER_ICONS: Record<LayerKey, React.ReactNode> = {
-  satellite: <Satellite className="h-4 w-4" />,
-  openstreetmap: <Map className="h-4 w-4" />,
-  terrain: <Mountain className="h-4 w-4" />,
-  light: <Sun className="h-4 w-4" />,
-  dark: <Moon className="h-4 w-4" />,
-};
-
-const LAYER_COLORS: Record<LayerKey, string> = {
-  satellite:
-    "bg-green-100 dark:bg-green-900/60 text-green-700 dark:text-green-400",
-  terrain:
-    "bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-400",
-  dark: "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300",
-  light:
-    "bg-yellow-100 dark:bg-yellow-900/60 text-yellow-700 dark:text-yellow-400",
-  openstreetmap:
-    "bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-400",
-};
-
-function LayerSelector({
+export function LayerSelector({
   currentLayer,
   setCurrentLayer,
 }: {
@@ -53,18 +30,30 @@ function LayerSelector({
   setCurrentLayer: (layer: LayerKey) => void;
 }) {
   const [isOpen, setIsOpen] = useState(false);
+  const { setTheme } = useTheme();
 
-  const controlButtonClass =
-    "h-10 w-10 shadow-md bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 border-gray-200 dark:border-gray-600";
+  const layerEntries = useMemo(() => Object.entries(MAP_LAYERS), []);
+
+  const handleLayerSelect = useCallback(
+    (key: string) => {
+      setCurrentLayer(key as LayerKey);
+      setIsOpen(false);
+      if (key === "dark" || key === "light") {
+        setTheme(key);
+      }
+    },
+    [setCurrentLayer]
+  );
 
   return (
     <div className="relative">
       <Button
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => setIsOpen((prev) => !prev)}
         size="icon"
         variant="outline"
-        className={`${controlButtonClass} ${LAYER_COLORS[currentLayer]}`}
+        className={`h-10 w-10 shadow-md bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 border-gray-200 dark:border-gray-600 transition-colors ${MAP_LAYERS[currentLayer]}`}
         aria-label="Select map layer"
+        aria-expanded={isOpen}
       >
         <Layers className="h-4 w-4" />
       </Button>
@@ -74,47 +63,62 @@ function LayerSelector({
           <div
             className="fixed inset-0 z-10"
             onClick={() => setIsOpen(false)}
+            aria-hidden="true"
           />
-          <div className="absolute top-full right-0 mt-2 z-20 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border border-gray-200/50 dark:border-gray-700/50 rounded-2xl shadow-2xl overflow-hidden min-w-[220px] animate-in slide-in-from-top-2 duration-200">
-            <div className="p-2">
-              {Object.entries(MAP_LAYERS).map(([key, layer]) => {
-                const isSelected = currentLayer === key;
-                return (
-                  <button
-                    key={key}
-                    onClick={() => {
-                      setCurrentLayer(key as LayerKey);
-                      setIsOpen(false);
-                    }}
-                    className={`group w-full flex items-center gap-3 p-3 rounded-xl transition-all duration-200 text-left hover:bg-gray-50/80 dark:hover:bg-gray-800/80 ${
-                      isSelected
-                        ? "bg-blue-50/80 dark:bg-blue-900/30 text-blue-900 dark:text-blue-300 ring-1 ring-blue-200/50 dark:ring-blue-700/50"
-                        : "text-gray-700 dark:text-gray-300"
-                    }`}
-                  >
-                    <div
-                      className={`p-2 rounded-lg transition-all duration-200 ${
+
+          <div className="absolute top-full right-0 mt-2 z-20 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border border-gray-200/50 dark:border-gray-700/50 rounded-2xl shadow-2xl overflow-hidden w-80 animate-in slide-in-from-top-2 duration-200">
+            {/* Grid Container */}
+            <div className="p-4">
+              <div className="grid grid-cols-3 grid-rows-2 gap-3">
+                {layerEntries.map(([key, layer]) => {
+                  const isSelected = currentLayer === key;
+
+                  return (
+                    <button
+                      key={key}
+                      onClick={() => handleLayerSelect(key)}
+                      className={`group relative aspect-square p-3 rounded-xl transition-all duration-200 text-center hover:scale-105 hover:shadow-lg ${cn(
                         isSelected
-                          ? LAYER_COLORS[key as LayerKey]
-                          : "bg-gray-100/60 dark:bg-gray-800/60 text-gray-500 dark:text-gray-400 group-hover:bg-gray-200/80 dark:group-hover:bg-gray-700/80"
-                      }`}
+                          ? "bg-blue-50/80 dark:bg-blue-900/30 ring-2 ring-blue-300/50 dark:ring-blue-600/50 shadow-md"
+                          : "bg-gray-50/60 dark:bg-gray-800/60 hover:bg-gray-100/80 dark:hover:bg-gray-700/80"
+                      )}`}
+                      aria-pressed={isSelected}
                     >
-                      {LAYER_ICONS[key as LayerKey] || (
-                        <Navigation className="h-4 w-4" />
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="font-medium text-sm">{layer.name}</div>
-                    </div>
-                    {isSelected && (
-                      <div className="p-1 rounded-full bg-blue-600 dark:bg-blue-500">
-                        <Check className="h-3 w-3 text-white" />
+                      {/* Icon Container */}
+                      <div
+                        className={`mb-2 mx-auto w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 ${cn(
+                          isSelected
+                            ? layer.colors
+                            : "bg-gray-200/60 dark:bg-gray-700/60 text-gray-500 dark:text-gray-400"
+                        )}`}
+                      >
+                        {layer.icon || <Navigation className="h-4 w-4" />}
                       </div>
-                    )}
-                  </button>
-                );
-              })}
+
+                      {/* Text Overlay */}
+                      <div
+                        className={`text-xs font-medium leading-tight truncate transition-colors duration-200 ${cn(
+                          isSelected
+                            ? "text-blue-900 dark:text-blue-300"
+                            : "text-gray-700 dark:text-gray-300"
+                        )}`}
+                      >
+                        {layer.name}
+                      </div>
+
+                      {/* Selection Indicator */}
+                      {isSelected && (
+                        <div className="absolute top-1.5 right-1.5 w-4 h-4 bg-blue-600 dark:bg-blue-500 rounded-full flex items-center justify-center">
+                          <Check className="h-2.5 w-2.5 text-white" />
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
+
+            {/* Footer */}
             <div className="px-4 py-3 bg-gray-50/50 dark:bg-gray-800/50 border-t border-gray-100 dark:border-gray-700">
               <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
                 Choose your preferred map style
@@ -168,13 +172,6 @@ export function MapControls() {
             : "max-h-0 opacity-0 -translate-y-4"
         }`}
       >
-        <ThemeToggle
-          onThemeChange={(theme) => {
-            setCurrentLayer(theme as LayerKey);
-            setIsExpanded(false);
-          }}
-          className={controlButtonClass}
-        />
         <LayerSelector
           currentLayer={currentLayer}
           setCurrentLayer={(layer) => {
