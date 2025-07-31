@@ -1,94 +1,125 @@
 "use client";
+import { BaseFilters } from "@/types/query-filter";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback } from "react";
 
-type ParamsObject = Record<string, string | null | undefined>;
-
-export function useQueryParams() {
+export function useQueryParams<T = BaseFilters>() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const updateParams = useCallback(
-    (keyOrObject: string | ParamsObject, value?: string | null) => {
+  function getParams(key?: keyof T): any {
+    if (typeof key === "string") {
+      // Single key - return single param
+      return searchParams.get(key);
+    } else if (Array.isArray(key)) {
+      // Array of keys - return object with those keys
+      const result: Record<string, string> = {};
+      key.forEach((k) => {
+        const value = searchParams.get(k as string);
+        if (value !== null) {
+          result[k as string] = value;
+        }
+      });
+      return result;
+    } else {
+      // No argument - return all params as object
+      const params: Record<string, string> = {};
+      searchParams.forEach((value, key) => {
+        params[key] = value;
+      });
+      return params as T;
+    }
+  }
+
+  // setParams: replace existing key or create new one
+  const setParams = useCallback(
+    (key: keyof T, value: string | null) => {
       const params = new URLSearchParams(searchParams);
 
-      if (typeof keyOrObject === "object") {
-        Object.entries(keyOrObject).forEach(([key, val]) => {
-          if (val === null || val === "" || val === undefined) {
-            params.delete(key);
-          } else {
-            params.set(key, val);
-          }
-        });
-      } else if (value === null || value === "" || value === undefined) {
-        params.delete(keyOrObject);
+      if (value == null) {
+        params.delete(key as string);
       } else {
-        params.set(keyOrObject, value);
+        params.set(key as string, value);
       }
 
-      router.push(`?${params.toString()}`);
+      const newUrl = params.toString()
+        ? `?${params.toString()}`
+        : window.location.pathname;
+      router.push(newUrl);
     },
     [router, searchParams]
   );
 
-  const get = useCallback(
-    (key: string): string | null => {
-      return searchParams.get(key);
+  // setMultipleParams: set multiple parameters at once (more efficient)
+  const setMultipleParams = useCallback(
+    (updates: Record<string, string | null>) => {
+      const params = new URLSearchParams(searchParams);
+
+      Object.entries(updates).forEach(([key, value]) => {
+        if (value === null || value === undefined) {
+          params.delete(key);
+        } else {
+          params.set(key, value);
+        }
+      });
+
+      const newUrl = params.toString()
+        ? `?${params.toString()}`
+        : window.location.pathname;
+      router.push(newUrl);
+    },
+    [router, searchParams]
+  );
+
+  const clearParams = useCallback(
+    (keys?: string | string[] | "all") => {
+      if (keys === "all" || keys === undefined) {
+        return router.push(window.location.pathname);
+      }
+      const params = new URLSearchParams(searchParams);
+
+      if (typeof keys === "string") {
+        params.delete(keys);
+      } else if (Array.isArray(keys)) {
+        keys.forEach((key) => params.delete(key));
+      }
+
+      const newUrl = params.toString()
+        ? `?${params.toString()}`
+        : window.location.pathname;
+      router.push(newUrl);
+    },
+    [router, searchParams]
+  );
+
+  // hasParam: check if a parameter exists
+  const hasParam = useCallback(
+    (key: string): boolean => {
+      return searchParams.has(key);
     },
     [searchParams]
   );
 
-  const add = useCallback(
-    (key: string, value: string) => {
-      if (!value) return;
-
-      const params = new URLSearchParams(searchParams);
-      params.append(key, value);
-      router.push(`?${params.toString()}`);
+  // toggleParam: toggle a boolean-like parameter
+  const toggleParam = useCallback(
+    (
+      key: string,
+      trueValue: string = "true",
+      falseValue: string | null = null
+    ) => {
+      const currentValue = searchParams.get(key);
+      const newValue = currentValue === trueValue ? falseValue : trueValue;
+      setParams(key as keyof T, newValue);
     },
-    [router, searchParams]
+    [searchParams, setParams]
   );
-
-  const remove = useCallback(
-    (keys: string | string[]) => {
-      const params = new URLSearchParams(searchParams);
-      const keysArray = Array.isArray(keys) ? keys : [keys];
-
-      keysArray.forEach((key) => params.delete(key));
-      router.push(`?${params.toString()}`);
-    },
-    [router, searchParams]
-  );
-
-  const clear = useCallback(
-    (keysToKeep?: string[]) => {
-      if (keysToKeep?.length) {
-        const params = new URLSearchParams();
-        keysToKeep.forEach((key) => {
-          const value = searchParams.get(key);
-          if (value) params.set(key, value);
-        });
-        return router.push(`?${params.toString()}`);
-      }
-      router.push(window.location.pathname);
-    },
-    [router, searchParams]
-  );
-
-  const getAllParams = useCallback((): Record<string, string> => {
-    const params: Record<string, string> = {};
-    searchParams.forEach((value, key) => {
-      params[key] = value;
-    });
-    return params;
-  }, [searchParams]);
 
   return {
-    updateParams,
-    get,
-    add,
-    remove,
-    clear,
-    getAllParams,
+    getParams,
+    setParams,
+    setMultipleParams,
+    clearParams,
+    hasParam,
+    toggleParam,
   };
 }

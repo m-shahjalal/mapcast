@@ -115,6 +115,7 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    font-family: var(--font-poppins);
   }
   body {
     @apply bg-background text-foreground;
@@ -131,4 +132,13 @@
 
 .leaflet-popup-content-wrapper {
   @apply dark:bg-gray-800 dark:text-gray-100 rounded-lg;
+}
+
+@keyframes infinite-spinner-rotate {
+  0% {
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: 256.58892822265625;
+  }
 }

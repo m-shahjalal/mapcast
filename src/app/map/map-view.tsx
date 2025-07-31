@@ -1,4 +1,5 @@
 "use client";
+
 import { MAP_LAYERS } from "@/config/map-constraint";
 import { useCallback, useState } from "react";
 import { MapContainer, TileLayer } from "react-leaflet";
@@ -8,6 +9,8 @@ import "leaflet/dist/leaflet.css";
 import { MobileBottomBar } from "./components/mobile-bottom-bar";
 import { NewsSelect } from "@/server/database/schemas";
 import { useMapContext } from "@/config/map-context";
+import { LocationHighlighter } from "./components/highlighter";
+import { LocationMarker } from "./components/location-marker";
 
 export function MapView({ news }: { news?: NewsSelect[] | null }) {
   const { center, zoom, currentLayer } = useMapContext();
@@ -36,17 +39,12 @@ export function MapView({ news }: { news?: NewsSelect[] | null }) {
         style={{ height: "100%", width: "100%", zIndex: 0 }}
       >
         <TileLayer key={currentLayer} url={selectedLayer.url} />
-
         {isMapReady && news && <NewsMarkers news={news} />}
+        {isMapReady && <LocationHighlighter />}
+        {isMapReady && <LocationMarker />}
         {isMapReady && <TopBar />}
         {isMapReady && <MobileBottomBar />}
       </MapContainer>
-
-      {!isMapReady && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gray-100 z-10">
-          <div className="text-gray-500">Loading map...</div>
-        </div>
-      )}
     </div>
   );
 }

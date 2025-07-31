@@ -2,16 +2,17 @@ import Providers from "@/components/provider";
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import "./globals.css";
+import { InfinitePageLoader } from "@/components/page-loader";
 
-const en = Poppins({
+const poppins = Poppins({
   subsets: ["latin"],
-  variable: "--font-english",
+  variable: "--font-poppins",
   display: "swap",
   weight: ["200", "400", "600", "700"],
 });
 
 export const metadata: Metadata = {
-  title: "PinPoint News | Stay Updated",
+  title: "PiNews News | Stay Updated",
   description: "Stay updated with the latest news from around the world.",
 };
 
@@ -22,7 +23,8 @@ export default async function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${en.variable} antialiased`}>
+      <body className={`${poppins.variable} antialiased`}>
+        <InfinitePageLoader />
         <Providers>{children}</Providers>
       </body>
     </html>

@@ -1,5 +1,3 @@
-// server/services/NewsService.ts
-
 import { NewNews, news, newsSource } from "@/server/database/schemas";
 import { ApiPagination } from "@/types/api-response";
 import { NewsFilters, NewsMapFilters } from "@/types/query-filter";
@@ -7,8 +5,10 @@ import {
   and,
   desc,
   eq,
+  gte,
   inArray,
   isNotNull,
+  lte,
   sql,
   SQLWrapper,
 } from "drizzle-orm";
@@ -26,9 +26,9 @@ export const NewsService = {
     }
 
     if (filters.topics) {
-      const topics = filters.topics[0]
+      const topics = ((filters as any).topics ?? "")
         .split(",")
-        .map((t) => t.trim())
+        .map((t: string) => t.trim())
         .filter(Boolean);
 
       if (topics.length > 0) {
@@ -75,10 +75,22 @@ export const NewsService = {
   async getMapData(filters: NewsMapFilters) {
     const conditions: SQLWrapper[] = [isNotNull(news.locationName)];
 
+    const fromDate = filters.from
+      ? new Date(filters.from)
+      : new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const toDate = filters.to ? new Date(filters.to) : new Date();
+
+    conditions.push(
+      and(
+        gte(news.createdAt, fromDate),
+        lte(news.createdAt, toDate)
+      ) as SQLWrapper
+    );
+
     if (filters.topics) {
-      const topics = filters.topics[0]
+      const topics = ((filters as any).topics ?? "")
         .split(",")
-        .map((t) => t.trim())
+        .map((t: string) => t.trim())
         .filter(Boolean);
 
       if (topics.length > 0) {

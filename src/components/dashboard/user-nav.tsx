@@ -23,6 +23,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { logout } from "@/app/auth/auth-action";
 
 export function NavUser({
   user,
@@ -34,6 +35,10 @@ export function NavUser({
   };
 }) {
   const { isMobile } = useSidebar();
+  const handleLogout = () => {
+    logout().then(console.info).catch(console.error);
+    window.location.href = "/auth";
+  };
 
   return (
     <SidebarMenu>
@@ -93,7 +98,7 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={handleLogout}>
               <LogOutIcon />
               Log out
             </DropdownMenuItem>

@@ -1,6 +1,6 @@
 import { newsTopicList } from "@/shared/enum-list";
 
-interface BaseFilters {
+export interface BaseFilters {
   search?: string;
   limit?: number;
   page?: number;
@@ -24,4 +24,6 @@ export interface NewsFilters extends BaseFilters {
 export interface NewsMapFilters {
   topics: (typeof newsTopicList)[number][];
   search?: string;
+  from?: Date;
+  to?: Date;
 }

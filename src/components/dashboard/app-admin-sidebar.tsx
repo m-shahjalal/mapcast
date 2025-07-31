@@ -82,7 +82,7 @@ export function AppAdminSidebar() {
             <MapPinCheck className="h-4 w-4 text-white" />
           </div>
           <h2 className="text-lg font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-gray-100 dark:to-gray-300 bg-clip-text text-transparent">
-            PinPoint News
+            PiNews News
           </h2>
         </div>
       </SidebarHeader>
