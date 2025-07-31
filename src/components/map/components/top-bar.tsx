@@ -1,6 +1,6 @@
 "use client";
 
-import { Combobox } from "@/app/map/components/combobox";
+import { Combobox } from "./combobox";
 import { MapControls } from "./control";
 import { TopicFilters } from "./topic-filter";
 import { DateRangePicker } from "@/components/date-picker/date-range-picker";

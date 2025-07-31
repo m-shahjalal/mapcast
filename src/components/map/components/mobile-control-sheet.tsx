@@ -1,15 +1,13 @@
 "use client";
 
-import { SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Combobox } from "@/app/map/components/combobox";
-import { TopicFilters } from "@/app/map/components/topic-filter";
-import { cn } from "@/lib/utils";
-import { useRef } from "react";
-import { LocationData, useMapContext } from "@/config/map-context";
-import { useQueryParams } from "@/hooks/use-query";
 import { DateRangePicker } from "@/components/date-picker/date-range-picker";
 import { Button } from "@/components/ui/button";
+import { SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { useQueryParams } from "@/hooks/use-query";
+import { cn } from "@/lib/utils";
 import { Eraser } from "lucide-react";
+import { TopicFilters } from "./topic-filter";
+import { Combobox } from "./combobox";
 
 export function MobileControlsSheet({
   className,
