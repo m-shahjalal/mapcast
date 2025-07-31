@@ -3,10 +3,13 @@
 import { SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Combobox } from "@/app/map/components/combobox";
 import { TopicFilters } from "@/app/map/components/topic-filter";
-import { useMapSearch } from "@/hooks/use-map-search";
 import { cn } from "@/lib/utils";
 import { useRef } from "react";
-import { LocationData } from "@/config/map-context";
+import { LocationData, useMapContext } from "@/config/map-context";
+import { useQueryParams } from "@/hooks/use-query";
+import { DateRangePicker } from "@/components/date-picker/date-range-picker";
+import { Button } from "@/components/ui/button";
+import { Eraser } from "lucide-react";
 
 export function MobileControlsSheet({
   className,
@@ -15,30 +18,7 @@ export function MobileControlsSheet({
   className?: string;
   setOpen: (open: boolean) => void;
 }) {
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const {
-    searchResults,
-    setSelectedLocation,
-    setSearchQuery,
-    selectedLocation,
-  } = useMapSearch();
-
-  const handleSearchSelect = (location: LocationData | null) => {
-    if (timer.current) clearTimeout(timer.current);
-
-    timer.current = setTimeout(() => {
-      setSelectedLocation(location);
-      setOpen(false);
-    }, 500);
-  };
-
-  const handleClose = () => {
-    if (timer.current) clearTimeout(timer.current);
-
-    timer.current = setTimeout(() => {
-      setOpen(false);
-    }, 1500);
-  };
+  const { setMultipleParams, clearParams } = useQueryParams();
 
   return (
     <SheetContent
@@ -54,15 +34,25 @@ export function MobileControlsSheet({
         </SheetTitle>
       </SheetHeader>
       <div className="flex flex-col gap-4 p-4 overflow-y-auto">
-        <Combobox
-          selectedLocation={selectedLocation}
-          data={searchResults}
-          setSearchQuery={setSearchQuery}
-          setSelectedLocation={handleSearchSelect}
-          showLeader={false}
+        <Combobox />
+        <DateRangePicker
+          onUpdate={({ range }) =>
+            setMultipleParams({
+              from: range.from.toISOString(),
+              to: range.to?.toISOString() ?? new Date().toISOString(),
+            })
+          }
         />
-        <div className="flex-1">
-          <TopicFilters onSelectionChange={handleClose} shouldExpand />
+        <div className="flex-1 flex">
+          <TopicFilters />
+          <Button
+            onClick={() => clearParams("all")}
+            size="sm"
+            className="rounded-md px-8 py-2 h-9 shadow-sm flex-shrink-0 bg-red-400 hover:bg-red-500 border-red-300 text-red-100"
+          >
+            <Eraser className="h-3 w-3 mr-1" />
+            <span className=""> Clear</span>
+          </Button>
         </div>
       </div>
     </SheetContent>

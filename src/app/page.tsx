@@ -1,21 +1,15 @@
-import { getNews } from "@/server/actions/news.action";
+import { getNewsMapData } from "@/server/actions/news.action";
+import { NewsMapFilters } from "@/types/query-filter";
 import { PinPointMap } from "./map/map-page";
 
 export default async function PinPointPage({
   searchParams,
 }: {
-  searchParams: Promise<{ topics?: string }>;
+  searchParams: Promise<NewsMapFilters>;
 }) {
   const params = await searchParams;
-  const queryString = params.topics
-    ? `topics=${encodeURIComponent(params.topics)}`
-    : "";
 
-  const newsList = await getNews({
-    topics: params.topics
-      ? (params.topics.split(",") as "politics"[])
-      : undefined,
-  });
+  const newsList = await getNewsMapData(params);
 
-  return <PinPointMap news={newsList.result!} />;
+  return <PinPointMap news={newsList!} />;
 }

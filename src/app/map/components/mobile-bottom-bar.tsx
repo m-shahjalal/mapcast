@@ -3,11 +3,11 @@ import { Sheet, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { Search, SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useMapSearch } from "@/hooks/use-map-search";
 import { MobileControlsSheet } from "./mobile-control-sheet";
 import { useQueryParams } from "@/hooks/use-query";
 import { newsTopicDropdown } from "@/shared/enum-list";
 import { useEffect, useRef, useState } from "react";
+import { NewsMapFilters } from "@/types/query-filter";
 
 interface ResponsiveTopicDisplayProps {
   activeFilters: string[];
@@ -23,20 +23,18 @@ function ResponsiveTopicDisplay({
     if (!containerRef.current) return;
 
     const calculateVisibleTopics = () => {
-      // Get the actual button element to measure available space
       const button = containerRef.current?.closest("button");
       if (!button) return;
 
       const buttonRect = button.getBoundingClientRect();
-      const buttonPadding = 24; // px-3 = 12px each side
-      const iconWidth = 20; // h-4 w-4 + some margin
-      const gapWidth = 8; // gap-2
+      const buttonPadding = 24;
+      const iconWidth = 20;
+      const gapWidth = 8;
 
-      // Available width = button width - padding - icon - gap
       const availableWidth =
         buttonRect.width - buttonPadding - iconWidth - gapWidth;
-      const moreIndicatorWidth = 40; // Compact "+X" indicator
-      const chipGap = 4; // gap-1 between chips
+      const moreIndicatorWidth = 40;
+      const chipGap = 4;
 
       let usedWidth = 0;
       let count = 0;
@@ -45,7 +43,6 @@ function ResponsiveTopicDisplay({
         const topic = newsTopicDropdown.find(
           (t) => t.topic === activeFilters[i]
         );
-        // More accurate width calculation: character width + padding
         const topicWidth = Math.max((topic?.topic.length || 0) * 7 + 16, 40);
         const currentGap = i > 0 ? chipGap : 0;
 
@@ -109,26 +106,9 @@ function ResponsiveTopicDisplay({
   );
 }
 
-interface ContentDisplayProps {
-  selectedLocation: any;
-  activeFilters: string[] | undefined;
-}
-
-function ContentDisplay({
-  selectedLocation,
-  activeFilters,
-}: ContentDisplayProps) {
-  if (selectedLocation?.name) {
-    return (
-      <div className="flex items-center gap-2 flex-1 min-w-0">
-        <Search className="h-4 w-4 text-muted-foreground dark:text-gray-400 flex-shrink-0" />
-        <span className="text-sm text-muted-foreground dark:text-gray-400 truncate">
-          {selectedLocation.name}
-        </span>
-      </div>
-    );
-  }
-
+function ContentDisplay() {
+  const { getParams } = useQueryParams<NewsMapFilters>();
+  const activeFilters = getParams("topics")?.split(",").filter(Boolean);
   if (activeFilters && activeFilters.length > 0) {
     return <ResponsiveTopicDisplay activeFilters={activeFilters} />;
   }
@@ -144,9 +124,8 @@ function ContentDisplay({
 }
 
 export function MobileBottomBar({ className }: { className?: string }) {
-  const { selectedLocation } = useMapSearch();
-  const { get } = useQueryParams();
-  const activeFilters = get("topics")?.split(",").filter(Boolean);
+  const { getParams } = useQueryParams<NewsMapFilters>();
+  const activeFilters = getParams("topics")?.split(",").filter(Boolean);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   return (
@@ -164,10 +143,7 @@ export function MobileBottomBar({ className }: { className?: string }) {
           >
             <div className="flex items-center justify-between w-full px-3 min-w-0 gap-2">
               <div className="flex-1 min-w-0">
-                <ContentDisplay
-                  selectedLocation={selectedLocation}
-                  activeFilters={activeFilters}
-                />
+                <ContentDisplay />
               </div>
               <SlidersHorizontal className="h-4 w-4 text-muted-foreground dark:text-gray-400 flex-shrink-0" />
             </div>

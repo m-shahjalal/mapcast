@@ -37,8 +37,6 @@ export function useMapControls() {
     map.on("locationfound", handleLocationFound);
     map.on("locationerror", handleLocationError);
 
-    console.log("locate user", map);
-
     map.locate({
       setView: true,
       maxZoom: 16,

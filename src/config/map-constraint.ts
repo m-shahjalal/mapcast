@@ -353,7 +353,7 @@ export const MAP_LAYERS = {
     icon: createElement(Droplets, { className: "h-4 w-4" }),
   },
   toner: {
-    name: "Minimal",
+    name: "Contrast",
     url: "https://tiles.stadiamaps.com/tiles/stamen_toner/{z}/{x}/{y}{r}.png",
     colors: "text-gray-600 bg-gray-50 border-gray-200",
     icon: createElement(Contrast, { className: "h-4 w-4" }),
