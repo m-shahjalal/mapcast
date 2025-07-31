@@ -27,7 +27,6 @@ interface NewsMarkerProps {
   location: LocationData | null;
   color?: string;
   size?: "small" | "medium" | "large";
-  pulseAnimation?: boolean;
   emoji?: string;
 }
 
@@ -44,151 +43,91 @@ const normalizeCoords = (location: LocationData): [number, number] | null => {
 };
 
 const SIZES = {
-  small: { width: 28, height: 28, emoji: 14, shadow: 8 },
-  medium: { width: 36, height: 36, emoji: 18, shadow: 12 },
-  large: { width: 44, height: 44, emoji: 22, shadow: 16 },
+  small: { width: 28, height: 28, emoji: 14 },
+  medium: { width: 36, height: 36, emoji: 18 },
+  large: { width: 44, height: 44, emoji: 22 },
 } as const;
 
-const createEnhancedIcon = (
+// Pre-defined CSS classes for better performance
+const MARKER_STYLES = `
+<style>
+.marker-base {
+  position: relative;
+  border-radius: 50%;
+  border: 2px solid white;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  background: linear-gradient(135deg, var(--marker-color) 0%, var(--marker-color-90) 100%);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+.marker-base:hover {
+  transform: scale(1.1);
+  z-index: 1000;
+}
+.marker-emoji {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  line-height: 1;
+  user-select: none;
+}
+.marker-label {
+  position: absolute;
+  top: -35px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 11px;
+  color: #000;
+  text-align: center;
+  line-height: 1.2;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  white-space: nowrap;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  z-index: 10;
+  pointer-events: none;
+}
+.dark .marker-label {
+  background: rgba(31, 41, 55, 0.95);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #d1d5db;
+}
+.marker-small { width: 28px; height: 28px; }
+.marker-medium { width: 36px; height: 36px; }
+.marker-large { width: 44px; height: 44px; }
+.emoji-small { font-size: 14px; }
+.emoji-medium { font-size: 18px; }
+.emoji-large { font-size: 22px; }
+</style>`;
+
+// Memoized icon creation with simpler structure
+const createOptimizedIcon = (
   color = "#3b82f6",
   size: "small" | "medium" | "large" = "medium",
-  pulseAnimation = true,
   emoji = "📰",
   title = ""
 ) => {
-  const { width, height, emoji: emojiSize, shadow } = SIZES[size];
-  const pulseKeyframes = pulseAnimation
-    ? `
-    @keyframes markerPulse {
-      0% {         
-        box-shadow: 0 ${
-          shadow / 3
-        }px ${shadow}px rgba(0,0,0,var(--shadow-opacity)), 0 0 0 0 var(--marker-color-40);       
-      }
-      70% {         
-        box-shadow: 0 ${
-          shadow / 3
-        }px ${shadow}px rgba(0,0,0,var(--shadow-opacity)), 0 0 0 ${
-        shadow * 1.2
-      }px transparent;       
-      }
-      100% {         
-        box-shadow: 0 ${
-          shadow / 3
-        }px ${shadow}px rgba(0,0,0,var(--shadow-opacity)), 0 0 0 0 transparent;       
-      }
-    }
-    `
-    : "";
-  const animationStyle = pulseAnimation
-    ? "animation: markerPulse 3s infinite;"
-    : "";
+  const { width, height } = SIZES[size];
+  const colorWithAlpha = color + "e6"; // 90% opacity
 
   return L.divIcon({
-    className: "enhanced-marker-custom",
+    className: "optimized-marker",
     html: `
-      <div class="marker-container" style="
-        --marker-color: ${color};
-        --marker-color-light: ${color}cc;
-        --marker-color-30: ${color}30;
-        --marker-color-40: ${color}40;
-        width: ${width}px;
-        height: ${height}px;
-        position: relative;
-        border-radius: 9999px;
-        border: 3px solid white;
-        cursor: pointer;
-        transform: translate(-50%, -50%);
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        background: linear-gradient(135deg, var(--marker-color) 0%, var(--marker-color-light) 100%);
-        box-shadow: 0 ${
-          shadow / 3
-        }px ${shadow}px rgba(0,0,0,var(--shadow-opacity));
-        ${animationStyle}
-      ">
-        <div class="marker-emoji" style="
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          font-size: ${emojiSize}px;
-          line-height: 1;
-          user-select: none;
-          transition: all 0.2s ease;
-        ">${emoji}</div>
-        <div class="marker-ring" style="
-          position: absolute;
-          top: -2px;
-          left: -2px;
-          right: -2px;
-          bottom: -2px;
-          border: 2px solid var(--marker-color-30);
-          border-radius: 50%;
-          opacity: 0;
-          transition: all 0.3s ease;
-          z-index: 99999;
-        ">
-        </div>
+      ${MARKER_STYLES}
+      <div class="marker-base marker-${size}" style="--marker-color: ${color}; --marker-color-90: ${colorWithAlpha};">
+        <div class="marker-emoji emoji-${size}">${emoji}</div>
+        ${
+          title
+            ? `<div class="marker-label">${truncateText(title, 15)}</div>`
+            : ""
+        }
       </div>
-      <div class="marker-label" style="
-          margin-top: -20px;
-          margin-left: -60px;
-          background: var(--bg-color);
-          backdrop-filter: blur(8px);
-          border: 1px solid var(--border-color);
-          border-radius: 6px;
-          padding: 5px 8px;
-          font-size: 12px;
-          color: var(--text-color);
-          text-align: center;
-          line-height: 1.2;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, var(--shadow-opacity));
-          min-width: 150px;
-          transition: all 0.3s ease;
-          overflow: hidden;
-          text-overflow: ellipsis;
-        ">${truncateText(title, 20)}</div>
-      <style>
-        :root {
-          --theme-marker-bg:  rgba(39, 39, 42, 0.9);
-          --theme-text-color: #ffffff;
-          --theme-border-color: rgba(255, 255, 255, 0.1);
-          --theme-shadow-opacity: 0.15;
-          --bg-color: #ffffff;
-          --text-color: #000000;
-          --border-color: var(--theme-border-color);
-          --shadow-opacity: var(--theme-shadow-opacity);
-        }
-        
-        [data-theme="dark"], .dark {
-          --theme-marker-bg: rgba(255, 255, 255, 0.9);
-          --theme-text-color: #000000;
-          --theme-border-color:  rgba(0, 0, 0, 0.1);
-          --theme-shadow-opacity: 0.25;
-          --bg-color: #101828;
-          --text-color: var(--theme-marker-bg);
-          --border-color: var(--theme-border-color);
-          --shadow-opacity: var(--theme-shadow-opacity);
-        }
-        
-        ${pulseKeyframes}
-        .marker-container:hover {
-          transform: translate(-50%, -50%) scale(1.15) !important;
-          animation: bounce 0.6s ease-in-out !important;
-          z-index: 1000 !important;
-        }
-        .marker-container:hover .marker-ring {
-          opacity: 1 !important;
-          transform: scale(1.2) !important;
-        }
-        .marker-container:hover .marker-emoji {
-          transform: translate(-50%, -50%) scale(1.1) !important;
-        }
-        @keyframes bounce {
-          0%, 20%, 53%, 80%, 100% { transform: translate(-50%, -50%) scale(1.15); }
-          40%, 43% { transform: translate(-50%, -50%) scale(1.25); }
-        }
-      </style>
     `,
     iconSize: [width, height],
     iconAnchor: [width / 2, height / 2],
@@ -197,25 +136,121 @@ const createEnhancedIcon = (
   });
 };
 
+// Separate component for tooltip content to avoid re-renders
+const TooltipContent = memo<{ location: LocationData }>(({ location }) => {
+  const displayTitle = location.title || location.name;
+  const formattedDate = formatDate(location.date);
+
+  return (
+    <div className="space-y-2">
+      <div className="font-semibold text-gray-900 dark:text-gray-100 text-sm">
+        {truncateText(displayTitle, 25)}
+      </div>
+      <div className="space-y-1">
+        {location.source && (
+          <div className="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400">
+            <span>📰</span>
+            <span className="truncate">
+              {truncateText(location.source, 15)}
+            </span>
+          </div>
+        )}
+        {formattedDate && (
+          <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
+            <span>📅</span>
+            <span>{formattedDate}</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+});
+
+TooltipContent.displayName = "TooltipContent";
+
+// Separate component for popup content
+const PopupContent = memo<{
+  location: LocationData;
+  color: string;
+  emoji: string;
+}>(({ location, color, emoji }) => {
+  const displayTitle = location.title || location.name;
+  const formattedDate = formatDate(location.date);
+  const hasDetails =
+    location.address || location.summary || location.source || formattedDate;
+
+  return (
+    <Sheet>
+      <div className="leading-relaxed font-sans my-4 text-gray-900 dark:text-gray-100">
+        <div
+          className={cn(
+            "flex items-center gap-2 font-bold text-sm leading-tight",
+            hasDetails && "mb-3"
+          )}
+        >
+          <span className="text-lg">{emoji}</span>
+          <span className="flex-1 min-w-0">{displayTitle}</span>
+        </div>
+
+        {location.summary && (
+          <div
+            className="text-xs text-gray-600 dark:text-gray-300 mb-3 px-2 border-l-2 rounded py-1 leading-relaxed bg-gray-50 dark:bg-gray-800/50"
+            style={{ borderColor: color }}
+          >
+            {truncateText(location.summary, 100)}
+          </div>
+        )}
+
+        {hasDetails && (
+          <div className="grid gap-1.5 p-2 bg-gray-50 dark:bg-gray-800/50 rounded border border-gray-200 dark:border-gray-700 mb-3">
+            {location.newsUrl && (
+              <div className="flex items-center gap-1 text-xs text-gray-700 dark:text-gray-300 min-w-0">
+                <span>📰</span>
+                <Link
+                  href={location.newsUrl}
+                  className="truncate min-w-0 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
+                >
+                  {location.newsUrl}
+                </Link>
+              </div>
+            )}
+            {formattedDate && (
+              <div className="flex items-center gap-1 text-xs text-gray-700 dark:text-gray-300">
+                <span>📅</span>
+                <span>{formattedDate}</span>
+              </div>
+            )}
+            {location.address && (
+              <div className="flex items-start gap-1 text-xs text-gray-700 dark:text-gray-300 leading-tight">
+                <span className="mt-0.5">📍</span>
+                <span className="break-words">{location.address}</span>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      <NewsReader
+        url={location.newsUrl ?? ""}
+        color={color}
+        title={location.title}
+      />
+    </Sheet>
+  );
+});
+
+PopupContent.displayName = "PopupContent";
+
 export const NewsMarker = memo<NewsMarkerProps>(
-  ({
-    location,
-    color = "#3b82f6",
-    size = "medium",
-    pulseAnimation = true,
-    emoji = "📰",
-  }) => {
+  ({ location, color = "#3b82f6", size = "medium", emoji = "📰" }) => {
     const position = useMemo(() => {
       if (!location) return null;
       return normalizeCoords(location);
     }, [location]);
 
-    const icon = createEnhancedIcon(
-      color,
-      size,
-      pulseAnimation,
-      emoji,
-      location?.title
+    const icon = useMemo(
+      () => createOptimizedIcon(color, size, emoji, location?.title),
+      [color, size, emoji, location?.title]
     );
 
     if (!location || !position) {
@@ -225,98 +260,24 @@ export const NewsMarker = memo<NewsMarkerProps>(
       return null;
     }
 
-    const displayTitle = location.title || location.name;
-    const formattedDate = formatDate(location.date);
-    const hasDetails =
-      location.address || location.summary || location.source || formattedDate;
-
     return (
       <Marker position={position} icon={icon}>
         <Tooltip
           direction="top"
           offset={[0, -12]}
-          className="shadow-lg !rounded-md !p-3 border border-gray-200 dark:!border-gray-700 bg-white dark:!bg-gray-800"
+          className="!rounded !p-2 border border-gray-200 dark:!border-gray-700 bg-white dark:!bg-gray-800 shadow-lg"
           permanent={false}
         >
-          <div className="space-y-2">
-            <div className="text-lg font-bold text-gray-900 dark:text-gray-100">
-              {truncateText(displayTitle, 30)}
-            </div>
-            <div className="space-y-1">
-              {location.source && (
-                <div className="flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-400">
-                  <span className="flex-shrink-0">📰</span>
-                  <span className="truncate">
-                    {truncateText(location.newsUrl ?? "", 20)}
-                  </span>
-                </div>
-              )}
-              {formattedDate && (
-                <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400 font-medium">
-                  <span className="flex-shrink-0">📅</span>
-                  <span>{formattedDate}</span>
-                </div>
-              )}
-            </div>
-          </div>
+          <TooltipContent location={location} />
         </Tooltip>
-        <Popup minWidth={200} maxWidth={320} closeButton={true}>
-          <Sheet>
-            <div className="popup-content leading-relaxed font-sans my-6 text-gray-900 dark:text-gray-100">
-              <div
-                className={cn(
-                  "flex items-center gap-2 font-bold text-base text-gray-900 dark:text-gray-100 leading-tight",
-                  hasDetails && "mb-3"
-                )}
-              >
-                <span className="text-2xl">{emoji}</span>
-                <span className="flex-1 min-w-0">{displayTitle}</span>
-              </div>
-              {location.summary && (
-                <div
-                  className="summary-box text-sm text-gray-600 dark:text-gray-300 mb-3.5 px-2.5 border-l-4 rounded py-1 leading-relaxed my-6 bg-gray-50 dark:bg-gray-800/50"
-                  style={{ borderColor: color }}
-                >
-                  {truncateText(location.summary, 120)}
-                </div>
-              )}
-              {hasDetails && (
-                <div className="details-grid grid gap-2 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700 mb-4 mt-6">
-                  {location.newsUrl && (
-                    <div className="flex items-center gap-1.5 text-sm text-gray-700 dark:text-gray-300 font-medium min-w-0">
-                      <span className="flex-shrink-0">📰</span>
-                      <Link
-                        href={location.newsUrl}
-                        className="news-link truncate min-w-0 transition-colors text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
-                      >
-                        {location.newsUrl}
-                      </Link>
-                    </div>
-                  )}
-                  {formattedDate && (
-                    <div className="flex items-center gap-1.5 text-sm text-gray-700 dark:text-gray-300 font-medium">
-                      <span className="flex-shrink-0 w-4">📅</span>
-                      <span>{formattedDate}</span>
-                    </div>
-                  )}
-                  {location.address && (
-                    <div className="flex items-start gap-1.5 text-sm text-gray-700 dark:text-gray-300 font-medium leading-tight">
-                      <span className="flex-shrink-0 w-4 mt-0.5">📍</span>
-                      <span className="whitespace-pre-wrap break-words">
-                        {location.address}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
 
-            <NewsReader
-              url={location.newsUrl ?? ""}
-              color={color}
-              title={location.title}
-            />
-          </Sheet>
+        <Popup
+          className="transition-all ease-in-out duration-300"
+          minWidth={180}
+          maxWidth={280}
+          closeButton={true}
+        >
+          <PopupContent location={location} color={color} emoji={emoji} />
         </Popup>
       </Marker>
     );

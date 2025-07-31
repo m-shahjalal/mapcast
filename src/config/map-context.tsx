@@ -13,7 +13,12 @@ export interface LocationData {
   lat: number;
   lng: number;
   name: string;
-  address?: string;
+  address: string;
+  geojson?: any;
+  boundingbox?: [string, string, string, string];
+  place_id?: string;
+  osm_type?: string;
+  osm_id?: string;
 }
 
 export interface TopicItem {
@@ -26,22 +31,15 @@ export interface MapState {
   center: [number, number];
   zoom: number;
   selectedLocation: LocationData | null;
-  searchQuery: string;
-  searchResults: LocationData[];
-  isLoading: boolean;
-  topics: TopicItem[];
+  mapList: LocationData[];
   currentLayer: keyof typeof MAP_LAYERS;
 }
 
 export interface MapActions {
   setCenter: (center: [number, number]) => void;
   setZoom: (zoom: number) => void;
-  setSelectedLocation: (location: LocationData | null) => void;
-  setSearchQuery: (query: string) => void;
-  setSearchResults: (results: LocationData[]) => void;
-  clearSearch: () => void;
-  selectLocation: (location: LocationData) => void;
-  setTopics: (topics: TopicItem[]) => void;
+  setMapList: (results: LocationData[]) => void;
+  setLocation: (location: LocationData | null) => void;
   setCurrentLayer: (layer: keyof typeof MAP_LAYERS) => void;
 }
 
@@ -51,23 +49,15 @@ const MapContext = createContext<MapContextType | undefined>(undefined);
 type MapAction =
   | { type: "SET_CENTER"; payload: [number, number] }
   | { type: "SET_ZOOM"; payload: number }
-  | { type: "SET_SELECTED_LOCATION"; payload: LocationData | null }
-  | { type: "SET_SEARCH_QUERY"; payload: string }
-  | { type: "SET_SEARCH_RESULTS"; payload: LocationData[] }
-  | { type: "SET_LOADING"; payload: boolean }
-  | { type: "CLEAR_SEARCH" }
-  | { type: "SELECT_LOCATION"; payload: LocationData }
-  | { type: "SET_TOPICS"; payload: TopicItem[] }
+  | { type: "SET_LOCATION"; payload: LocationData | null }
+  | { type: "SET_MAP_LIST"; payload: LocationData[] }
   | { type: "SET_CURRENT_LAYER"; payload: keyof typeof MAP_LAYERS };
 
 const initialState: MapState = {
-  center: [34.052235, -118.243683],
+  center: [0, 0],
   zoom: 3,
   selectedLocation: null,
-  searchQuery: "",
-  searchResults: [],
-  isLoading: false,
-  topics: [],
+  mapList: [],
   currentLayer: "satellite",
 };
 
@@ -77,30 +67,15 @@ function mapReducer(state: MapState, action: MapAction): MapState {
       return { ...state, center: action.payload };
     case "SET_ZOOM":
       return { ...state, zoom: action.payload };
-    case "SET_SELECTED_LOCATION":
-      return { ...state, selectedLocation: action.payload };
-    case "SET_SEARCH_QUERY":
-      return { ...state, searchQuery: action.payload };
-    case "SET_SEARCH_RESULTS":
-      return { ...state, searchResults: action.payload };
-    case "SET_LOADING":
-      return { ...state, isLoading: action.payload };
-    case "CLEAR_SEARCH":
-      return {
-        ...state,
-        searchQuery: "",
-        searchResults: [],
-        selectedLocation: null,
-      };
-    case "SELECT_LOCATION":
+    case "SET_MAP_LIST":
+      return { ...state, mapList: action.payload };
+    case "SET_LOCATION":
       return {
         ...state,
         selectedLocation: action.payload,
-        center: [action.payload.lat, action.payload.lng],
+        center: [action.payload?.lat || 0, action.payload?.lng || 0],
         zoom: 15,
       };
-    case "SET_TOPICS":
-      return { ...state, topics: action.payload };
     case "SET_CURRENT_LAYER":
       return { ...state, currentLayer: action.payload };
     default:
@@ -120,17 +95,10 @@ export function MapProvider({ children }: MapProviderProps) {
       setCenter: (center: [number, number]) =>
         dispatch({ type: "SET_CENTER", payload: center }),
       setZoom: (zoom: number) => dispatch({ type: "SET_ZOOM", payload: zoom }),
-      setSelectedLocation: (location: LocationData | null) =>
-        dispatch({ type: "SET_SELECTED_LOCATION", payload: location }),
-      setSearchQuery: (query: string) =>
-        dispatch({ type: "SET_SEARCH_QUERY", payload: query }),
-      setSearchResults: (results: LocationData[]) =>
-        dispatch({ type: "SET_SEARCH_RESULTS", payload: results }),
-      clearSearch: () => dispatch({ type: "CLEAR_SEARCH" }),
-      selectLocation: (location: LocationData) =>
-        dispatch({ type: "SELECT_LOCATION", payload: location }),
-      setTopics: (topics: TopicItem[]) =>
-        dispatch({ type: "SET_TOPICS", payload: topics }),
+      setLocation: (location: LocationData | null) =>
+        dispatch({ type: "SET_LOCATION", payload: location }),
+      setMapList: (results: LocationData[]) =>
+        dispatch({ type: "SET_MAP_LIST", payload: results }),
       setCurrentLayer: (layer: keyof typeof MAP_LAYERS) =>
         dispatch({ type: "SET_CURRENT_LAYER", payload: layer }),
     }),

@@ -1,19 +1,13 @@
 "use client";
 
-import { Spinner } from "@/components/ui/spinner";
+import { InfinitePageLoader } from "@/components/page-loader";
 import { MapProvider } from "@/config/map-context";
 import { NewsSelect } from "@/server/database/schemas";
 import dynamic from "next/dynamic";
 
-const Spin = () => (
-  <div className="flex h-screen w-full items-center justify-center">
-    <Spinner variant="infinite" size="36" />
-  </div>
-);
-
 const MapView = dynamic(
   () => import("./map-view").then((mod) => ({ default: mod.MapView })),
-  { ssr: false, loading: () => <Spin /> }
+  { ssr: false, loading: () => <InfinitePageLoader /> }
 );
 
 export function PinPointMap({ news }: { news: NewsSelect[] | null }) {

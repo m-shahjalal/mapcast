@@ -8,6 +8,7 @@ import {
   Check,
   ChevronDown,
   ChevronUp,
+  Eraser,
   Layers,
   Locate,
   Minus,
@@ -19,6 +20,8 @@ import { useMapContext } from "@/config/map-context";
 import { cn } from "@/lib/utils";
 import { useTheme } from "next-themes";
 import { useCallback, useMemo, useState } from "react";
+import { useQueryParams } from "@/hooks/use-query";
+import { NewsMapFilters } from "@/types/query-filter";
 
 export type LayerKey = keyof typeof MAP_LAYERS;
 
@@ -134,6 +137,7 @@ export function LayerSelector({
 export function MapControls() {
   const { zoomIn, zoomOut, locateUser } = useMapControls();
   const { currentLayer, setCurrentLayer } = useMapContext();
+  const { clearParams } = useQueryParams<NewsMapFilters>();
   const [isExpanded, setIsExpanded] = useState(false);
 
   const controlButtonClass =
@@ -148,21 +152,31 @@ export function MapControls() {
   const toggleControls = () => setIsExpanded(!isExpanded);
 
   return (
-    <div className="flex items-center flex-col gap-2">
-      {/* Toggle Arrow Button - Fixed at top */}
-      <Button
-        size="icon"
-        variant="outline"
-        className={controlButtonClass}
-        onClick={toggleControls}
-        aria-label={isExpanded ? "Collapse controls" : "Expand controls"}
-      >
-        {isExpanded ? (
-          <ChevronUp className="h-4 w-4" />
-        ) : (
-          <ChevronDown className="h-4 w-4" />
-        )}
-      </Button>
+    <div className="flex items-end flex-col gap-2 ">
+      <div className="flex justify-center flex-col md:flex-row items-center gap-2">
+        <Button
+          onClick={() => clearParams("all")}
+          size="sm"
+          className="rounded-md px-8 py-2 h-9 shadow-sm flex-shrink-0 bg-red-400 hover:bg-red-500 border-red-300 text-red-100 hidden sm:flex"
+        >
+          <Eraser className="h-3 w-3 mr-1" />
+          <span className="hidden lg:inline"> Clear</span>
+        </Button>
+
+        <Button
+          size="icon"
+          variant="outline"
+          className={controlButtonClass}
+          onClick={toggleControls}
+          aria-label={isExpanded ? "Collapse controls" : "Expand controls"}
+        >
+          {isExpanded ? (
+            <ChevronUp className="h-4 w-4" />
+          ) : (
+            <ChevronDown className="h-4 w-4" />
+          )}
+        </Button>
+      </div>
 
       {/* Collapsible Controls */}
       <div

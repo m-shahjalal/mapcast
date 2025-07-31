@@ -163,7 +163,7 @@ export default function CrawlerPage() {
                   Interval (minutes)
                 </label>
                 <select
-                  defaultValue={"30"}
+                  defaultValue={30}
                   className="w-full p-2 border rounded-md text-sm"
                 >
                   <option value="15">15 minutes</option>
