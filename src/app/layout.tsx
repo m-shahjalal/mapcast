@@ -2,6 +2,7 @@ import { InfinitePageLoader } from "@/components/page-loader";
 import Providers from "@/components/provider";
 import { Poppins } from "next/font/google";
 import "./globals.css";
+import PWAInstallPrompt from "@/components/pwa-promt";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -236,6 +237,7 @@ export default async function RootLayout({
       <body className={`${poppins.variable} antialiased`}>
         <InfinitePageLoader />
         <Providers>{children}</Providers>
+        <PWAInstallPrompt />
       </body>
     </html>
   );
