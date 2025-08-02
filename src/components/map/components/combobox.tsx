@@ -20,7 +20,7 @@ import { useMap } from "react-leaflet";
 import { getNews } from "@/server/actions/news.action";
 import axios from "axios";
 
-export function Combobox() {
+export function Combobox({ closeSheet }: { closeSheet?: () => void }) {
   const map = useMap();
   const [open, setOpen] = useState(false);
   const { setLocation, selectedLocation } = useMapContext();
@@ -30,7 +30,9 @@ export function Combobox() {
 
   const timer = useRef<NodeJS.Timeout>(null);
 
-  const handleSelect = (item: LocationData) => {
+  const handleSelect = (item: any) => {
+    closeSheet?.();
+
     setLocation(item);
     setOpen(false);
 
@@ -39,7 +41,9 @@ export function Combobox() {
 
     if (item.boundingbox && item.boundingbox.length === 4) {
       try {
-        const bounds = item.boundingbox.map((coord) => parseFloat(coord));
+        const bounds = item.boundingbox.map((coord: string) =>
+          parseFloat(coord)
+        );
 
         // Create bounds as simple array for React Leaflet
         const boundsArray = [
@@ -140,8 +144,8 @@ export function Combobox() {
     };
   }, []);
 
-  const renderIcon = (item: LocationData) =>
-    item.address ? (
+  const renderIcon = (address: string) =>
+    address ? (
       <MapPin className="h-5 w-5 text-gray-500 dark:text-gray-400" />
     ) : (
       <Search className="h-5 w-5 text-gray-500 dark:text-gray-400" />
@@ -161,7 +165,12 @@ export function Combobox() {
     </Button>
   );
 
-  const renderCommandItem = (item: LocationData) => (
+  const renderCommandItem = (item: {
+    lat: number;
+    lng: number;
+    name: string;
+    address: string;
+  }) => (
     <CommandItem
       key={`${item.lat}-${item.lng}-${item.name}`}
       value={`${item.name}-${item.lat}-${item.lng}`}
@@ -170,13 +179,13 @@ export function Combobox() {
     >
       <div
         className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer transition-colors text-left"
-        onMouseDown={(e) => e.preventDefault()} // Prevent focus loss
+        onMouseDown={(e) => e.preventDefault()}
         onClick={(e) => {
-          e.stopPropagation(); // Stop event bubbling
+          e.stopPropagation();
           handleSelect(item);
         }}
       >
-        {renderIcon(item)}
+        {renderIcon(item.address)}
         <div className="min-w-0 flex-1">
           <div className="font-medium text-sm truncate text-gray-900 dark:text-gray-100">
             {item.name}
