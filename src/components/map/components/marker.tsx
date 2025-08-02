@@ -1,38 +1,52 @@
 "use client";
 
 import { Sheet } from "@/components/ui/sheet";
-import { cn, formatDate, truncateText } from "@/lib/utils";
+import { LocationData } from "@/config/map-context";
+import { formatDate, truncateText } from "@/lib/utils";
 import L from "leaflet";
 import Link from "next/link";
-import { memo, useMemo } from "react";
+import { memo, useMemo, useEffect, useState } from "react";
 import { Marker, Popup, Tooltip } from "react-leaflet";
 import { NewsReader } from "../news-reader";
-import { LocationData } from "@/config/map-context";
 
 interface NewsMarkerProps {
   location: LocationData | null;
   color?: string;
   size?: "small" | "medium" | "large";
   emoji?: string;
+  visible?: boolean;
 }
 
-// Consolidated constants
 const CONFIG = {
   sizes: {
     small: { width: 28, height: 28, fontSize: 14 },
     medium: { width: 36, height: 36, fontSize: 18 },
     large: { width: 44, height: 44, fontSize: 22 },
   },
-  styles: `
-    .marker-base { position: relative; border-radius: 50%; border: 2px solid white; cursor: pointer; transition: transform 0.2s ease; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+  getStyles: (opacity: number) => `
+    .marker-base { 
+      position: relative; 
+      border-radius: 50%; 
+      border: 2px solid white; 
+      cursor: pointer; 
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      transition: opacity 0.3s ease;
+      opacity: ${opacity};
+    }
     .marker-base:hover { transform: scale(1.1); z-index: 1000; }
     .marker-emoji { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); line-height: 1; user-select: none; }
-    .marker-label { position: absolute; top: -35px; left: 50%; transform: translateX(-50%); background: rgba(255,255,255,0.7); border: 1px solid rgba(0,0,0,0.1); border-radius: 8px; padding: 8px 12px; font-size: 11px; color: #000; text-align: center; line-height: 1.2; box-shadow: 0 2px 4px rgba(0,0,0,0.1); white-space: nowrap; max-width: 120px; overflow: hidden; text-overflow: ellipsis; z-index: 10; pointer-events: none; }
+    .marker-label { 
+      position: absolute; top: -35px; left: 50%; transform: translateX(-50%); 
+      background: rgba(255,255,255,0.9); border: 1px solid rgba(0,0,0,0.1); 
+      border-radius: 8px; padding: 8px 12px; font-size: 11px; color: #000; 
+      text-align: center; line-height: 1.2; box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
+      white-space: nowrap; max-width: 120px; overflow: hidden; text-overflow: ellipsis; 
+      z-index: 10; pointer-events: none;
+    }
     .dark .marker-label { background: rgba(31,41,55,0.95); border-color: rgba(255,255,255,0.1); color: #d1d5db; }
   `,
-} as const;
+};
 
-// Utility functions
 const normalizeCoords = (location: LocationData): [number, number] | null => {
   const lat =
     typeof location.lat === "string" ? parseFloat(location.lat) : location.lat;
@@ -48,24 +62,25 @@ const normalizeCoords = (location: LocationData): [number, number] | null => {
     lat > 90 ||
     lng < -180 ||
     lng > 180
-  )
+  ) {
     return null;
-
+  }
   return [lat, lng];
 };
 
-const createIcon = (
+const createFadeIcon = (
   color: string,
   size: keyof typeof CONFIG.sizes,
   emoji: string,
-  title?: string
+  title: string | undefined,
+  opacity: number
 ): L.DivIcon => {
   const { width, height, fontSize } = CONFIG.sizes[size];
 
   return L.divIcon({
-    className: "news-marker",
+    className: "news-marker-fade",
     html: `
-      <style>${CONFIG.styles}</style>
+      <style>${CONFIG.getStyles(opacity)}</style>
       <div class="marker-base" style="width:${width}px;height:${height}px;background:linear-gradient(135deg,${color} 0%,${color}e6 100%);">
         <div class="marker-emoji" style="font-size:${fontSize}px">${emoji}</div>
         ${
@@ -81,7 +96,6 @@ const createIcon = (
   });
 };
 
-// Content components
 const TooltipContent = memo<{ location: LocationData }>(({ location }) => (
   <div className="space-y-2">
     <div className="font-semibold text-sm">
@@ -168,21 +182,30 @@ const PopupContent = memo<{
 });
 
 export const NewsMarker = memo<NewsMarkerProps>(
-  ({ location, color = "#3b82f6", size = "medium", emoji = "📰" }) => {
+  ({
+    location,
+    color = "#3b82f6",
+    size = "medium",
+    emoji = "📰",
+    visible = true,
+  }) => {
+    const [opacity, setOpacity] = useState(0);
     const position = useMemo(
       () => location && normalizeCoords(location),
       [location]
     );
-    const icon = useMemo(
-      () =>
-        position
-          ? createIcon(color, size, emoji, location?.headline)
-          : undefined,
-      [color, size, emoji, location?.headline, position]
-    );
+
+    useEffect(() => {
+      setOpacity(visible ? 1 : 0);
+    }, [visible]);
+
+    const icon = useMemo(() => {
+      if (!position || !location) return undefined;
+      return createFadeIcon(color, size, emoji, location.headline, opacity);
+    }, [color, size, emoji, location?.headline, position, opacity]);
 
     if (!location || !position || !icon) {
-      location && console.warn("Invalid coordinates:", location);
+      if (location) console.warn("Invalid coordinates:", location);
       return null;
     }
 
