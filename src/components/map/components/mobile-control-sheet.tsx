@@ -32,7 +32,7 @@ export function MobileControlsSheet({
         </SheetTitle>
       </SheetHeader>
       <div className="flex flex-col gap-4 p-4 overflow-y-auto">
-        <Combobox />
+        <Combobox closeSheet={() => setOpen(false)} />
         <DateRangePicker
           onUpdate={({ range }) =>
             setMultipleParams({

@@ -1,60 +1,24 @@
 import { memo } from "react";
 import { NewsMarker } from "./components/marker";
 import { newsTopicDropdown } from "@/shared/enum-list";
-import { NewsSelect } from "@/server/database/schemas";
+import { LocationData } from "@/config/map-context";
 
 interface NewsMarkersProps {
-  news: NewsSelect[];
+  news: LocationData[];
 }
 
-const filterValidNews = (news: NewsSelect[]): NewsSelect[] => {
-  return news.filter(
-    (item) =>
-      item.latitude &&
-      item.longitude &&
-      !isNaN(parseFloat(item.latitude)) &&
-      !isNaN(parseFloat(item.longitude))
-  );
-};
-
 export const NewsMarkers = memo<NewsMarkersProps>(({ news }) => {
-  const validNews = filterValidNews(news);
-
   return (
     <>
-      {validNews.map((newsItem) => {
+      {news.map((newsItem) => {
         const topicConfig = newsTopicDropdown.find(
           (i) => i.topic === newsItem.topic
         )!;
 
-        const location = {
-          lat: parseFloat(newsItem.latitude!),
-          lng: parseFloat(newsItem.longitude!),
-          name: newsItem.title,
-          title: newsItem.title,
-          summary: newsItem.summary,
-          source: newsItem.sourceId,
-          date: newsItem.createdAt,
-          newsUrl: newsItem.newsUrl,
-          slug: newsItem.slug,
-          topic: newsItem.topic,
-          address: [
-            newsItem.locationName,
-            newsItem.locationCity,
-            newsItem.locationState,
-            newsItem.locationCountry,
-          ]
-            .filter(Boolean)
-            .join(", "),
-        };
-
         return (
           <NewsMarker
-            key={newsItem.id}
-            location={{
-              ...location,
-              source: location.source ?? undefined,
-            }}
+            key={newsItem.lat + newsItem.lng}
+            location={newsItem}
             color={topicConfig.color}
             emoji={topicConfig.emoji}
             size="medium"

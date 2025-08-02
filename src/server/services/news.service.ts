@@ -1,4 +1,6 @@
+import db from "@/server/database";
 import { NewNews, news, newsSource } from "@/server/database/schemas";
+import { RSSFeedResult } from "@/server/feed-reader/location-extractor";
 import { ApiPagination } from "@/types/api-response";
 import { NewsFilters, NewsMapFilters } from "@/types/query-filter";
 import {
@@ -13,8 +15,6 @@ import {
   SQLWrapper,
 } from "drizzle-orm";
 import slugify from "slugify";
-import db from "@/server/database";
-import { RSSFeedResult } from "@/server/feed-reader/location-extractor";
 
 export const NewsService = {
   async findAll(filters: NewsFilters) {
@@ -105,11 +105,11 @@ export const NewsService = {
     }
 
     return await db
-      .select()
+      .selectDistinctOn([news.latitude, news.longitude])
       .from(news)
       .where(and(...conditions))
       .limit(1000)
-      .orderBy(desc(news.createdAt));
+      .orderBy(news.latitude, news.longitude, desc(news.createdAt));
   },
 
   async saveArticle(newsData: RSSFeedResult[]): Promise<NewNews[]> {

@@ -20,7 +20,7 @@ import { useMap } from "react-leaflet";
 import { getNews } from "@/server/actions/news.action";
 import axios from "axios";
 
-export function Combobox() {
+export function Combobox({ closeSheet }: { closeSheet?: () => void }) {
   const map = useMap();
   const [open, setOpen] = useState(false);
   const { setLocation, selectedLocation } = useMapContext();
@@ -68,6 +68,8 @@ export function Combobox() {
         easeLinearity: 0.25,
       });
     }
+
+    closeSheet?.();
   };
 
   const searchLocation = async (searchValue: string) => {

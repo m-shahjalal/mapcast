@@ -1,4 +1,5 @@
 import { PinPointMap } from "@/components/map/map-page";
+import { MapProvider } from "@/config/map-context";
 import { getNewsMapData } from "@/server/actions/news.action";
 import { NewsMapFilters } from "@/types/query-filter";
 
@@ -11,5 +12,9 @@ export default async function PinPointPage({
 
   const newsList = await getNewsMapData(params);
 
-  return <PinPointMap news={newsList!} />;
+  return (
+    <MapProvider>
+      <PinPointMap news={newsList!} />
+    </MapProvider>
+  );
 }

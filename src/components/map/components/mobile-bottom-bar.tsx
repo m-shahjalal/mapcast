@@ -124,8 +124,6 @@ function ContentDisplay() {
 }
 
 export function MobileBottomBar({ className }: { className?: string }) {
-  const { getParams } = useQueryParams<NewsMapFilters>();
-  const activeFilters = getParams("topics")?.split(",").filter(Boolean);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   return (

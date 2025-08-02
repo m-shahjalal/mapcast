@@ -1,4 +1,5 @@
 "use client";
+import { useMapContext } from "@/config/map-context";
 import { BaseFilters } from "@/types/query-filter";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback } from "react";
@@ -6,6 +7,7 @@ import { useCallback } from "react";
 export function useQueryParams<T = BaseFilters>() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { setPending } = useMapContext();
 
   function getParams(key?: keyof T): any {
     if (typeof key === "string") {
@@ -34,6 +36,7 @@ export function useQueryParams<T = BaseFilters>() {
   // setParams: replace existing key or create new one
   const setParams = useCallback(
     (key: keyof T, value: string | null) => {
+      setPending(true);
       const params = new URLSearchParams(searchParams);
 
       if (value == null) {
@@ -53,10 +56,12 @@ export function useQueryParams<T = BaseFilters>() {
   // setMultipleParams: set multiple parameters at once (more efficient)
   const setMultipleParams = useCallback(
     (updates: Record<string, string | null>) => {
+      setPending(true);
+
       const params = new URLSearchParams(searchParams);
 
       Object.entries(updates).forEach(([key, value]) => {
-        if (value === null || value === undefined) {
+        if (value == null) {
           params.delete(key);
         } else {
           params.set(key, value);
@@ -73,6 +78,8 @@ export function useQueryParams<T = BaseFilters>() {
 
   const clearParams = useCallback(
     (keys?: string | string[] | "all") => {
+      setPending(true);
+
       if (keys === "all" || keys === undefined) {
         return router.push(window.location.pathname);
       }
@@ -107,6 +114,8 @@ export function useQueryParams<T = BaseFilters>() {
       trueValue: string = "true",
       falseValue: string | null = null
     ) => {
+      setPending(true);
+
       const currentValue = searchParams.get(key);
       const newValue = currentValue === trueValue ? falseValue : trueValue;
       setParams(key as keyof T, newValue);
