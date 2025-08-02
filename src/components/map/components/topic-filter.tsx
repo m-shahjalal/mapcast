@@ -9,11 +9,15 @@ import { TopicItem } from "@/config/map-context";
 import { useQueryParams } from "@/hooks/use-query";
 import { cn } from "@/lib/utils";
 import { newsTopicDropdown } from "@/shared/enum-list";
-import { BaseFilters, NewsMapFilters } from "@/types/query-filter";
-import { ChevronDown, Eraser } from "lucide-react";
+import { NewsMapFilters } from "@/types/query-filter";
+import { ChevronDown } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
-export function TopicFilters() {
+export function TopicFilters({
+  handleCloseSheet,
+}: {
+  handleCloseSheet?: () => void;
+}) {
   const [visibleItems, setVisibleItems] = useState(newsTopicDropdown.length);
   const { getParams, setParams } = useQueryParams<NewsMapFilters>();
 
@@ -38,6 +42,7 @@ export function TopicFilters() {
       : [...selectedTopics, topic.topic];
 
     setParams("topics", newSelected);
+    handleCloseSheet?.();
   };
 
   useEffect(() => {
