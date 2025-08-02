@@ -39,12 +39,12 @@ const nextConfig: NextConfig = {
   },
 };
 
-// Fixed PWA configuration
-const config = withPWA({
+const pwaConfig = withPWA({
   dest: "public",
   disable: process.env.NODE_ENV === "development",
   register: true,
   skipWaiting: true,
+  sw: "sw.js",
   runtimeCaching: [
     {
       urlPattern: /^https?.*/,
@@ -57,6 +57,6 @@ const config = withPWA({
       },
     },
   ],
-})(nextConfig as any);
+});
 
-export default config;
+export default pwaConfig(nextConfig as any);
