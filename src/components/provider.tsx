@@ -42,7 +42,6 @@ const Providers = ({ children }: { children: ReactNode }) => {
           />
         </ThemeProvider>
       </SWRConfig>
-      )
     </div>
   );
 };
