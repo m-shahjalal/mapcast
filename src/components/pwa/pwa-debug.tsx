@@ -47,19 +47,18 @@ export default function PWADebugInfo() {
         swReady: false,
       };
 
-      // Check service worker ready state
       if (navigator.serviceWorker) {
         navigator.serviceWorker.ready.then(() => {
           setDebugInfo((prev: any) => ({ ...prev, swReady: true }));
         });
       }
 
+      console.log("Debug info:", info);
       setDebugInfo(info);
     };
 
     checkPWAStatus();
 
-    // Listen for beforeinstallprompt to see if it fires
     const handleBeforeInstall = (e: Event) => {
       setDebugInfo((prev: any) => ({
         ...prev,
@@ -94,7 +93,6 @@ export default function PWADebugInfo() {
     }
   };
 
-  // Only show in development
   if (process.env.NODE_ENV !== "development") {
     return null;
   }
@@ -256,28 +254,6 @@ export default function PWADebugInfo() {
                   </button>
                 </div>
               </div>
-
-              {/* Android Specific */}
-              {debugInfo.isAndroid && (
-                <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded border dark:border-blue-800">
-                  <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-1">
-                    Android Install Tips
-                  </h4>
-                  <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
-                    <li>
-                      • Make sure you're using Chrome, Edge, or Samsung Internet
-                    </li>
-                    <li>
-                      • The beforeinstallprompt event should fire within ~30
-                      seconds
-                    </li>
-                    <li>• Try refreshing the page if no prompt appears</li>
-                    <li>
-                      • Check Chrome's "Add to Home screen" in the menu (⋮)
-                    </li>
-                  </ul>
-                </div>
-              )}
             </div>
           </div>
         </div>

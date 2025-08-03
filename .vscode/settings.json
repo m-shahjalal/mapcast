@@ -3,6 +3,7 @@
     "addressdetails",
     "Aerogrid",
     "argtypes",
+    "beforeinstallprompt",
     "boundingbox",
     "CARTO",
     "CREATEDB",
@@ -35,6 +36,7 @@
     "uidotdev",
     "usehooks",
     "USGS",
+    "webpush",
     "zoomend"
   ]
 }
