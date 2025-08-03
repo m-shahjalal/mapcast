@@ -1,8 +1,10 @@
+// src/app/layout.tsx
 import { InfinitePageLoader } from "@/components/page-loader";
 import Providers from "@/components/provider";
 import { Poppins } from "next/font/google";
 import "./globals.css";
-import PWAInstallPrompt from "@/components/pwa-promt";
+import PWAInstallPrompt from "@/components/pwa/pwa-promt";
+import PWADebugInfo from "@/components/pwa/pwa-debug";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -28,11 +30,17 @@ export const metadata = {
   metadataBase: new URL(getBaseUrl()),
   title: "PiNews News | Stay Updated",
   description: "Stay updated with the latest news from around the world.",
+  manifest: "/manifest.json",
   icons: {
     icon: [
       {
         url: "/android-chrome-192x192.png",
         sizes: "192x192",
+        type: "image/png",
+      },
+      {
+        url: "/icon-512x512.png",
+        sizes: "512x512",
         type: "image/png",
       },
     ],
@@ -42,6 +50,7 @@ export const metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
+    title: "PiNews",
     startupImage: [
       {
         url: "/apple-splash-2048-2732.jpg",
@@ -233,11 +242,13 @@ export default async function RootLayout({
           content="black-translucent"
         />
         <meta name="apple-mobile-web-app-title" content="PiNews" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
       </head>
       <body className={`${poppins.variable} antialiased`}>
         <InfinitePageLoader />
         <Providers>{children}</Providers>
         <PWAInstallPrompt />
+        <PWADebugInfo />
       </body>
     </html>
   );
