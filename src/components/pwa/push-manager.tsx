@@ -20,11 +20,11 @@ function urlBase64ToUint8Array(base64String: string) {
 }
 
 function PushNotificationManager() {
+  const [message, setMessage] = useState("");
   const [isSupported, setIsSupported] = useState(false);
   const [subscription, setSubscription] = useState<PushSubscription | null>(
     null
   );
-  const [message, setMessage] = useState("");
 
   useEffect(() => {
     if ("serviceWorker" in navigator && "PushManager" in window) {
@@ -111,11 +111,7 @@ const InstallPrompt = () => {
       setPrompt(e);
       setIsInstallable(true);
       setIsVisible(true);
-
-      // Auto-hide after 5 seconds
-      setTimeout(() => {
-        setIsVisible(false);
-      }, 5000);
+      setTimeout(() => setIsVisible(false), 10_000);
     };
 
     window.addEventListener("beforeinstallprompt", handlePrompt);
@@ -128,10 +124,6 @@ const InstallPrompt = () => {
     await prompt.prompt();
     setPrompt(null);
     setIsInstallable(false);
-    setIsVisible(false);
-  };
-
-  const dismiss = () => {
     setIsVisible(false);
   };
 
@@ -150,9 +142,7 @@ const InstallPrompt = () => {
       <Download className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium truncate">Install App</p>
-        <p className="text-xs opacity-90 hidden sm:block">
-          Quick home screen access
-        </p>
+        <p className="text-xs opacity-90">Quick home screen access</p>
       </div>
       <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
         <Button
@@ -166,7 +156,7 @@ const InstallPrompt = () => {
         <Button
           size="sm"
           variant="ghost"
-          onClick={dismiss}
+          onClick={() => setIsVisible(false)}
           className="h-7 w-7 p-0 hover:bg-primary-foreground/20"
         >
           <X className="h-3 w-3 sm:h-4 sm:w-4" />

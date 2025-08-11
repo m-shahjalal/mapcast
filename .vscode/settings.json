@@ -3,6 +3,7 @@
     "addressdetails",
     "Aerogrid",
     "argtypes",
+    "beforeinstallprompt",
     "boundingbox",
     "CARTO",
     "CREATEDB",
