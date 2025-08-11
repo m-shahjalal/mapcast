@@ -1,19 +1,19 @@
 "use client";
 
 import { MAP_LAYERS } from "@/config/map-constraint";
+import { useMapContext } from "@/config/map-context";
+import "leaflet/dist/leaflet.css";
 import { useCallback, useState } from "react";
 import { MapContainer, TileLayer } from "react-leaflet";
-import { TopBar } from "./components/top-bar";
-import { NewsMarkers } from "./news-marker";
-import "leaflet/dist/leaflet.css";
-import { MobileBottomBar } from "./components/mobile-bottom-bar";
-import { NewsSelect } from "@/server/database/schemas";
-import { useMapContext } from "@/config/map-context";
 import { LocationHighlighter } from "./components/highlighter";
 import { LocationMarker } from "./components/location-marker";
+import { MobileBottomBar } from "./components/mobile-bottom-bar";
+import { TopBar } from "./components/top-bar";
+import { NewsMarkers } from "./news-marker";
+import { Spinner } from "../ui/spinner";
 
-export function MapView({ news }: { news?: NewsSelect[] | null }) {
-  const { center, zoom, currentLayer } = useMapContext();
+export function MapView() {
+  const { center, zoom, currentLayer, isPending, mapList } = useMapContext();
   const [isMapReady, setIsMapReady] = useState(false);
   const selectedLayer = MAP_LAYERS[currentLayer];
 
@@ -23,6 +23,11 @@ export function MapView({ news }: { news?: NewsSelect[] | null }) {
 
   return (
     <div className="h-full w-full relative">
+      {isPending && (
+        <div className="absolute inset-0 flex items-center justify-center z-50">
+          <Spinner size={32} />
+        </div>
+      )}
       <MapContainer
         center={center}
         zoom={zoom}
@@ -39,7 +44,7 @@ export function MapView({ news }: { news?: NewsSelect[] | null }) {
         style={{ height: "100%", width: "100%", zIndex: 0 }}
       >
         <TileLayer key={currentLayer} url={selectedLayer.url} />
-        {isMapReady && news && <NewsMarkers news={news} />}
+        {isMapReady && <NewsMarkers news={mapList} />}
         {isMapReady && <LocationHighlighter />}
         {isMapReady && <LocationMarker />}
         {isMapReady && <TopBar />}

@@ -6,36 +6,27 @@ import { Button } from "@/components/ui/button";
 import { MobileControlsSheet } from "./mobile-control-sheet";
 import { useQueryParams } from "@/hooks/use-query";
 import { newsTopicDropdown } from "@/shared/enum-list";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import { NewsMapFilters } from "@/types/query-filter";
+import { useSwipeGesture } from "@/hooks/use-swiper";
 
-interface ResponsiveTopicDisplayProps {
-  activeFilters: string[];
-}
-
-function ResponsiveTopicDisplay({
+const ResponsiveTopicDisplay = ({
   activeFilters,
-}: ResponsiveTopicDisplayProps) {
+}: {
+  activeFilters: string[];
+}) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [visibleCount, setVisibleCount] = useState(activeFilters.length);
 
   useEffect(() => {
     if (!containerRef.current) return;
 
-    const calculateVisibleTopics = () => {
+    const calculateVisible = () => {
       const button = containerRef.current?.closest("button");
       if (!button) return;
 
-      const buttonRect = button.getBoundingClientRect();
-      const buttonPadding = 24;
-      const iconWidth = 20;
-      const gapWidth = 8;
-
-      const availableWidth =
-        buttonRect.width - buttonPadding - iconWidth - gapWidth;
-      const moreIndicatorWidth = 40;
-      const chipGap = 4;
-
+      const { width } = button.getBoundingClientRect();
+      const availableWidth = width - 52; // padding + icon + gap
       let usedWidth = 0;
       let count = 0;
 
@@ -44,34 +35,23 @@ function ResponsiveTopicDisplay({
           (t) => t.topic === activeFilters[i]
         );
         const topicWidth = Math.max((topic?.topic.length || 0) * 7 + 16, 40);
-        const currentGap = i > 0 ? chipGap : 0;
-
-        const remainingItems = activeFilters.length - i - 1;
-        const needsMoreIndicator = remainingItems > 0;
+        const needsMore = activeFilters.length - i - 1 > 0;
         const requiredWidth =
-          usedWidth +
-          topicWidth +
-          currentGap +
-          (needsMoreIndicator ? moreIndicatorWidth : 0);
+          usedWidth + topicWidth + (i > 0 ? 4 : 0) + (needsMore ? 40 : 0);
 
         if (requiredWidth <= availableWidth) {
-          usedWidth += topicWidth + currentGap;
+          usedWidth += topicWidth + (i > 0 ? 4 : 0);
           count++;
-        } else {
-          break;
-        }
+        } else break;
       }
 
       setVisibleCount(Math.max(1, count));
     };
 
-    const resizeObserver = new ResizeObserver(calculateVisibleTopics);
-    const timeoutId = setTimeout(calculateVisibleTopics, 0);
+    const resizeObserver = new ResizeObserver(calculateVisible);
+    const timeoutId = setTimeout(calculateVisible, 0);
 
-    if (containerRef.current) {
-      resizeObserver.observe(containerRef.current);
-    }
-
+    resizeObserver.observe(containerRef.current);
     return () => {
       resizeObserver.disconnect();
       clearTimeout(timeoutId);
@@ -104,12 +84,16 @@ function ResponsiveTopicDisplay({
       </div>
     </div>
   );
-}
+};
 
-function ContentDisplay() {
+const ContentDisplay = () => {
   const { getParams } = useQueryParams<NewsMapFilters>();
-  const activeFilters = getParams("topics")?.split(",").filter(Boolean);
-  if (activeFilters && activeFilters.length > 0) {
+  const activeFilters = useMemo(
+    () => getParams("topics")?.split(",").filter(Boolean),
+    [getParams]
+  );
+
+  if (activeFilters?.length) {
     return <ResponsiveTopicDisplay activeFilters={activeFilters} />;
   }
 
@@ -121,25 +105,38 @@ function ContentDisplay() {
       </span>
     </div>
   );
-}
+};
 
 export function MobileBottomBar({ className }: { className?: string }) {
-  const { getParams } = useQueryParams<NewsMapFilters>();
-  const activeFilters = getParams("topics")?.split(",").filter(Boolean);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+
+  const handleSwipeUp = useCallback(() => setIsSheetOpen(true), []);
+  const handleSwipeDown = useCallback(() => setIsSheetOpen(false), []);
+
+  const swipeRef = useSwipeGesture({
+    onSwipeUp: handleSwipeUp,
+    onSwipeDown: handleSwipeDown,
+    threshold: 30,
+    velocity: 0.2,
+  });
 
   return (
     <div
+      ref={swipeRef}
       className={cn(
-        "fixed bottom-0 left-0 right-0 z-[999] p-4 sm:hidden",
+        "fixed bottom-0 left-0 right-0 z-[999] p-0 sm:hidden",
         className
       )}
     >
+      <div className="flex justify-center mb-2">
+        <div className="w-10 h-1 bg-gray-300 dark:bg-gray-600 rounded-full opacity-60" />
+      </div>
+
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
         <SheetTrigger asChild>
           <Button
             variant="outline"
-            className="w-full h-12 rounded-full shadow-lg bg-background dark:bg-gray-800 hover:dark:bg-gray-700 border-gray-200 dark:border-gray-600"
+            className="w-full h-12 rounded-t-2xl rounded-b-none shadow-lg bg-background dark:bg-gray-800 hover:dark:bg-gray-700 border-gray-200 dark:border-gray-600 transition-all duration-200 active:scale-95"
           >
             <div className="flex items-center justify-between w-full px-3 min-w-0 gap-2">
               <div className="flex-1 min-w-0">
