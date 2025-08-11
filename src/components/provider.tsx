@@ -10,6 +10,12 @@ const Providers = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     setIsClient(true);
+
+    return () => {
+      window.addEventListener("beforeunload", () =>
+        localStorage.setItem("theme", "system")
+      );
+    };
   }, []);
 
   return (
