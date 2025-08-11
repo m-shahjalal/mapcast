@@ -2,6 +2,7 @@ import { InfinitePageLoader } from "@/components/page-loader";
 import Providers from "@/components/provider";
 import { Poppins } from "next/font/google";
 import "./globals.css";
+import PWAInstallPrompt from "@/components/pwa-promt";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -10,8 +11,21 @@ const poppins = Poppins({
   weight: ["200", "400", "600", "700"],
 });
 
+// Fixed URL construction for Vercel deployment
+function getBaseUrl() {
+  if (process.env.NEXT_PUBLIC_SITE_URL) {
+    return process.env.NEXT_PUBLIC_SITE_URL;
+  }
+
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+
+  return "http://localhost:3000";
+}
+
 export const metadata = {
-  metadataBase: new URL(process.env.VERCEL_URL ?? "http://localhost:3000"),
+  metadataBase: new URL(getBaseUrl()),
   title: "PiNews News | Stay Updated",
   description: "Stay updated with the latest news from around the world.",
   icons: {
@@ -210,9 +224,20 @@ export default async function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#000000" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta
+          name="apple-mobile-web-app-status-bar-style"
+          content="black-translucent"
+        />
+        <meta name="apple-mobile-web-app-title" content="PiNews" />
+      </head>
       <body className={`${poppins.variable} antialiased`}>
         <InfinitePageLoader />
         <Providers>{children}</Providers>
+        <PWAInstallPrompt />
       </body>
     </html>
   );
