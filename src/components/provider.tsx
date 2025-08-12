@@ -4,9 +4,16 @@ import NextTopLoader from "nextjs-toploader";
 import { ReactNode, useEffect, useState } from "react";
 import { Toaster } from "sonner";
 import { SWRConfig } from "swr";
+import { SplashScreen } from "./pwa/splash-screen";
 
 const Providers = ({ children }: { children: ReactNode }) => {
   const [isClient, setIsClient] = useState(false);
+
+  const [showSplash, setShowSplash] = useState(true);
+
+  const handleSplashComplete = () => {
+    setShowSplash(false);
+  };
 
   useEffect(() => {
     setIsClient(true);
@@ -17,6 +24,10 @@ const Providers = ({ children }: { children: ReactNode }) => {
       );
     };
   }, []);
+
+  if (showSplash) {
+    return <SplashScreen onComplete={handleSplashComplete} />;
+  }
 
   return (
     <div
