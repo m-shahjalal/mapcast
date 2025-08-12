@@ -1,5 +1,5 @@
 import db from "@/server/database";
-import { NewNews, news, newsSource } from "@/server/database/schemas";
+import { NewNewsType, news, rssSource } from "@/server/database/schemas";
 import { RSSFeedResult } from "@/server/feed-reader/location-extractor";
 import { ApiPagination } from "@/types/api-response";
 import { NewsFilters, NewsMapFilters } from "@/types/query-filter";
@@ -21,8 +21,8 @@ export const NewsService = {
     const { page = 1, limit = 20 } = filters;
     const conditions: SQLWrapper[] = [];
 
-    if (filters.sourceId) {
-      conditions.push(eq(news.sourceId, filters.sourceId));
+    if (filters.sourceDomain) {
+      conditions.push(eq(news.sourceDomain, filters.sourceDomain));
     }
 
     if (filters.topics) {
@@ -112,14 +112,12 @@ export const NewsService = {
       .orderBy(news.latitude, news.longitude, desc(news.createdAt));
   },
 
-  async saveArticle(newsData: RSSFeedResult[]): Promise<NewNews[]> {
-    const articlesToInsert: Array<typeof news.$inferInsert> = [];
+  async saveArticle(newsData: RSSFeedResult[]): Promise<NewNewsType[]> {
+    const articlesToInsert: Array<NewNewsType> = [];
     const processedSlugs = new Set<string>();
 
     for (const feed of newsData) {
       try {
-        const sourceId = await this.ensureNewsSource(feed.source);
-
         for (const article of feed.articles) {
           const slug = slugify(article.title, { lower: true, strict: true });
 
@@ -131,8 +129,7 @@ export const NewsService = {
             title: article.title,
             slug,
             summary: article.summary,
-            sourceId,
-            newsUrl: article.url,
+            originalUrl: article.url,
             locationName: locationPin?.location || null,
             locationCity: locationPin?.city || null,
             locationState: locationPin?.state || null,
@@ -140,6 +137,10 @@ export const NewsService = {
             latitude: locationPin?.latitude || null,
             longitude: locationPin?.longitude || null,
             topic: article.topic,
+            content: article.content ?? "",
+            sourceDomain: article.sourceDomain,
+            publishedAt: article.publishedAt,
+            crawledAt: article.crawledAt,
           });
         }
       } catch (error) {
@@ -161,7 +162,7 @@ export const NewsService = {
         .returning();
 
       console.info(`🔘 Saved ${results.length} new articles`);
-      return results;
+      return results as NewNewsType[];
     } catch (error) {
       console.error("Failed to save articles:", error);
       throw new Error("Bulk article save operation failed");
@@ -170,9 +171,9 @@ export const NewsService = {
 
   async ensureNewsSource(sourceUrl: string): Promise<string | null> {
     const existing = await db
-      .select({ id: newsSource.id })
-      .from(newsSource)
-      .where(eq(newsSource.rssUrl, sourceUrl))
+      .select({ id: rssSource.id })
+      .from(rssSource)
+      .where(eq(rssSource.rssUrl, sourceUrl))
       .limit(1);
 
     if (existing.length > 0) return existing[0].id;
@@ -187,13 +188,5 @@ export const NewsService = {
       .where(inArray(news.slug, slugs));
 
     return new Set(existing.map((row) => row.slug));
-  },
-
-  extractDomain(url: string): string {
-    try {
-      return new URL(url).hostname;
-    } catch {
-      return url;
-    }
   },
 };

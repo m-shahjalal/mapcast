@@ -1,7 +1,11 @@
 "use server";
 
 import Parser from "rss-parser";
-import { LocationExtractor, RSSFeedResult } from "./location-extractor";
+import {
+  LocationExtractor,
+  RSSFeedResult,
+  RSSItem,
+} from "./location-extractor";
 import { NewsSourceService } from "@/server/services/rss.service";
 import { urlUtils } from "@/utils/urls";
 import { NewsService } from "@/server/services/news.service";
@@ -89,7 +93,7 @@ async function processRSSFeeds(): Promise<RSSFeedResult[] | void> {
     }
 
     try {
-      const rssItems = feed.items
+      const rssItems: RSSItem[] = feed.items
         .slice(0, CONFIG.MAX_ITEMS_PER_FEED)
         .filter((item) => item.title && (item.link || item.content))
         .map((item) => ({
@@ -97,6 +101,9 @@ async function processRSSFeeds(): Promise<RSSFeedResult[] | void> {
           link: item.link || "",
           contentSnippet: item.contentSnippet || "",
           content: item.content || "",
+          summary: item.summary || "",
+          sourceDomain: item.sourceDomain || "",
+          publishedAt: item.publishedAt || new Date(),
         }));
 
       if (rssItems.length === 0) {

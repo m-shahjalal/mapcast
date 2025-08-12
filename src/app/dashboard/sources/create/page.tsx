@@ -1,4 +1,4 @@
-import { NewsSourceForm } from "../news-source-form";
+import NewsSourceForm from "../news-source-form";
 
 export default function AddNewsSourcePage() {
   return (

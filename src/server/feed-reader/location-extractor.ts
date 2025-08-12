@@ -14,7 +14,11 @@ export interface ProcessedArticle {
   title: string;
   url: string;
   summary: string;
+  content: string;
+  publishedAt: Date;
+  crawledAt: Date;
   locationPin: LocationPin;
+  sourceDomain: string;
   topic: (typeof newsTopicList)[number];
 }
 
@@ -26,11 +30,13 @@ export interface RSSFeedResult {
   articles: ProcessedArticle[];
 }
 
-interface RSSItem {
-  title?: string;
+export interface RSSItem {
+  title: string;
   link: string;
-  contentSnippet?: string;
-  content?: string;
+  summary: string;
+  content: string;
+  sourceDomain: string;
+  publishedAt: Date;
 }
 
 interface LocationMatch {
@@ -90,9 +96,13 @@ export class LocationExtractor {
     return {
       locationPin,
       url: item.link,
-      title: item.title || "Untitled",
+      title: item.title,
       topic: category?.category || "other",
-      summary: item.contentSnippet || item.content || "",
+      summary: item.summary,
+      content: item.content,
+      sourceDomain: item.sourceDomain,
+      publishedAt: item.publishedAt,
+      crawledAt: new Date(),
     };
   }
 
@@ -123,9 +133,7 @@ export class LocationExtractor {
   }
 
   private combineText(item: RSSItem, content: string): string {
-    return [item.title || "", item.contentSnippet || "", content]
-      .join(" ")
-      .trim();
+    return [item.title || "", item.summary || "", content].join(" ").trim();
   }
 
   private extractBestLocation(text: string): LocationMatch | null {

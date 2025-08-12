@@ -1,4 +1,4 @@
-import { getRssFeedList } from "@/server/actions/rss-feed.action";
+import { getRssSourceList } from "@/server/actions/rss-feed.action";
 import { NewsSourceFilters } from "@/utils/validator";
 import { NewsSourceManager } from "./news-source-manager";
 
@@ -9,6 +9,6 @@ export default async function SourcesPage({
 }) {
   const paramsData = await params;
 
-  const list = await getRssFeedList(paramsData);
+  const list = await getRssSourceList(paramsData);
   return <NewsSourceManager sources={list.data ?? []} />;
 }

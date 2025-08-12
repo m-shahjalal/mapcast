@@ -16,7 +16,7 @@ export interface LocationFilters extends BaseFilters {
 }
 
 export interface NewsFilters extends BaseFilters {
-  sourceId?: string;
+  sourceDomain?: string;
   topics?: (typeof newsTopicList)[number][];
   location?: string;
 }

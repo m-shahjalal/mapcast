@@ -1,20 +1,20 @@
 import "server-only";
 
-import {
-  newsSource,
-  NewsSourceSchemaType,
-  NewsSourceType,
-} from "@/server/database/schemas/news-source.schema";
 import { ApiPagination } from "@/types/api-response";
 import { urlUtils } from "@/utils/urls";
 import { NewsSourceFilters } from "@/utils/validator";
-import { and, asc, desc, eq, ilike, or, sql, SQLWrapper } from "drizzle-orm";
+import { and, asc, eq, ilike, or, sql, SQLWrapper } from "drizzle-orm";
 import db from "../database";
+import {
+  NewRssSourceType,
+  rssSource,
+  RssSourceType,
+} from "../database/schemas";
 
 export const NewsSourceService = {
   async getAll(
     filters?: NewsSourceFilters
-  ): Promise<{ pagination: ApiPagination; data: NewsSourceType[] }> {
+  ): Promise<{ pagination: ApiPagination; data: RssSourceType[] }> {
     try {
       const conditions = NewsSourceService.buildWhereConditions(filters);
       const { page, limit, offset } = NewsSourceService.validatePagination(
@@ -25,7 +25,7 @@ export const NewsSourceService = {
       // Get total count with error handling
       const countResult = await db
         .select({ count: sql<number>`count(*)` })
-        .from(newsSource)
+        .from(rssSource)
         .where(conditions.length > 0 ? and(...conditions) : undefined);
 
       if (!countResult || countResult.length === 0) {
@@ -37,9 +37,9 @@ export const NewsSourceService = {
       // Get paginated data
       const data = await db
         .select()
-        .from(newsSource)
+        .from(rssSource)
         .where(conditions.length > 0 ? and(...conditions) : undefined)
-        .orderBy(desc(newsSource.credibilityScore), asc(newsSource.name))
+        .orderBy(asc(rssSource.name))
         .limit(limit)
         .offset(offset);
 
@@ -57,46 +57,17 @@ export const NewsSourceService = {
     }
   },
 
-  getActive: async () => {
-    return db
-      .select()
-      .from(newsSource)
-      .where(eq(newsSource.isActive, true))
-      .orderBy(desc(newsSource.credibilityScore), asc(newsSource.name));
-  },
-
-  getById: async (id: string) => {
-    const result = await db
-      .select()
-      .from(newsSource)
-      .where(eq(newsSource.id, id))
-      .limit(1);
-
-    return result[0] || null;
-  },
-
-  getByDomain: async (domain: string) => {
-    const result = await db
-      .select()
-      .from(newsSource)
-      .where(eq(newsSource.domain, domain))
-      .limit(1);
-
-    return result[0] || null;
-  },
-
-  create: async (data: NewsSourceSchemaType) => {
+  create: async (data: NewRssSourceType) => {
     const urlValidation = urlUtils.validateRssUrl(data.rssUrl || "");
     if (!urlValidation.valid) {
       throw new Error(`Invalid RSS URL: ${urlValidation.error}`);
     }
 
     const [result] = await db
-      .insert(newsSource)
+      .insert(rssSource)
       .values({
         ...data,
         rssUrl: urlValidation.normalized,
-        credibilityScore: data.credibilityScore?.toString(),
       })
       .onConflictDoNothing()
       .returning();
@@ -104,86 +75,35 @@ export const NewsSourceService = {
     return result;
   },
 
-  updateLastFetch: async (id: string) => {
-    const result = await db
-      .update(newsSource)
-      .set({
-        lastFetch: new Date(),
-        updatedAt: new Date(),
-      })
-      .where(eq(newsSource.id, id))
-      .returning();
+  buildWhereConditions: (filters?: NewsSourceFilters): SQLWrapper[] => {
+    const conditions: SQLWrapper[] = [];
 
-    return result[0] || null;
-  },
-
-  updateStats: async (
-    id: string,
-    articlesCount: number,
-    successRate: number
-  ) => {
-    const result = await db
-      .update(newsSource)
-      .set({
-        articlesCount,
-        successRate,
-        updatedAt: new Date(),
-      })
-      .where(eq(newsSource.id, id))
-      .returning();
-
-    return result[0] || null;
-  },
-
-  updateCredibilityScore: async (id: string, score: number) => {
-    const result = await db
-      .update(newsSource)
-      .set({
-        credibilityScore: score.toString(),
-        updatedAt: new Date(),
-      })
-      .where(eq(newsSource.id, id))
-      .returning();
-
-    return result[0] || null;
-  },
-
-  toggleActive: async (id: string) => {
-    const current = await NewsSourceService.getById(id);
-    if (!current) return null;
-
-    const result = await db
-      .update(newsSource)
-      .set({
-        isActive: !current.isActive,
-        updatedAt: new Date(),
-      })
-      .where(eq(newsSource.id, id))
-      .returning();
-
-    return result[0] || null;
-  },
-
-  delete: async (id: string) => {
-    try {
-      const result = await db
-        .update(newsSource)
-        .set({
-          deletedAt: new Date(),
-          updatedAt: new Date(),
-        })
-        .where(eq(newsSource.id, id))
-        .returning();
-
-      return result[0] || null;
-    } catch {
-      const result = await db
-        .delete(newsSource)
-        .where(eq(newsSource.id, id))
-        .returning();
-
-      return result[0] || null;
+    if (filters?.search) {
+      conditions.push(
+        or(
+          ilike(rssSource.name, `%${filters.search}%`),
+          ilike(rssSource.domain, `%${filters.search}%`)
+        ) as SQLWrapper
+      );
     }
+
+    if (filters?.isActive !== undefined) {
+      conditions.push(eq(rssSource.isActive, filters.isActive));
+    }
+
+    if (filters?.domain) {
+      conditions.push(ilike(rssSource.domain, `%${filters.domain}%`));
+    }
+
+    return conditions;
+  },
+
+  validatePagination: (page?: number, limit?: number) => {
+    const validatedPage = Math.max(1, page || 1);
+    const validatedLimit = Math.min(100, Math.max(1, limit || 20)); // Cap at 100
+    const offset = (validatedPage - 1) * validatedLimit;
+
+    return { page: validatedPage, limit: validatedLimit, offset };
   },
 
   getSourcesForFetching: async (hoursAgo: number = 1) => {
@@ -194,9 +114,9 @@ export const NewsSourceService = {
 
     const sources = await db
       .select()
-      .from(newsSource)
-      .where(and(eq(newsSource.isActive, true)))
-      .orderBy(asc(newsSource.lastFetch));
+      .from(rssSource)
+      .where(and(eq(rssSource.isActive, true)))
+      .orderBy(asc(rssSource.lastFetch));
 
     // Validate and normalize URLs
     const validatedSources = sources
@@ -222,36 +142,5 @@ export const NewsSourceService = {
     );
 
     return validatedSources;
-  },
-
-  buildWhereConditions: (filters?: NewsSourceFilters): SQLWrapper[] => {
-    const conditions: SQLWrapper[] = [];
-
-    if (filters?.search) {
-      conditions.push(
-        or(
-          ilike(newsSource.name, `%${filters.search}%`),
-          ilike(newsSource.domain, `%${filters.search}%`)
-        ) as SQLWrapper
-      );
-    }
-
-    if (filters?.isActive !== undefined) {
-      conditions.push(eq(newsSource.isActive, filters.isActive));
-    }
-
-    if (filters?.domain) {
-      conditions.push(ilike(newsSource.domain, `%${filters.domain}%`));
-    }
-
-    return conditions;
-  },
-
-  validatePagination: (page?: number, limit?: number) => {
-    const validatedPage = Math.max(1, page || 1);
-    const validatedLimit = Math.min(100, Math.max(1, limit || 20)); // Cap at 100
-    const offset = (validatedPage - 1) * validatedLimit;
-
-    return { page: validatedPage, limit: validatedLimit, offset };
   },
 };

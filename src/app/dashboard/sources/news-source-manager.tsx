@@ -19,7 +19,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { NewsSourceType } from "@/server/database/schemas";
+import { RssSourceType } from "@/server/database/schemas";
 import {
   CheckCircle,
   ChevronLeft,
@@ -39,7 +39,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
 
 interface NewsSourceManagerProps {
-  sources: NewsSourceType[] | null | undefined;
+  sources: RssSourceType[] | null | undefined;
 }
 
 const ITEMS_PER_PAGE = 10;
@@ -107,12 +107,7 @@ export function NewsSourceManager({ sources }: NewsSourceManagerProps) {
         0
       ) / sourcesArray.length;
 
-    const totalArticles = sourcesArray.reduce(
-      (acc, s) => acc + (s.articlesCount ?? 0),
-      0
-    );
-
-    return { active, inactive, avgSuccess, totalArticles };
+    return { active, inactive, avgSuccess };
   }, [sourcesArray]);
 
   const handleDeleteSource = useCallback((id: string) => {
@@ -316,17 +311,7 @@ export function NewsSourceManager({ sources }: NewsSourceManagerProps) {
                           </span>
                         </div>
                       </TableCell>
-                      <TableCell className="text-foreground">
-                        {source.articlesCount != null
-                          ? source.articlesCount.toLocaleString()
-                          : "—"}
-                      </TableCell>
-                      <TableCell className="text-foreground">
-                        {source.credibilityScore != null &&
-                        typeof source.credibilityScore === "number"
-                          ? `${(source.credibilityScore * 100).toFixed(0)}%`
-                          : "—"}
-                      </TableCell>
+
                       <TableCell>
                         <Badge
                           variant={source.isActive ? "default" : "destructive"}
@@ -499,9 +484,7 @@ export function NewsSourceManager({ sources }: NewsSourceManagerProps) {
         <Card className="bg-gradient-to-br from-purple-500 to-purple-600 text-white border-0 shadow-xl">
           <CardContent className="p-4 text-center">
             <Clock className="h-8 w-8 mx-auto mb-2" />
-            <p className="text-2xl font-bold">
-              {stats.totalArticles.toLocaleString()}
-            </p>
+
             <p className="text-sm opacity-90">Total Articles</p>
           </CardContent>
         </Card>

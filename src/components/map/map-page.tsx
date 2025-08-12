@@ -2,7 +2,7 @@
 
 import { InfinitePageLoader } from "@/components/page-loader";
 import { LocationData, useMapContext } from "@/config/map-context";
-import { NewsSelect } from "@/server/database/schemas";
+import { NewsType } from "@/server/database/schemas";
 import { parseRootDomain } from "@/utils/urls";
 import dynamic from "next/dynamic";
 import { useEffect } from "react";
@@ -12,14 +12,14 @@ const MapView = dynamic(
   { ssr: false, loading: () => <InfinitePageLoader /> }
 );
 
-const formatLocation = (newsArray: NewsSelect[]): LocationData[] => {
+const formatLocation = (newsArray: NewsType[]): LocationData[] => {
   return newsArray
     .filter((news) => news.latitude && news.longitude)
     .map((news) => ({
       headline: news.title,
       date: news.createdAt,
       summary: news.summary,
-      link: news.newsUrl,
+      link: news.originalUrl,
       lat: parseFloat(news.latitude!),
       lng: parseFloat(news.longitude!),
       name: news.locationName ?? "Unknown Location",
@@ -28,13 +28,13 @@ const formatLocation = (newsArray: NewsSelect[]): LocationData[] => {
           .filter(Boolean)
           .join(", ") || "Unknown Location",
       topic: news.topic,
-      source: parseRootDomain(news.newsUrl) || "Unknown Source",
+      source: parseRootDomain(news.originalUrl) || "Unknown Source",
       geojson: null,
       boundingbox: undefined,
     }));
 };
 
-export function PinPointMap({ news }: { news: NewsSelect[] | null }) {
+export function PinPointMap({ news }: { news: NewsType[] | null }) {
   const { setMapList } = useMapContext();
   useEffect(() => setMapList(formatLocation(news || [])), [news]);
 

@@ -1,3 +1,5 @@
+import { newsTopicEnum } from "@/server/database/schemas";
+
 export interface ApiResponse<T = any> {
   success: boolean;
   data?: T | null;
@@ -38,3 +40,20 @@ export type HttpStatusCode =
   | 502 // Bad Gateway
   | 503 // Service Unavailable
   | 504; // Gateway Timeout
+
+export type SourceStatus =
+  | "all"
+  | "active"
+  | "inactive"
+  | "error"
+  | "maintenance";
+export type NewsTopic = (typeof newsTopicEnum.enumValues)[number];
+
+export interface SourceFilters {
+  search?: string;
+  topic?: NewsTopic | "all";
+  status?: SourceStatus;
+  country?: string;
+  language?: string;
+  isActive?: boolean;
+}
