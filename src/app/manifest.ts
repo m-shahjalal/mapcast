@@ -14,22 +14,52 @@ export default function manifest(): MetadataRoute.Manifest {
     dir: "ltr",
     icons: [
       {
-        src: "/icon-192x192.png",
+        purpose: "maskable",
+        sizes: "538.9473684210526x538.9473684210526",
+        src: "/icon/maskable_icon.png",
+        type: "image/png",
+      },
+      {
+        purpose: "maskable",
+        sizes: "48x48",
+        src: "/icon/maskable_icon_x48.png",
+        type: "image/png",
+      },
+      {
+        purpose: "maskable",
+        sizes: "72x72",
+        src: "/icon/maskable_icon_x72.png",
+        type: "image/png",
+      },
+      {
+        purpose: "maskable",
+        sizes: "96x96",
+        src: "/icon/maskable_icon_x96.png",
+        type: "image/png",
+      },
+      {
+        purpose: "maskable",
+        sizes: "128x128",
+        src: "/icon/maskable_icon_x128.png",
+        type: "image/png",
+      },
+      {
+        purpose: "maskable",
         sizes: "192x192",
+        src: "/icon/maskable_icon_x192.png",
         type: "image/png",
-        purpose: "maskable",
       },
       {
-        src: "/icon-512x512.png",
+        purpose: "maskable",
         sizes: "384x384",
+        src: "/icon/maskable_icon_x384.png",
         type: "image/png",
-        purpose: "maskable",
       },
       {
-        src: "/icon-512x512.png",
-        sizes: "512x512",
-        type: "image/png",
         purpose: "maskable",
+        sizes: "512x512",
+        src: "/icon/maskable_icon_x512.png",
+        type: "image/png",
       },
     ],
     shortcuts: [
@@ -38,7 +68,7 @@ export default function manifest(): MetadataRoute.Manifest {
         short_name: "Start",
         description: "Jump right into the app",
         url: "/",
-        icons: [{ src: "/icon.png", sizes: "192x192" }],
+        icons: [{ src: "/icon/maskable_icon.png", sizes: "192x192" }],
       },
     ],
   };
