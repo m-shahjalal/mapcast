@@ -34,6 +34,7 @@ export const adPageList = [
 ] as const;
 
 export const newsTopicList = [
+  "all",
   "politics",
   "business",
   "technology",
