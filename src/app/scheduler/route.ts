@@ -1,8 +1,8 @@
-import { startReadingFeeds } from "@/server/feed-reader/rss-processor";
+import { processByAI } from "@/server/actions/rss-crowler";
 
 const scheduler = async () => {
   try {
-    await startReadingFeeds();
+    const result = await processByAI();
     console.info("✅ Feeds read successfully");
   } catch (error: any) {
     console.error("❌ Error reading feeds:", error.message);

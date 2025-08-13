@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
-import { startReadingFeeds } from "@/server/feed-reader/rss-processor";
+import { processByAI } from "@/server/actions/rss-crowler";
 import {
   Activity,
   CheckCircle,
@@ -28,7 +28,9 @@ export default function CrawlerPage() {
   const triggerCrawler = async () => {
     setCrawlerStatus("running");
     try {
-      const result = await startReadingFeeds();
+      const result = await processByAI();
+
+      console.info(result);
 
       if (result) {
         setLastCrawl(new Date().toLocaleString());

@@ -1,6 +1,6 @@
 import db from "@/server/database";
 import { NewNewsType, news, rssSource } from "@/server/database/schemas";
-import { RSSFeedResult } from "@/server/feed-reader/location-extractor";
+import { NewsArticle } from "@/types/ai-data-format";
 import { ApiPagination } from "@/types/api-response";
 import { NewsFilters, NewsMapFilters } from "@/types/query-filter";
 import {
@@ -11,6 +11,7 @@ import {
   inArray,
   isNotNull,
   lte,
+  or,
   sql,
   SQLWrapper,
 } from "drizzle-orm";
@@ -112,61 +113,106 @@ export const NewsService = {
       .orderBy(news.latitude, news.longitude, desc(news.createdAt));
   },
 
-  async saveArticle(newsData: RSSFeedResult[]): Promise<NewNewsType[]> {
-    const articlesToInsert: Array<NewNewsType> = [];
-    const processedSlugs = new Set<string>();
-
-    for (const feed of newsData) {
+  async saveArticle(
+    article: NewsArticle,
+    shouldUpdateRSSLastUpdate = true
+  ): Promise<NewNewsType | null> {
+    console.log(`💾 Saving article: "${article.title.substring(0, 50)}..."`);
+    if (article.location.latitude && article.location.longitude) {
       try {
-        for (const article of feed.articles) {
-          const slug = slugify(article.title, { lower: true, strict: true });
+        const slug = slugify(article.title, { lower: true, strict: true });
+        console.log(`🔗 Generated slug: "${slug}"`);
 
-          if (processedSlugs.has(slug)) continue;
-          processedSlugs.add(slug);
+        const existingArticle = await db
+          .select({ id: news.id })
+          .from(news)
+          .where(
+            or(
+              eq(news.slug, slug),
+              and(
+                eq(news.latitude, article.location.latitude as any),
+                eq(news.longitude, article.location.longitude as any)
+              )
+            )
+          )
+          .limit(1);
 
-          const locationPin = article.locationPin;
-          articlesToInsert.push({
-            title: article.title,
-            slug,
-            summary: article.summary,
-            originalUrl: article.url,
-            locationName: locationPin?.location || null,
-            locationCity: locationPin?.city || null,
-            locationState: locationPin?.state || null,
-            locationCountry: locationPin?.country || null,
-            latitude: locationPin?.latitude || null,
-            longitude: locationPin?.longitude || null,
-            topic: article.topic,
-            content: article.content ?? "",
-            sourceDomain: article.sourceDomain,
-            publishedAt: article.publishedAt,
-            crawledAt: article.crawledAt,
-          });
+        if (existingArticle.length > 0) {
+          console.log(`⏭️  Article already exists, skipping: "${slug}"`);
+          return null;
+        }
+
+        const location = article.location;
+        const articleData: NewNewsType = {
+          title: article.title,
+          slug,
+          metaTitle: article.metaTitle,
+          metaDescription: article.metaDescription,
+          summary: article.summary,
+          content: article.content,
+          tags: article.tags.join(","),
+          keywords: article.keywords.join(","),
+          originalUrl: article.url,
+          locationName: location?.name || null,
+          locationCity: location?.city || null,
+          locationState: location?.state || null,
+          locationCountry: location?.country || null,
+          locationCountryCode: location?.code || null,
+          latitude: location?.latitude ? String(location.latitude) : null,
+          longitude: location?.longitude ? String(location.longitude) : null,
+          topic: article.topic,
+          sourceDomain: article.source ?? null,
+          publishedAt: article.publishedAt,
+          crawledAt: new Date(),
+        };
+
+        console.log(
+          `📊 Article data prepared - Topic: ${articleData.topic}, Location: ${
+            articleData.locationCity || "Unknown"
+          }`
+        );
+
+        // Insert article into database
+        const [savedArticle] = await db
+          .insert(news)
+          .values(articleData)
+          .onConflictDoNothing()
+          .returning();
+
+        await db
+          .update(rssSource)
+          .set({ lastFetch: new Date() })
+          .where(eq(rssSource.rssUrl, article.url));
+
+        if (savedArticle) {
+          console.log(
+            `✅ Successfully saved article with ID: ${savedArticle.id}`
+          );
+          console.log(
+            `📍 Location: ${articleData.locationCity}, ${articleData.locationCountry}`
+          );
+          console.log(
+            `🏷️  Tags: ${article.tags.length}, Keywords: ${article.keywords.length}`
+          );
+          return savedArticle as NewNewsType;
+        } else {
+          console.warn(
+            `⚠️  Article not saved (likely duplicate): "${article.title}"`
+          );
+          return null;
         }
       } catch (error) {
-        console.error(`Failed to process feed ${feed.source}:`, error);
+        console.error(`❌ Failed to save article: "${article.title}"`);
+        console.error(`🚨 Error details:`, error);
+
+        // Re-throw with more context
+        throw new Error(
+          `Failed to save article "${article.title}": ${
+            error instanceof Error ? error.message : "Unknown error"
+          }`
+        );
       }
-    }
-
-    if (articlesToInsert.length === 0) {
-      console.info("🔘 No new articles to save");
-      return [];
-    }
-
-    try {
-      // Bulk insert new articles
-      const results = await db
-        .insert(news)
-        .values(articlesToInsert)
-        .onConflictDoNothing()
-        .returning();
-
-      console.info(`🔘 Saved ${results.length} new articles`);
-      return results as NewNewsType[];
-    } catch (error) {
-      console.error("Failed to save articles:", error);
-      throw new Error("Bulk article save operation failed");
-    }
+    } else return null;
   },
 
   async ensureNewsSource(sourceUrl: string): Promise<string | null> {

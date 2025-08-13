@@ -12,9 +12,9 @@ import {
 } from "../database/schemas";
 
 export const NewsSourceService = {
-  async getAll(
+  getAll: async (
     filters?: NewsSourceFilters
-  ): Promise<{ pagination: ApiPagination; data: RssSourceType[] }> {
+  ): Promise<{ pagination: ApiPagination; data: RssSourceType[] }> => {
     try {
       const conditions = NewsSourceService.buildWhereConditions(filters);
       const { page, limit, offset } = NewsSourceService.validatePagination(
@@ -55,6 +55,19 @@ export const NewsSourceService = {
       console.error("NewsSourceService.getAll error:", error);
       throw new Error("Failed to retrieve news sources");
     }
+  },
+
+  getActiveUrls: async () => {
+    const sources = await db
+      .select()
+      .from(rssSource)
+      .where(and(eq(rssSource.isActive, true)));
+    return sources.map((s) => ({
+      url: s.rssUrl,
+      name: s.name,
+      source: s.domain,
+      language: s.language ?? "english",
+    }));
   },
 
   create: async (data: NewRssSourceType) => {
