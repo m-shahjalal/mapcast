@@ -14,11 +14,10 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { LocationData, useMapContext } from "@/config/map-context";
-import { MapPin, Search, Loader2 } from "lucide-react";
+import { getNews } from "@/server/actions/news.action";
+import { Loader2, MapPin, Search } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useMap } from "react-leaflet";
-import { getNews } from "@/server/actions/news.action";
-import axios from "axios";
 
 export function Combobox({ closeSheet }: { closeSheet?: () => void }) {
   const map = useMap();
@@ -83,36 +82,27 @@ export function Combobox({ closeSheet }: { closeSheet?: () => void }) {
     setIsLoading(true);
 
     try {
-      const [{ data: locations }, { result: newsList }] = await Promise.all([
-        axios.get(
-          `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
-            searchValue
-          )}&format=json&limit=5&polygon_geojson=1&extratags=1&addressdetails=1`
-        ),
-        getNews({ search: searchValue }),
-      ]);
+      const { data } = await getNews({ search: searchValue });
 
-      const results: LocationData[] = [
-        ...locations.map((item: any) => ({
-          lat: parseFloat(item.lat),
-          lng: parseFloat(item.lon),
-          name: item.name || item.display_name.split(",")[0],
-          address: item.display_name,
-          geojson: item.geojson,
-          boundingbox: item.boundingbox,
-          place_id: item.place_id,
-          osm_type: item.osm_type,
-          osm_id: item.osm_id,
-        })),
-        ...(newsList?.map((item: any) => ({
-          lat: parseFloat(item.latitude ?? "0"),
-          lng: parseFloat(item.longitude ?? "0"),
-          name: item.title || "",
-          address: "",
-        })) || []),
-      ];
+      const transformedData: LocationData[] = data
+        .filter((item) => item.latitude && item.longitude)
+        .map((item) => ({
+          headline: item.title,
+          source: item.sourceDomain || "Unknown",
+          date: item.createdAt,
+          summary: item.summary,
+          link: item.originalUrl,
+          lat: parseFloat(item.latitude!),
+          lng: parseFloat(item.longitude!),
+          name: item.locationName || "Unknown Location",
+          address:
+            [item.locationCity, item.locationState, item.locationCountry]
+              .filter(Boolean)
+              .join(", ") || "Unknown Location",
+          topic: item.topic,
+        }));
 
-      setFilteredList(results);
+      setFilteredList(transformedData);
     } catch (error) {
       console.error("Search error:", error);
       setFilteredList([]);
@@ -143,13 +133,6 @@ export function Combobox({ closeSheet }: { closeSheet?: () => void }) {
       }
     };
   }, []);
-
-  const renderIcon = (address: string) =>
-    address ? (
-      <MapPin className="h-5 w-5 text-gray-500 dark:text-gray-400" />
-    ) : (
-      <Search className="h-5 w-5 text-gray-500 dark:text-gray-400" />
-    );
 
   const renderSearchButton = () => (
     <Button
@@ -185,7 +168,7 @@ export function Combobox({ closeSheet }: { closeSheet?: () => void }) {
           handleSelect(item);
         }}
       >
-        {renderIcon(item.address)}
+        <Search className="h-5 w-5 text-gray-500 dark:text-gray-400" />
         <div className="min-w-0 flex-1">
           <div className="font-medium text-sm truncate text-gray-900 dark:text-gray-100">
             {item.name}

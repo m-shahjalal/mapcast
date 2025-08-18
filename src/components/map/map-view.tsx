@@ -7,10 +7,8 @@ import { useCallback, useState } from "react";
 import { MapContainer, TileLayer } from "react-leaflet";
 import { LocationHighlighter } from "./components/highlighter";
 import { LocationMarker } from "./components/location-marker";
-import { MobileBottomBar } from "./components/mobile-bottom-bar";
 import { TopBar } from "./components/top-bar";
 import { NewsMarkers } from "./news-marker";
-import { Spinner } from "../ui/spinner";
 
 export function MapView() {
   const { center, zoom, currentLayer, isPending, mapList } = useMapContext();
@@ -23,11 +21,6 @@ export function MapView() {
 
   return (
     <div className="h-full w-full relative">
-      {isPending && (
-        <div className="absolute inset-0 flex items-center justify-center z-50">
-          <Spinner size={32} />
-        </div>
-      )}
       <MapContainer
         center={center}
         zoom={zoom}
@@ -48,7 +41,7 @@ export function MapView() {
         {isMapReady && <LocationHighlighter />}
         {isMapReady && <LocationMarker />}
         {isMapReady && <TopBar />}
-        {isMapReady && <MobileBottomBar />}
+        {/* {isMapReady && <MobileBottomBar />} */}
       </MapContainer>
     </div>
   );

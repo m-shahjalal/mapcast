@@ -1,28 +1,10 @@
 import { newsTopicEnum } from "@/server/database/schemas";
 
-export interface ApiResponse<T = any> {
-  success: boolean;
-  data?: T | null;
-  message?: string;
-  error?: ApiError | null;
-  timestamp?: string;
-  statusCode?: HttpStatusCode;
-  pagination?: ApiPagination;
-}
-
 export interface ApiPagination {
   currentPage: number;
   pageSize: number;
   totalItems: number;
   totalPages: number;
-}
-
-export interface ApiError {
-  code: string;
-  message: string;
-  details?: string;
-  field?: string;
-  timestamp?: string;
 }
 
 export type HttpStatusCode =

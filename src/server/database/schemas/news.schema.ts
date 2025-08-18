@@ -16,6 +16,7 @@ import {
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { newsTopicEnum } from "./enums.schema";
+import { rssSource } from "./rss.schema";
 
 export const news = pgTable(
   "news",
@@ -27,7 +28,6 @@ export const news = pgTable(
     metaDescription: varchar("meta_description", { length: 160 }),
     summary: text("summary").notNull(),
     content: text("content").notNull(),
-    excerpt: varchar("excerpt", { length: 300 }), // For previews and rich snippets
 
     // URL and routing optimization
     slug: varchar("slug", { length: 200 }).notNull().unique(),
@@ -105,7 +105,11 @@ export const news = pgTable(
 
 // Relations
 export const newsRelations = relations(news, ({ one, many }) => ({
-  duplicates: many(news), // Articles that are duplicates of this one
+  source: one(rssSource, {
+    fields: [news.sourceDomain],
+    references: [rssSource.domain],
+    relationName: "news_source",
+  }),
 }));
 
 // Validation schemas

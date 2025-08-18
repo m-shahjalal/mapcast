@@ -3,12 +3,12 @@ import { NewsSourceFilters } from "@/utils/validator";
 import { NewsSourceManager } from "./news-source-manager";
 
 export default async function SourcesPage({
-  params,
+  searchParams,
 }: {
-  params: Promise<NewsSourceFilters>;
+  searchParams: Promise<NewsSourceFilters>;
 }) {
-  const paramsData = await params;
+  const paramsData = await searchParams;
 
-  const list = await getRssSourceList(paramsData);
-  return <NewsSourceManager sources={list.data ?? []} />;
+  const { data, pagination } = await getRssSourceList(paramsData);
+  return <NewsSourceManager sources={data ?? []} pagination={pagination} />;
 }

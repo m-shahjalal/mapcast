@@ -9,20 +9,15 @@ import { Progress } from "@/components/ui/progress";
 import {
   ArrowDown,
   ArrowUp,
-  Cpu,
   Database,
   Eye,
   Filter,
   Globe,
-  HardDrive,
   MapPin,
-  MemoryStick,
   Minus,
   PieChart,
   Search,
   TrendingUp,
-  Users,
-  Zap,
 } from "lucide-react";
 import { useState } from "react";
 

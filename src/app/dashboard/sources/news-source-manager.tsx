@@ -11,15 +11,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { DataTable } from "@/components/table";
+import type { ColumnDef } from "@tanstack/react-table";
 import { RssSourceType } from "@/server/database/schemas";
+import type { ApiPagination } from "@/types/api-response";
 import {
   CheckCircle,
   ChevronLeft,
@@ -40,11 +35,15 @@ import { useCallback, useMemo, useState } from "react";
 
 interface NewsSourceManagerProps {
   sources: RssSourceType[] | null | undefined;
+  pagination?: ApiPagination;
 }
 
 const ITEMS_PER_PAGE = 10;
 
-export function NewsSourceManager({ sources }: NewsSourceManagerProps) {
+export function NewsSourceManager({
+  sources,
+  pagination,
+}: NewsSourceManagerProps) {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
@@ -84,13 +83,17 @@ export function NewsSourceManager({ sources }: NewsSourceManagerProps) {
     });
   }, [sourcesArray, searchQuery, selectedCategory, selectedStatus]);
 
-  const totalPages = Math.ceil(filteredSources.length / ITEMS_PER_PAGE);
+  const totalPages =
+    pagination?.totalPages ??
+    Math.ceil(filteredSources.length / ITEMS_PER_PAGE);
+  const pageSize = pagination?.pageSize ?? ITEMS_PER_PAGE;
 
   const paginatedSources = useMemo(() => {
+    if (pagination) return sourcesArray;
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
     const endIndex = startIndex + ITEMS_PER_PAGE;
     return filteredSources.slice(startIndex, endIndex);
-  }, [filteredSources, currentPage]);
+  }, [filteredSources, currentPage, pagination, sourcesArray]);
 
   // Statistics calculations with safety checks
   const stats = useMemo(() => {
@@ -141,6 +144,102 @@ export function NewsSourceManager({ sources }: NewsSourceManagerProps) {
     setSelectedStatus("All");
     setCurrentPage(1);
   }, []);
+
+  const columns = useMemo<ColumnDef<RssSourceType>[]>(
+    () => [
+      {
+        id: "name",
+        header: "Name",
+        cell: ({ row }) => (
+          <span className="font-medium text-foreground">
+            {row.original.name || "Untitled"}
+          </span>
+        ),
+      },
+      {
+        id: "domain",
+        header: "Domain",
+        cell: ({ row }) => (
+          <span className="text-muted-foreground truncate max-w-[150px] inline-block">
+            {row.original.domain || "—"}
+          </span>
+        ),
+      },
+      {
+        id: "rssUrl",
+        header: "RSS URL",
+        cell: ({ row }) => (
+          <span className="text-muted-foreground truncate max-w-[200px] inline-block">
+            {row.original.rssUrl || "—"}
+          </span>
+        ),
+      },
+      {
+        id: "status",
+        header: "Status",
+        cell: ({ row }) => (
+          <div
+            className={`flex items-center space-x-1 ${getStatusColorClass(
+              row.original.isActive ?? null
+            )}`}
+          >
+            {getStatusIcon(row.original.isActive ?? null)}
+            <span className="text-sm font-medium capitalize">
+              {getStatusText(row.original.isActive ?? null)}
+            </span>
+          </div>
+        ),
+      },
+      {
+        id: "active",
+        header: "Active",
+        cell: ({ row }) => (
+          <Badge
+            variant={row.original.isActive ? "default" : "destructive"}
+            className={
+              row.original.isActive
+                ? "bg-green-500 dark:bg-green-600"
+                : row.original.isActive === false
+                ? "bg-red-500 dark:bg-red-600"
+                : "bg-gray-500 dark:bg-gray-600"
+            }
+          >
+            {row.original.isActive === true
+              ? "Yes"
+              : row.original.isActive === false
+              ? "No"
+              : "—"}
+          </Badge>
+        ),
+      },
+      {
+        id: "actions",
+        header: () => <div className="text-right text-foreground">Actions</div>,
+        cell: ({ row }) => (
+          <div className="text-right">
+            <Link href={`/dashboard/sources/${row.original.id}/edit`}>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="mr-2 text-muted-foreground hover:text-foreground"
+              >
+                <Edit className="h-4 w-4" />
+              </Button>
+            </Link>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-red-600 hover:text-red-700"
+              onClick={() => handleDeleteSource(row.original.id)}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        ),
+      },
+    ],
+    [getStatusColorClass, getStatusIcon, getStatusText, handleDeleteSource]
+  );
 
   // Loading state
   if (sources === null || sources === undefined) {
@@ -268,147 +367,74 @@ export function NewsSourceManager({ sources }: NewsSourceManagerProps) {
           </div>
 
           <div className="overflow-x-auto rounded-lg border dark:border-gray-700">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-gray-50 dark:bg-gray-800">
-                  <TableHead className="text-foreground">Name</TableHead>
-                  <TableHead className="text-foreground">Domain</TableHead>
-                  <TableHead className="text-foreground">RSS URL</TableHead>
-                  <TableHead className="text-foreground">Status</TableHead>
-                  <TableHead className="text-foreground">Articles</TableHead>
-                  <TableHead className="text-foreground">Credibility</TableHead>
-                  <TableHead className="text-foreground">Active</TableHead>
-                  <TableHead className="text-right text-foreground">
-                    Actions
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {paginatedSources.length > 0 ? (
-                  paginatedSources.map((source) => (
-                    <TableRow
-                      key={source.id}
-                      className="hover:bg-gray-50/50 dark:hover:bg-gray-800/50"
-                    >
-                      <TableCell className="font-medium text-foreground">
-                        {source.name || "Untitled"}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground truncate max-w-[150px]">
-                        {source.domain || "—"}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground truncate max-w-[200px]">
-                        {source.rssUrl || "—"}
-                      </TableCell>
-                      <TableCell>
-                        <div
-                          className={`flex items-center space-x-1 ${getStatusColorClass(
-                            source.isActive ?? null
-                          )}`}
-                        >
-                          {getStatusIcon(source.isActive ?? null)}
-                          <span className="text-sm font-medium capitalize">
-                            {getStatusText(source.isActive ?? null)}
-                          </span>
-                        </div>
-                      </TableCell>
-
-                      <TableCell>
-                        <Badge
-                          variant={source.isActive ? "default" : "destructive"}
-                          className={
-                            source.isActive
-                              ? "bg-green-500 dark:bg-green-600"
-                              : source.isActive === false
-                              ? "bg-red-500 dark:bg-red-600"
-                              : "bg-gray-500 dark:bg-gray-600"
-                          }
-                        >
-                          {source.isActive === true
-                            ? "Yes"
-                            : source.isActive === false
-                            ? "No"
-                            : "—"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Link href={`/dashboard/sources/${source.id}/edit`}>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="mr-2 text-muted-foreground hover:text-foreground"
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                        </Link>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-red-600 hover:text-red-700"
-                          onClick={() => handleDeleteSource(source.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell
-                      colSpan={8}
-                      className="h-24 text-center text-muted-foreground"
-                    >
-                      No sources found matching your criteria.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
+            <DataTable<RssSourceType>
+              columns={columns}
+              data={paginatedSources}
+              emptyState={"No sources found matching your criteria."}
+              caption={"RSS News Sources"}
+            />
           </div>
 
-          {/* Pagination Controls */}
-          {totalPages > 1 && (
-            <div className="flex justify-between items-center mt-4">
-              <p className="text-sm text-muted-foreground">
-                Showing{" "}
-                {Math.min(
-                  (currentPage - 1) * ITEMS_PER_PAGE + 1,
-                  filteredSources.length
-                )}{" "}
-                to{" "}
-                {Math.min(currentPage * ITEMS_PER_PAGE, filteredSources.length)}{" "}
-                of {filteredSources.length} sources
-              </p>
-              <div className="flex items-center space-x-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() =>
-                    setCurrentPage((prev) => Math.max(1, prev - 1))
-                  }
-                  disabled={currentPage === 1}
-                  className="dark:bg-gray-800 dark:text-gray-200"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                  Previous
-                </Button>
-                <span className="text-sm text-muted-foreground dark:text-gray-400">
-                  Page {currentPage} of {totalPages}
-                </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() =>
-                    setCurrentPage((prev) => Math.min(totalPages, prev + 1))
-                  }
-                  disabled={currentPage === totalPages}
-                  className="dark:bg-gray-800 dark:text-gray-200"
-                >
-                  Next
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
+          {/* Pagination Controls (always visible) */}
+          <div className="flex justify-between items-center mt-4">
+            <p className="text-sm text-muted-foreground">
+              {pagination
+                ? `Page ${pagination.currentPage} of ${pagination.totalPages} • ${pagination.totalItems} total`
+                : `Showing ${Math.min(
+                    (currentPage - 1) * ITEMS_PER_PAGE + 1,
+                    filteredSources.length
+                  )} to ${Math.min(
+                    currentPage * ITEMS_PER_PAGE,
+                    filteredSources.length
+                  )} of ${filteredSources.length} sources`}
+            </p>
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  pagination
+                    ? (window.location.href = `/dashboard/sources?page=${Math.max(
+                        1,
+                        (pagination?.currentPage ?? 1) - 1
+                      )}&limit=${pageSize}`)
+                    : setCurrentPage((prev) => Math.max(1, prev - 1))
+                }
+                disabled={
+                  pagination ? pagination.currentPage <= 1 : currentPage === 1
+                }
+                className="dark:bg-gray-800 dark:text-gray-200"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Previous
+              </Button>
+              <span className="text-sm text-muted-foreground dark:text-gray-400">
+                Page {pagination ? pagination.currentPage : currentPage} of{" "}
+                {totalPages}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  pagination
+                    ? (window.location.href = `/dashboard/sources?page=${Math.min(
+                        totalPages,
+                        (pagination?.currentPage ?? 1) + 1
+                      )}&limit=${pageSize}`)
+                    : setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+                }
+                disabled={
+                  pagination
+                    ? pagination.currentPage >= totalPages
+                    : currentPage === totalPages
+                }
+                className="dark:bg-gray-800 dark:text-gray-200"
+              >
+                Next
+                <ChevronRight className="h-4 w-4" />
+              </Button>
             </div>
-          )}
+          </div>
 
           {/* Empty State */}
           {paginatedSources.length === 0 &&

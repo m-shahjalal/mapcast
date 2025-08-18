@@ -22,45 +22,39 @@ export const rssSource = pgTable(
   {
     id: primaryColumn(),
 
-    // Core source information
     name: varchar("name", { length: 255 }).notNull(),
-    domain: varchar("base_url", { length: 500 }).notNull(), // Main website URL
+    domain: varchar("base_url", { length: 500 }).notNull(),  
     rssUrl: varchar("rss_url", { length: 500 }).notNull().unique(),
     logoUrl: varchar("logo_url", { length: 500 }),
 
     country: varchar("country_name", { length: 100 }),
     language: varchar("language", { length: 10 }).default("en"),
-    timezone: varchar("timezone", { length: 50 }), // e.g., 'America/New_York'
+    timezone: varchar("timezone", { length: 50 }), 
     topic: newsTopicEnum("topic").notNull(),
 
-    // SEO and metadata
-    description: text("description"), // Source description for SEO
-    keywords: text("keywords"), // Comma-separated keywords
+    description: text("description"), 
+    keywords: text("keywords"), 
 
-    // Technical configuration
     apiKey: varchar("api_key", { length: 255 }),
-    userAgent: varchar("user_agent", { length: 500 }), // Custom user agent for scraping
-    requestHeaders: jsonb("request_headers"), // Additional headers for RSS requests
+    userAgent: varchar("user_agent", { length: 500 }), 
+    requestHeaders: jsonb("request_headers"), 
 
     isActive: boolean("is_active").default(true),
     isPremium: boolean("is_premium").default(false),
 
-    // Performance metrics
     lastFetch: timestamp("last_fetched"),
     lastSuccessfulFetch: timestamp("last_successful_fetch"),
     totalFetches: integer("total_fetches").default(0),
-    successRate: decimal("success_rate", { precision: 5, scale: 2 }), // Percentage
-    avgResponseTime: integer("avg_response_time"), // Milliseconds
+    successRate: decimal("success_rate", { precision: 5, scale: 2 }), 
+    avgResponseTime: integer("avg_response_time"), 
 
-    // Content metrics
-    avgReadTime: integer("avg_read_time"), // Average reading time in minutes
+    avgReadTime: integer("avg_read_time"),  
     avgWordCount: integer("avg_word_count"), // Average article word count
     contentQualityScore: decimal("content_quality_score", {
       precision: 3,
       scale: 2,
     }),
 
-    // Error tracking
     lastError: text("last_error"),
     errorCount: integer("error_count").default(0),
     consecutiveErrors: integer("consecutive_errors").default(0),
@@ -80,9 +74,8 @@ export const rssSource = pgTable(
   })
 );
 
-// Relations will be defined in the news schema file
 export const rssSourceRelations = relations(rssSource, ({ many }) => ({
-  articles: many(news), // Forward reference, will be resolved when news schema is loaded
+  articles: many(news),
 }));
 
 export const createRssSourceSchema = z.object({
