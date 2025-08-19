@@ -1,4 +1,3 @@
-import { newsTopicList } from "@/shared/enum-list";
 import { primaryColumn, timestamps } from "@/utils/database";
 import { relations } from "drizzle-orm";
 import {
@@ -6,7 +5,6 @@ import {
   decimal,
   index,
   integer,
-  pgEnum,
   pgTable,
   text,
   timestamp,
@@ -28,6 +26,7 @@ export const news = pgTable(
     metaDescription: varchar("meta_description", { length: 160 }),
     summary: text("summary").notNull(),
     content: text("content").notNull(),
+    imageUrl: varchar("img_url"),
 
     // URL and routing optimization
     slug: varchar("slug", { length: 200 }).notNull().unique(),
@@ -104,7 +103,7 @@ export const news = pgTable(
 );
 
 // Relations
-export const newsRelations = relations(news, ({ one, many }) => ({
+export const newsRelations = relations(news, ({ one }) => ({
   source: one(rssSource, {
     fields: [news.sourceDomain],
     references: [rssSource.domain],

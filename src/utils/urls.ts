@@ -1,3 +1,5 @@
+import { LatLngExpression } from "leaflet";
+
 export const urlUtils = {
   isValidUrl: (url: string): boolean => {
     try {
@@ -78,4 +80,16 @@ export const parseRootDomain = (url: string): string | null => {
   } catch (error) {
     return null;
   }
+};
+
+export const getPositon = (
+  lat: string | number | null | undefined,
+  lng: string | number | null | undefined
+): LatLngExpression | null => {
+  if (!lat || !lng) return null;
+
+  if (typeof lat === "string") lat = parseFloat(lat);
+  if (typeof lng === "string") lng = parseFloat(lng);
+
+  return [lat, lng];
 };

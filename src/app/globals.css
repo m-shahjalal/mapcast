@@ -135,6 +135,13 @@
   @apply dark:bg-gray-800 dark:text-gray-100 rounded-lg;
 }
 
+.leaflet-popup-close-button {
+  @apply !absolute !top-4 !right-4 !text-2xl !bg-red-400 flex justify-center items-center  !text-white !rounded-sm;
+}
+.leaflet-popup-close-button span {
+  @apply -mt-1;
+}
+
 @keyframes infinite-spinner-rotate {
   0% {
     stroke-dashoffset: 0;

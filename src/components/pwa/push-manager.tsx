@@ -169,7 +169,7 @@ const InstallPrompt = () => {
 export function PwaManager() {
   return (
     <div>
-      <PushNotificationManager />
+      {/* <PushNotificationManager /> */}
       <InstallPrompt />
     </div>
   );

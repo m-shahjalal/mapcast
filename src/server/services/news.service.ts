@@ -76,10 +76,10 @@ export const NewsService = {
   async getMapData(filters: NewsMapFilters) {
     const conditions: SQLWrapper[] = [isNotNull(news.locationName)];
 
-    const fromDate = filters.from
+    const fromDate = filters?.from
       ? new Date(filters.from)
       : new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-    const toDate = filters.to ? new Date(filters.to) : new Date();
+    const toDate = filters?.to ? new Date(filters.to) : new Date();
 
     conditions.push(
       and(
@@ -88,7 +88,7 @@ export const NewsService = {
       ) as SQLWrapper
     );
 
-    if (filters.topics) {
+    if (filters?.topics) {
       const topics = ((filters as any).topics ?? "")
         .split(",")
         .map((t: string) => t.trim())
@@ -99,7 +99,7 @@ export const NewsService = {
       }
     }
 
-    if (filters.search) {
+    if (filters?.search) {
       conditions.push(
         sql`to_tsvector('english', ${news.title} || ' ' || ${news.summary} || ' ' || ${news.locationName}) @@ plainto_tsquery('english', ${filters.search})`
       );
@@ -118,6 +118,10 @@ export const NewsService = {
   },
 
   async findBySlug(slug: string) {
-    return await db.select().from(news).where(eq(news.slug, slug));
+    const [result] = await db
+      .select()
+      .from(news)
+      .where(eq(news.slug, decodeURIComponent(slug)));
+    return result;
   },
 };

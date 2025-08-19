@@ -25,13 +25,8 @@ import { NewsMapFilters } from "@/types/query-filter";
 
 export type LayerKey = keyof typeof MAP_LAYERS;
 
-export function LayerSelector({
-  currentLayer,
-  setCurrentLayer,
-}: {
-  currentLayer: LayerKey;
-  setCurrentLayer: (layer: LayerKey) => void;
-}) {
+export function LayerSelector() {
+  const { currentLayer, setCurrentLayer } = useMapContext();
   const [isOpen, setIsOpen] = useState(false);
   const { setTheme } = useTheme();
 
@@ -136,7 +131,6 @@ export function LayerSelector({
 
 export function MapControls() {
   const { zoomIn, zoomOut, locateUser } = useMapControls();
-  const { currentLayer, setCurrentLayer } = useMapContext();
   const { clearParams } = useQueryParams<NewsMapFilters>();
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -186,13 +180,7 @@ export function MapControls() {
             : "max-h-0 opacity-0 -translate-y-4"
         }`}
       >
-        <LayerSelector
-          currentLayer={currentLayer}
-          setCurrentLayer={(layer) => {
-            setCurrentLayer(layer);
-            setIsExpanded(false);
-          }}
-        />
+        <LayerSelector />
         {controls.map(({ icon: Icon, onClick, label }) => (
           <Button
             key={label}

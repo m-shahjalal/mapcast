@@ -3,6 +3,10 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   distDir: ".next",
   productionBrowserSourceMaps: false,
+  experimental: {
+    viewTransition: true,
+  },
+  transpilePackages: ["next-mdx-remote"],
   eslint: {
     ignoreDuringBuilds: true,
   },

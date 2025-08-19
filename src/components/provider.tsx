@@ -1,19 +1,17 @@
 "use client";
+
 import { ThemeProvider } from "next-themes";
 import NextTopLoader from "nextjs-toploader";
 import { ReactNode, useEffect, useState } from "react";
 import { Toaster } from "sonner";
 import { SWRConfig } from "swr";
 import { SplashScreen } from "./pwa/splash-screen";
+import { MapProvider } from "@/config/map-context";
+import { PwaManager } from "./pwa/push-manager";
 
 const Providers = ({ children }: { children: ReactNode }) => {
   const [isClient, setIsClient] = useState(false);
-
   const [showSplash, setShowSplash] = useState(true);
-
-  const handleSplashComplete = () => {
-    setShowSplash(false);
-  };
 
   useEffect(() => {
     setIsClient(true);
@@ -26,7 +24,7 @@ const Providers = ({ children }: { children: ReactNode }) => {
   }, []);
 
   if (showSplash) {
-    return <SplashScreen onComplete={handleSplashComplete} />;
+    return <SplashScreen onComplete={() => setShowSplash(false)} />;
   }
 
   return (
@@ -49,7 +47,7 @@ const Providers = ({ children }: { children: ReactNode }) => {
           disableTransitionOnChange
         >
           <NextTopLoader color="#3b82f6" showSpinner={false} height={3} />
-          {children}
+          <MapProvider>{children}</MapProvider>
           <Toaster
             position="top-right"
             duration={5000}
@@ -57,6 +55,7 @@ const Providers = ({ children }: { children: ReactNode }) => {
             visibleToasts={3}
             richColors
           />
+          <PwaManager />
         </ThemeProvider>
       </SWRConfig>
     </div>

@@ -1,14 +1,6 @@
-import { InfinitePageLoader } from "@/components/page-loader";
 import Providers from "@/components/provider";
-import { Poppins } from "next/font/google";
 import "./globals.css";
-
-const poppins = Poppins({
-  subsets: ["latin"],
-  variable: "--font-poppins",
-  display: "swap",
-  weight: ["200", "400", "600", "700"],
-});
+import "leaflet/dist/leaflet.css";
 
 export const metadata = {
   title: "PiNews News | Stay Updated",
@@ -22,7 +14,7 @@ export default async function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${poppins.variable} antialiased`}>
+      <body className={`antialiased`}>
         <Providers>{children}</Providers>
       </body>
     </html>

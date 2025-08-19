@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect } from "react";
 import { Circle, GeoJSON, useMap } from "react-leaflet";
 import { useMapContext } from "@/config/map-context";
@@ -24,9 +26,9 @@ export function LocationHighlighter({
     if (!selectedLocation) return;
 
     // Fit bounds if geojson boundary is available
-    if (selectedLocation.geojson) {
+    if ((selectedLocation as any)?.geojson) {
       try {
-        const geoJsonLayer = L.geoJSON(selectedLocation.geojson);
+        const geoJsonLayer = L.geoJSON((selectedLocation as any).geojson);
         map.fitBounds(geoJsonLayer.getBounds(), {
           padding: [20, 20],
           maxZoom: 14,
@@ -40,11 +42,11 @@ export function LocationHighlighter({
   if (!selectedLocation) return null;
 
   // If we have geojson boundary data, use it
-  if (selectedLocation.geojson) {
+  if ((selectedLocation as any).geojson) {
     return (
       <GeoJSON
-        key={`geojson-${selectedLocation.lat}-${selectedLocation.lng}`}
-        data={selectedLocation.geojson}
+        key={`geojson-${selectedLocation.latitude}-${selectedLocation.longitude}`}
+        data={(selectedLocation as any).geojson}
         style={{
           color: circleColor,
           weight: 3,
@@ -59,8 +61,11 @@ export function LocationHighlighter({
   // Fallback to circle if no boundary data
   return (
     <Circle
-      key={`circle-${selectedLocation.lat}-${selectedLocation.lng}`}
-      center={[selectedLocation.lat, selectedLocation.lng]}
+      key={`circle-${selectedLocation.latitude}-${selectedLocation.longitude}`}
+      center={[
+        parseFloat(selectedLocation.latitude ?? "0"),
+        parseFloat(selectedLocation.longitude ?? "0"),
+      ]}
       radius={radius}
       pathOptions={{
         color: circleColor,

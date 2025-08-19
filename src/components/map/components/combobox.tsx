@@ -13,8 +13,9 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { LocationData, useMapContext } from "@/config/map-context";
+import { useMapContext } from "@/config/map-context";
 import { getNews } from "@/server/actions/news.action";
+import { NewsType } from "@/server/database/schemas";
 import { Loader2, MapPin, Search } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useMap } from "react-leaflet";
@@ -23,7 +24,7 @@ export function Combobox({ closeSheet }: { closeSheet?: () => void }) {
   const map = useMap();
   const [open, setOpen] = useState(false);
   const { setLocation, selectedLocation } = useMapContext();
-  const [filteredList, setFilteredList] = useState<LocationData[]>([]);
+  const [filteredList, setFilteredList] = useState<NewsType[]>([]);
   const [value, setValue] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -83,26 +84,7 @@ export function Combobox({ closeSheet }: { closeSheet?: () => void }) {
 
     try {
       const { data } = await getNews({ search: searchValue });
-
-      const transformedData: LocationData[] = data
-        .filter((item) => item.latitude && item.longitude)
-        .map((item) => ({
-          headline: item.title,
-          source: item.sourceDomain || "Unknown",
-          date: item.createdAt,
-          summary: item.summary,
-          link: item.originalUrl,
-          lat: parseFloat(item.latitude!),
-          lng: parseFloat(item.longitude!),
-          name: item.locationName || "Unknown Location",
-          address:
-            [item.locationCity, item.locationState, item.locationCountry]
-              .filter(Boolean)
-              .join(", ") || "Unknown Location",
-          topic: item.topic,
-        }));
-
-      setFilteredList(transformedData);
+      setFilteredList(data);
     } catch (error) {
       console.error("Search error:", error);
       setFilteredList([]);
@@ -143,7 +125,7 @@ export function Combobox({ closeSheet }: { closeSheet?: () => void }) {
     >
       <Search className="h-5 w-5 text-gray-500 dark:text-gray-400 mr-2" />
       <span className="truncate overflow-hidden whitespace-nowrap text-gray-900 dark:text-gray-100">
-        {selectedLocation?.name || "Search ..."}
+        {selectedLocation?.title || "Search ..."}
       </span>
     </Button>
   );
@@ -227,7 +209,14 @@ export function Combobox({ closeSheet }: { closeSheet?: () => void }) {
               <CommandEmpty className="hidden" />
               {filteredList.length === 0
                 ? renderEmptyState()
-                : filteredList.map(renderCommandItem)}
+                : filteredList.map((i) =>
+                    renderCommandItem({
+                      lat: Number(i.latitude),
+                      lng: Number(i.longitude),
+                      name: i.title,
+                      address: i.locationName ?? "",
+                    })
+                  )}
             </CommandList>
           </Command>
         </PopoverContent>
