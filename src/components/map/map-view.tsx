@@ -3,27 +3,19 @@
 import { MAP_LAYERS } from "@/config/map-constraint";
 import { useMapContext } from "@/config/map-context";
 import { NewsType } from "@/server/database/schemas";
-import { useCallback, useState, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { MapContainer, TileLayer } from "react-leaflet";
 import { LocationHighlighter } from "./components/highlighter";
-import { NewsMarkers } from "./components/marker";
+import { MobileBottomBar } from "./components/mobile-bottom-bar";
+import { EnhancedNewsMarkers } from "./components/news-marker";
 import { TopBar } from "./components/top-bar";
 
-interface PinPointMapProps {
-  news: NewsType[];
-}
-
-export function PinPointMap({ news }: PinPointMapProps) {
+export function PinPointMap({ news }: { news: NewsType[] }) {
   const { center, zoom, currentLayer, setMapList } = useMapContext();
   const [isMapReady, setIsMapReady] = useState(false);
 
-  const handleMapReady = useCallback(() => {
-    setIsMapReady(true);
-  }, []);
-
-  useEffect(() => {
-    setMapList(news);
-  }, [news, setMapList]);
+  const handleMapReady = useCallback(() => setIsMapReady(true), []);
+  useEffect(() => setMapList(news), [news, setMapList]);
 
   return (
     <div className="flex h-screen w-full overflow-hidden">
@@ -45,9 +37,10 @@ export function PinPointMap({ news }: PinPointMapProps) {
             style={{ height: "100%", width: "100%", zIndex: 0 }}
           >
             <TileLayer key={currentLayer} url={MAP_LAYERS[currentLayer].url} />
-            {isMapReady && <NewsMarkers />}
+            {isMapReady && <EnhancedNewsMarkers />}
             {isMapReady && <LocationHighlighter />}
             {isMapReady && <TopBar />}
+            {isMapReady && <MobileBottomBar />}
           </MapContainer>
         </div>
       </div>
