@@ -23,7 +23,7 @@ export interface NewsFilters extends BaseFilters {
 
 export interface NewsMapFilters {
   topics: (typeof newsTopicList)[number][];
-  country: string;
+  country?: string;
   search?: string;
   from?: Date;
   to?: Date;

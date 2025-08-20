@@ -10,7 +10,12 @@ import { MobileBottomBar } from "./mobile-bottom-bar";
 import { EnhancedNewsMarkers } from "./news-marker";
 import { TopBar } from "./top-bar";
 
-export function PinPointMap({ news }: { news: NewsType[] }) {
+type Props = {
+  news: NewsType[];
+  isTopic?: boolean;
+};
+
+export function PinPointMap({ news, isTopic }: Props) {
   const { center, zoom, currentLayer, setMapList } = useMapContext();
   const [isMapReady, setIsMapReady] = useState(false);
 

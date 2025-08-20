@@ -6,7 +6,7 @@ import { useQueryParams } from "@/hooks/use-query";
 import { cn } from "@/utils/cn";
 import { Eraser } from "lucide-react";
 import { TopicFilters } from "./topic-filter";
-import { Combobox } from "./combobox";
+import { CountrySelect } from "./country-select";
 import { useCallback, useEffect } from "react";
 
 interface MobileControlsSheetProps {
@@ -102,7 +102,7 @@ export function MobileControlsSheet({
       </SheetHeader>
 
       <div className="flex flex-col gap-4 p-4 overflow-y-auto flex-1">
-        <Combobox closeSheet={handleClose} />
+        <CountrySelect />
         <DateRangePicker onUpdate={handleDateUpdate} />
         <div className="flex-1 flex gap-2">
           <div className="flex-1 max-w-full">

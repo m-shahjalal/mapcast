@@ -1,9 +1,18 @@
 import { getNewsBySlug } from "@/server/actions/news.action";
-import { NewsViewer } from "./news-viewer";
 import dynamic from "next/dynamic";
+import { NewsViewer } from "./news-viewer";
+import { generateNewsMetadata } from "./metadata";
 
 type Props = { params: Promise<{ slug: string }> };
 const LazyMap = dynamic(() => import("./map-viewer").then((i) => i.MapViewer));
+
+export async function generateMetadata({ params }: Props) {
+  const { slug } = await params;
+  const news = await getNewsBySlug(slug);
+  if (!news) return {};
+
+  return generateNewsMetadata(news);
+}
 
 export default async function DynamicNews({ params }: Props) {
   const { slug } = await params;

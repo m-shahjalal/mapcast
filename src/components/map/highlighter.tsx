@@ -1,5 +1,4 @@
 "use client";
-
 import { useEffect } from "react";
 import { Circle, GeoJSON, useMap } from "react-leaflet";
 import { useMapContext } from "@/config/map-context";
@@ -14,8 +13,8 @@ interface LocationHighlighterProps {
 }
 
 export function LocationHighlighter({
-  circleColor = "#ff0000",
-  fillColor = "#ff0000",
+  circleColor = "#2563eb", // Professional blue
+  fillColor = "#3b82f6", // Slightly lighter blue for fill
   fillOpacity = 0.2,
   radius = 2000,
 }: LocationHighlighterProps) {
