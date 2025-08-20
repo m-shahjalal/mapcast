@@ -7,7 +7,7 @@ export const getNews = async (filter: NewsFilters) => {
   return await NewsService.findAll(filter);
 };
 
-export const getNewsMapData = async (filters: NewsMapFilters) => {
+export const getNewsMapData = async (filters?: NewsMapFilters) => {
   return await NewsService.getMapData(filters);
 };
 

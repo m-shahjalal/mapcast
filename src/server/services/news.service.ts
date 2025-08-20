@@ -73,7 +73,7 @@ export const NewsService = {
     return { data, pagination };
   },
 
-  async getMapData(filters: NewsMapFilters) {
+  async getMapData(filters?: NewsMapFilters) {
     const conditions: SQLWrapper[] = [isNotNull(news.locationName)];
 
     const fromDate = filters?.from
