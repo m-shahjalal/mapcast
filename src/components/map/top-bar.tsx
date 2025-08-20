@@ -3,7 +3,7 @@
 import { Combobox } from "./combobox";
 import { MapControls } from "./control";
 import { TopicFilters } from "./topic-filter";
-import { DateRangePicker } from "@/components/date-picker/date-range-picker";
+import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { useQueryParams } from "@/hooks/use-query";
 
 export function TopBar() {

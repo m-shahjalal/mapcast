@@ -1,6 +1,6 @@
 import { NewsType } from "@/server/database/schemas";
 import { MDXRemote } from "next-mdx-remote/rsc";
-import mdxComponents from "@/components/mdx-components";
+import mdxComponents from "@/components/layout/mdx-components";
 import { newsTopicDropdown } from "@/shared/enum-list";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";

@@ -1,5 +1,5 @@
-import Providers from "@/components/provider";
-import "./globals.css";
+import Providers from "@/components/layout/provider";
+import "../globals.css";
 import "leaflet/dist/leaflet.css";
 
 export const metadata = {

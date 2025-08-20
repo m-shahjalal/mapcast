@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useMapContext } from "@/config/map-context";
-import { formatDate, truncateText } from "@/lib/utils";
+import { formatDate, truncateText } from "@/utils/cn";
 import { NewsType } from "@/server/database/schemas";
 import { newsTopicDropdown } from "@/shared/enum-list";
 import { getPositon } from "@/utils/urls";

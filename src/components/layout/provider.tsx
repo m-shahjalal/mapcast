@@ -5,8 +5,8 @@ import NextTopLoader from "nextjs-toploader";
 import { ReactNode, useEffect, useState } from "react";
 import { Toaster } from "sonner";
 import { SWRConfig } from "swr";
-import { SplashScreen } from "./pwa/splash-screen";
 import { MapProvider } from "@/config/map-context";
+import { SplashScreen } from "./pwa/splash-screen";
 import { PwaManager } from "./pwa/push-manager";
 
 const Providers = ({ children }: { children: ReactNode }) => {

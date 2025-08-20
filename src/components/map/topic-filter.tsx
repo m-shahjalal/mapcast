@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { TopicItem } from "@/config/map-context";
 import { useQueryParams } from "@/hooks/use-query";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils/cn";
 import { newsTopicDropdown } from "@/shared/enum-list";
 import { NewsMapFilters } from "@/types/query-filter";
 import { ChevronDown } from "lucide-react";

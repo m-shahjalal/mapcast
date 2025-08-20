@@ -1,9 +1,9 @@
 "use client";
-import { DateRangePicker } from "@/components/date-picker/date-range-picker";
+import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { Button } from "@/components/ui/button";
 import { SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useQueryParams } from "@/hooks/use-query";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils/cn";
 import { Eraser } from "lucide-react";
 import { TopicFilters } from "./topic-filter";
 import { Combobox } from "./combobox";

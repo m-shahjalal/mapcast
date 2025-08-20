@@ -20,7 +20,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { countries, languages, timezones } from "@/lib/dropdown-list";
+import { countries, languages, timezones } from "@/utils/dropdown-list";
 import { creteRssSource } from "@/server/actions/rss-feed.action";
 import {
   createRssSourceSchema,

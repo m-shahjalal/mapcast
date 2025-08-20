@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 
 import { useMapContext } from "@/config/map-context";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils/cn";
 import { useTheme } from "next-themes";
 import { useCallback, useMemo, useState } from "react";
 import { useQueryParams } from "@/hooks/use-query";

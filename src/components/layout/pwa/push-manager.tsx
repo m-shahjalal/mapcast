@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react";
 import { subscribeUser, unsubscribeUser, sendNotification } from "./actions";
 import { Download, X } from "lucide-react";
-import { Button } from "../ui/button";
-import { cn } from "@/lib/utils";
+import { Button } from "../../ui/button";
+import { cn } from "@/utils/cn";
 
 function urlBase64ToUint8Array(base64String: string) {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);

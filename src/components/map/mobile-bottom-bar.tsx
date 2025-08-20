@@ -1,6 +1,6 @@
 "use client";
 import { Sheet, SheetTrigger } from "@/components/ui/sheet";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils/cn";
 import { Search, SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MobileControlsSheet } from "./mobile-control-sheet";

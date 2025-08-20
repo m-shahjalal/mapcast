@@ -5,10 +5,10 @@ import { useMapContext } from "@/config/map-context";
 import { NewsType } from "@/server/database/schemas";
 import { useCallback, useEffect, useState } from "react";
 import { MapContainer, TileLayer } from "react-leaflet";
-import { LocationHighlighter } from "./components/highlighter";
-import { MobileBottomBar } from "./components/mobile-bottom-bar";
-import { EnhancedNewsMarkers } from "./components/news-marker";
-import { TopBar } from "./components/top-bar";
+import { LocationHighlighter } from "./highlighter";
+import { MobileBottomBar } from "./mobile-bottom-bar";
+import { EnhancedNewsMarkers } from "./news-marker";
+import { TopBar } from "./top-bar";
 
 export function PinPointMap({ news }: { news: NewsType[] }) {
   const { center, zoom, currentLayer, setMapList } = useMapContext();

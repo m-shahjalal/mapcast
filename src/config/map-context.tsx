@@ -6,7 +6,7 @@ import React, {
   useMemo,
   ReactNode,
 } from "react";
-import { MAP_LAYERS } from "../config/map-constraint";
+import { MAP_LAYERS } from "./map-constraint";
 import { NewsType } from "@/server/database/schemas";
 
 export interface TopicItem {
