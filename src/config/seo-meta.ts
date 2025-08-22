@@ -59,7 +59,9 @@ const createGEOOptimizedContent = (newsList: any[], params: NewsMapFilters) => {
       : countries.length > 1
       ? ` in ${countries.length} Countries`
       : " Worldwide";
-  const title = `PiNews: ${params.topic}News Map with ${newsCount} Live Stories${locationSuffix}`;
+  const title = `PiNews: ${
+    params.topic ?? ""
+  }News Map with ${newsCount} Live Stories${locationSuffix}`;
 
   // AI-Friendly Description (Structured, fact-dense)
   const description = `PiNews is an interactive news mapping platform that visualizes ${newsCount} breaking news stories in real-time with precise geographic coordinates. Features include: live ${

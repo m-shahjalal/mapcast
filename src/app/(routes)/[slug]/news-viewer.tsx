@@ -5,6 +5,7 @@ import { newsTopicDropdown } from "@/shared/enum-list";
 import { X } from "lucide-react";
 import { MDXRemote } from "next-mdx-remote/rsc";
 import remarkGfm from "remark-gfm";
+import Image from "next/image";
 
 import Link from "next/link";
 
@@ -85,6 +86,8 @@ export const NewsViewer = async ({ news }: { news: NewsType }) => {
         </div>
       </header>
 
+      <LeadImage news={news} />
+
       <main className="px-4 py-8 sm:px-6 lg:px-8">
         <div>
           <MDXRemote
@@ -102,6 +105,36 @@ export const NewsViewer = async ({ news }: { news: NewsType }) => {
         <SourceFooter news={news} />
       </main>
     </article>
+  );
+};
+
+// Lead Image Component with fallback and credits - Client Component
+const LeadImage = ({ news }: { news: NewsType }) => {
+  if (!news.imageUrl) return null;
+
+  return (
+    <div className="relative w-full px-4 sm:px-6 lg:px-8 mb-8">
+      <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800">
+        <Image
+          src={news.imageUrl}
+          alt={news.title}
+          fill
+          className="object-cover"
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1024px"
+          priority
+        />
+
+        {/* Image overlay gradient for better text readability */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+      </div>
+
+      {/* Image credits */}
+      <div className="mt-2 flex justify-end">
+        <span className="text-xs text-gray-500 dark:text-gray-400">
+          Image: {news.sourceDomain}
+        </span>
+      </div>
+    </div>
   );
 };
 
@@ -150,7 +183,7 @@ const ArticleMeta = ({ news }: { news: NewsType }) => (
           <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
           <path
             fillRule="evenodd"
-            d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
+            d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 11-8 0 4 4 0 018 0z"
             clipRule="evenodd"
           />
         </svg>
