@@ -1,50 +1,43 @@
 import db from "@/server/database";
-import { NewNews, news, newsSource } from "@/server/database/schemas";
-import { RSSFeedResult } from "@/server/feed-reader/location-extractor";
+import { country, news } from "@/server/database/schemas";
 import { ApiPagination } from "@/types/api-response";
 import { NewsFilters, NewsMapFilters } from "@/types/query-filter";
 import {
   and,
   desc,
   eq,
+  getTableColumns,
   gte,
+  ilike,
   inArray,
   isNotNull,
   lte,
   sql,
   SQLWrapper,
 } from "drizzle-orm";
-import slugify from "slugify";
 
 export const NewsService = {
   async findAll(filters: NewsFilters) {
-    const { page = 1, limit = 20 } = filters;
+    const { page = 1, limit = 10 } = filters;
     const conditions: SQLWrapper[] = [];
 
-    if (filters.sourceId) {
-      conditions.push(eq(news.sourceId, filters.sourceId));
+    if (filters.sourceDomain) {
+      conditions.push(eq(news.sourceDomain, filters.sourceDomain));
     }
 
-    if (filters.topics) {
-      const topics = ((filters as any).topics ?? "")
-        .split(",")
-        .map((t: string) => t.trim())
-        .filter(Boolean);
-
-      if (topics.length > 0) {
-        conditions.push(inArray(news.topic, topics as any));
-      }
+    if (filters?.topic) {
+      conditions.push(eq(news.topic, filters.topic));
     }
 
     if (filters.location) {
       conditions.push(
-        sql`lower(${news.locationName}) like lower(${`%${filters.location}%`})`
+        sql`lower(${news.location}) like lower(${`%${filters.location}%`})`
       );
     }
 
     if (filters.search) {
       conditions.push(
-        sql`to_tsvector('english', ${news.title} || ' ' || ${news.summary} || ' ' || ${news.locationName}) @@ plainto_tsquery('english', ${filters.search})`
+        sql`to_tsvector('english', ${news.title} || ' ' || ${news.summary} || ' ' || ${news.location}) @@ plainto_tsquery('english', ${filters.search})`
       );
     }
 
@@ -52,9 +45,10 @@ export const NewsService = {
 
     const [{ count }] = await db
       .select({ count: sql<number>`count(*)` })
-      .from(news);
+      .from(news)
+      .where(whereClause);
 
-    const result = await db
+    const data = await db
       .select()
       .from(news)
       .where(whereClause)
@@ -69,16 +63,16 @@ export const NewsService = {
       totalPages: Math.ceil(count / limit),
     };
 
-    return { result, pagination };
+    return { data, pagination };
   },
 
-  async getMapData(filters: NewsMapFilters) {
-    const conditions: SQLWrapper[] = [isNotNull(news.locationName)];
+  async getMapData(filters?: NewsMapFilters) {
+    const conditions: SQLWrapper[] = [isNotNull(news.location)];
 
-    const fromDate = filters.from
+    const fromDate = filters?.from
       ? new Date(filters.from)
       : new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-    const toDate = filters.to ? new Date(filters.to) : new Date();
+    const toDate = filters?.to ? new Date(filters.to) : new Date();
 
     conditions.push(
       and(
@@ -87,113 +81,66 @@ export const NewsService = {
       ) as SQLWrapper
     );
 
-    if (filters.topics) {
-      const topics = ((filters as any).topics ?? "")
-        .split(",")
-        .map((t: string) => t.trim())
-        .filter(Boolean);
-
-      if (topics.length > 0) {
-        conditions.push(inArray(news.topic, topics as any));
-      }
+    if (filters?.topic) {
+      conditions.push(eq(news.topic, filters.topic));
     }
 
-    if (filters.search) {
+    if (filters?.country) {
+      conditions.push(eq(news.countryCode, filters.country));
+    }
+
+    if (filters?.search) {
       conditions.push(
-        sql`to_tsvector('english', ${news.title} || ' ' || ${news.summary} || ' ' || ${news.locationName}) @@ plainto_tsquery('english', ${filters.search})`
+        sql`to_tsvector('english', ${news.title} || ' ' || ${news.summary} || ' ' || ${news.location}) @@ plainto_tsquery('english', ${filters.search})`
       );
     }
 
-    return await db
-      .selectDistinctOn([news.latitude, news.longitude])
+    const result = await db
+      .selectDistinctOn([news.latitude, news.longitude], {
+        ...getTableColumns(news),
+        geojson: country.geojson,
+      })
       .from(news)
       .where(and(...conditions))
       .limit(1000)
-      .orderBy(news.latitude, news.longitude, desc(news.createdAt));
-  },
+      .orderBy(news.latitude, news.longitude, desc(news.createdAt))
+      .leftJoin(country, eq(country.code, filters?.country ?? ""));
 
-  async saveArticle(newsData: RSSFeedResult[]): Promise<NewNews[]> {
-    const articlesToInsert: Array<typeof news.$inferInsert> = [];
-    const processedSlugs = new Set<string>();
+    if (result.length > 0) return result;
 
-    for (const feed of newsData) {
-      try {
-        const sourceId = await this.ensureNewsSource(feed.source);
+    if (filters?.country) {
+      const location = await db.query.country.findFirst({
+        where: eq(country.code, filters?.country),
+      });
 
-        for (const article of feed.articles) {
-          const slug = slugify(article.title, { lower: true, strict: true });
+      if (!location) return result;
 
-          if (processedSlugs.has(slug)) continue;
-          processedSlugs.add(slug);
+      const locationData = {
+        latitude: location?.lat,
+        longitude: location?.lon,
+        name: location?.name,
+        geojson: location?.geojson,
+      };
 
-          const locationPin = article.locationPin;
-          articlesToInsert.push({
-            title: article.title,
-            slug,
-            summary: article.summary,
-            sourceId,
-            newsUrl: article.url,
-            locationName: locationPin?.location || null,
-            locationCity: locationPin?.city || null,
-            locationState: locationPin?.state || null,
-            locationCountry: locationPin?.country || null,
-            latitude: locationPin?.latitude || null,
-            longitude: locationPin?.longitude || null,
-            topic: article.topic,
-          });
-        }
-      } catch (error) {
-        console.error(`Failed to process feed ${feed.source}:`, error);
-      }
+      return locationData;
     }
 
-    if (articlesToInsert.length === 0) {
-      console.info("🔘 No new articles to save");
-      return [];
-    }
-
-    try {
-      // Bulk insert new articles
-      const results = await db
-        .insert(news)
-        .values(articlesToInsert)
-        .onConflictDoNothing()
-        .returning();
-
-      console.info(`🔘 Saved ${results.length} new articles`);
-      return results;
-    } catch (error) {
-      console.error("Failed to save articles:", error);
-      throw new Error("Bulk article save operation failed");
-    }
+    return result;
   },
 
-  async ensureNewsSource(sourceUrl: string): Promise<string | null> {
-    const existing = await db
-      .select({ id: newsSource.id })
-      .from(newsSource)
-      .where(eq(newsSource.rssUrl, sourceUrl))
-      .limit(1);
-
-    if (existing.length > 0) return existing[0].id;
-
-    return null;
+  async findById(id: string) {
+    return await db.select().from(news).where(eq(news.id, id));
   },
 
-  async getExistingSlugs(slugs: string[]): Promise<Set<string>> {
-    const existing = await db
-      .select({ slug: news.slug })
+  async findBySlug(slug: string) {
+    const [result] = await db
+      .selectDistinctOn([news.latitude, news.longitude], {
+        ...getTableColumns(news),
+        geojson: country.geojson,
+      })
       .from(news)
-      .where(inArray(news.slug, slugs));
-
-    return new Set(existing.map((row) => row.slug));
-  },
-
-  extractDomain(url: string): string {
-    try {
-      return new URL(url).hostname;
-    } catch {
-      return url;
-    }
+      .where(eq(news.slug, decodeURIComponent(slug)))
+      .leftJoin(country, eq(country.code, news.countryCode));
+    return result;
   },
 };

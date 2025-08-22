@@ -135,11 +135,94 @@
   @apply dark:bg-gray-800 dark:text-gray-100 rounded-lg;
 }
 
+.leaflet-popup-close-button {
+  @apply !absolute !top-4 !right-4 !text-2xl !bg-red-400 flex justify-center items-center  !text-white !rounded-sm;
+}
+.leaflet-popup-close-button span {
+  @apply -mt-1;
+}
+
 @keyframes infinite-spinner-rotate {
   0% {
     stroke-dashoffset: 0;
   }
   100% {
     stroke-dashoffset: 256.58892822265625;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fade-in {
+  animation: fade-in 0.8s ease-out forwards;
+  opacity: 0;
+}
+
+/* #nprogress .spinner {
+  @apply w-screen h-screen top-1/2 right-1/2 -translate-x-1/2;
+} */
+
+.spinner-container {
+  position: relative;
+}
+
+.bar {
+  width: 100px;
+  height: 4px;
+  background-color: #e0e0e0;
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+.peg {
+  width: 30px;
+  height: 100%;
+  background: linear-gradient(90deg, #3498db, #2980b9);
+  border-radius: 2px;
+  animation: slide 2s ease-in-out infinite;
+}
+
+@keyframes slide {
+  0% {
+    transform: translateX(-30px);
+  }
+  50% {
+    transform: translateX(100px);
+  }
+  100% {
+    transform: translateX(-30px);
+  }
+}
+
+.spinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.spinner-icon {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #e0e0e0;
+  border-top: 4px solid #3498db;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
   }
 }

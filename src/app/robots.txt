@@ -1,0 +1,23 @@
+# app/robots.txt
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://pinews.vercel.app/sitemap.xml
+
+# Block admin/private areas (adjust as needed)
+Disallow: /dasgboard/
+
+# Allow all news content and categories
+Allow: /news/
+Allow: /news/all/
+Allow: /news/politics/
+Allow: /news/business/
+Allow: /news/technology/
+Allow: /news/health/
+Allow: /news/science/
+Allow: /news/entertainment/
+Allow: /news/sports/
+Allow: /news/environment/
+Allow: /news/education/
+Allow: /news/other/

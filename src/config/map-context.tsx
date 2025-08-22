@@ -6,23 +6,8 @@ import React, {
   useMemo,
   ReactNode,
 } from "react";
-import { MAP_LAYERS } from "../config/map-constraint";
-import { newsTopicList } from "@/shared/enum-list";
-
-export interface LocationData {
-  headline: string;
-  source: string;
-  date: Date;
-  summary: string;
-  link: string;
-  lat: number;
-  lng: number;
-  name: string;
-  address: string;
-  geojson?: any;
-  boundingbox?: [string, string, string, string];
-  topic: (typeof newsTopicList)[number];
-}
+import { MAP_LAYERS } from "./map-constraint";
+import { NewsType } from "@/server/database/schemas";
 
 export interface TopicItem {
   topic: string;
@@ -33,8 +18,8 @@ export interface TopicItem {
 export interface MapState {
   center: [number, number];
   zoom: number;
-  selectedLocation: LocationData | null;
-  mapList: LocationData[];
+  selectedLocation: NewsType | null;
+  mapList: NewsType[];
   currentLayer: keyof typeof MAP_LAYERS;
   isPending: boolean;
   error: string | null;
@@ -43,8 +28,8 @@ export interface MapState {
 export interface MapActions {
   setCenter: (center: [number, number]) => void;
   setZoom: (zoom: number) => void;
-  setMapList: (results: LocationData[]) => void;
-  setLocation: (location: LocationData | null) => void;
+  setMapList: (results: NewsType[]) => void;
+  setLocation: (location: NewsType | null) => void;
   setCurrentLayer: (layer: keyof typeof MAP_LAYERS) => void;
   setPending: (pending: boolean) => void;
   setError: (error: string | null) => void;
@@ -57,8 +42,8 @@ const MapContext = createContext<MapContextType | undefined>(undefined);
 type MapAction =
   | { type: "SET_CENTER"; payload: [number, number] }
   | { type: "SET_ZOOM"; payload: number }
-  | { type: "SET_LOCATION"; payload: LocationData | null }
-  | { type: "SET_MAP_LIST"; payload: LocationData[] }
+  | { type: "SET_LOCATION"; payload: NewsType | null }
+  | { type: "SET_MAP_LIST"; payload: NewsType[] }
   | { type: "SET_CURRENT_LAYER"; payload: keyof typeof MAP_LAYERS }
   | { type: "SET_PENDING"; payload: boolean }
   | { type: "SET_ERROR"; payload: string | null };
@@ -93,7 +78,14 @@ function mapReducer(state: MapState, action: MapAction): MapState {
       return {
         ...state,
         selectedLocation: action.payload,
-        center: [action.payload?.lat || 0, action.payload?.lng || 0],
+        center: [
+          typeof action.payload?.latitude === "number"
+            ? action.payload.latitude
+            : 0,
+          typeof action.payload?.longitude === "number"
+            ? action.payload.longitude
+            : 0,
+        ],
         zoom: 15,
       };
 
@@ -122,21 +114,15 @@ export function MapProvider({ children }: MapProviderProps) {
     () => ({
       setCenter: (center: [number, number]) =>
         dispatch({ type: "SET_CENTER", payload: center }),
-
       setZoom: (zoom: number) => dispatch({ type: "SET_ZOOM", payload: zoom }),
-
-      setLocation: (location: LocationData | null) =>
+      setLocation: (location: NewsType | null) =>
         dispatch({ type: "SET_LOCATION", payload: location }),
-
-      setMapList: (results: LocationData[]) =>
+      setMapList: (results: NewsType[]) =>
         dispatch({ type: "SET_MAP_LIST", payload: results }),
-
       setCurrentLayer: (layer: keyof typeof MAP_LAYERS) =>
         dispatch({ type: "SET_CURRENT_LAYER", payload: layer }),
-
       setPending: (pending: boolean) =>
         dispatch({ type: "SET_PENDING", payload: pending }),
-
       setError: (error: string | null) =>
         dispatch({ type: "SET_ERROR", payload: error }),
     }),

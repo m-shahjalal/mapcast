@@ -1,12 +1,19 @@
+import "dotenv/config";
+// Option 1: Wrap the database connection in an async function
 import { confirm } from "@inquirer/prompts";
 import { sql } from "drizzle-orm";
 
-import db from "@/server/database";
+// Instead of top-level await, create an async function to get the database
+const getDatabase = async () => {
+  const { default: db } = await import("@/server/database");
+  return db;
+};
 
 if (!("DATABASE_URL" in process.env))
   throw new Error("DATABASE_URL not found in .env");
 
 const main = async () => {
+  const db = await getDatabase(); // Get database connection here
   const databaseUrl = process.env.DATABASE_URL;
   const isRemoteDB = !(
     databaseUrl?.includes("localhost") || databaseUrl?.includes("127.0.0.1")
@@ -27,59 +34,99 @@ const main = async () => {
   console.info("🌱 CLEANING STARTED");
   try {
     await db.transaction(async (tx) => {
-      // Skip connection termination to avoid superuser privilege issues
-      // This is safer and works with most cloud database providers
+      // Cloud-friendly database reset - no session_replication_role needed
+      console.info("🧹 Dropping tables, sequences, and functions...");
 
-      // First, disable foreign key checks temporarily if needed
-      await tx.execute(sql`SET session_replication_role = replica;`);
-
-      // Drop all user tables in public schema
-      await tx.execute(sql`
-        DO $$ DECLARE
-          r RECORD;
-        BEGIN
-          -- Drop all tables in public schema
-          FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public')
-          LOOP
-            EXECUTE 'DROP TABLE IF EXISTS public.' || quote_ident(r.tablename) || ' CASCADE';
-          END LOOP;
-          
-          -- Drop all sequences in public schema
-          FOR r IN (SELECT sequencename FROM pg_sequences WHERE schemaname = 'public')
-          LOOP
-            EXECUTE 'DROP SEQUENCE IF EXISTS public.' || quote_ident(r.sequencename) || ' CASCADE';
-          END LOOP;
-          
-          -- Drop all functions in public schema
-          FOR r IN (SELECT proname, oidvectortypes(proargtypes) as argtypes 
-                   FROM pg_proc INNER JOIN pg_namespace ns ON (pg_proc.pronamespace = ns.oid) 
-                   WHERE ns.nspname = 'public')
-          LOOP
-            EXECUTE 'DROP FUNCTION IF EXISTS public.' || quote_ident(r.proname) || '(' || r.argtypes || ') CASCADE';
-          END LOOP;
-          
-          -- Drop all types in public schema
-          FOR r IN (SELECT typname FROM pg_type INNER JOIN pg_namespace ns ON (pg_type.typnamespace = ns.oid) 
-                   WHERE ns.nspname = 'public' AND typtype = 'c')
-          LOOP
-            EXECUTE 'DROP TYPE IF EXISTS public.' || quote_ident(r.typname) || ' CASCADE';
-          END LOOP;
-        END $$;
+      // Get all table names first to handle foreign key constraints
+      const tables = await tx.execute(sql`
+        SELECT tablename 
+        FROM pg_tables 
+        WHERE schemaname = 'public' 
+        ORDER BY tablename
       `);
 
-      await tx.execute(sql`SET session_replication_role = DEFAULT;`);
+      // Drop tables with CASCADE to handle foreign keys
+      for (const table of tables.rows as { tablename: string }[]) {
+        await tx.execute(
+          sql.raw(`DROP TABLE IF EXISTS public."${table.tablename}" CASCADE`)
+        );
+        console.info(`  ✓ Dropped table: ${table.tablename}`);
+      }
 
+      // Drop sequences
+      const sequences = await tx.execute(sql`
+        SELECT sequencename 
+        FROM pg_sequences 
+        WHERE schemaname = 'public'
+      `);
+
+      for (const seq of sequences.rows as { sequencename: string }[]) {
+        await tx.execute(
+          sql.raw(
+            `DROP SEQUENCE IF EXISTS public."${seq.sequencename}" CASCADE`
+          )
+        );
+        console.info(`  ✓ Dropped sequence: ${seq.sequencename}`);
+      }
+
+      // Drop custom functions (skip built-in ones)
+      const functions = await tx.execute(sql`
+        SELECT proname, oidvectortypes(proargtypes) as argtypes
+        FROM pg_proc 
+        INNER JOIN pg_namespace ns ON (pg_proc.pronamespace = ns.oid) 
+        WHERE ns.nspname = 'public' 
+        AND proname NOT LIKE 'pg_%'
+      `);
+
+      for (const func of functions.rows as {
+        proname: string;
+        argtypes: string;
+      }[]) {
+        try {
+          await tx.execute(
+            sql.raw(
+              `DROP FUNCTION IF EXISTS public."${func.proname}"(${func.argtypes}) CASCADE`
+            )
+          );
+          console.info(`  ✓ Dropped function: ${func.proname}`);
+        } catch (e) {
+          // Some functions might not be droppable, continue
+          console.info(`  ⚠ Could not drop function: ${func.proname}`);
+        }
+      }
+
+      // Drop custom types
+      const types = await tx.execute(sql`
+        SELECT typname 
+        FROM pg_type 
+        INNER JOIN pg_namespace ns ON (pg_type.typnamespace = ns.oid) 
+        WHERE ns.nspname = 'public' 
+        AND typtype = 'c'
+        AND typname NOT LIKE 'pg_%'
+      `);
+
+      for (const type of types.rows as { typname: string }[]) {
+        try {
+          await tx.execute(
+            sql.raw(`DROP TYPE IF EXISTS public."${type.typname}" CASCADE`)
+          );
+          console.info(`  ✓ Dropped type: ${type.typname}`);
+        } catch (e) {
+          console.info(`  ⚠ Could not drop type: ${type.typname}`);
+        }
+      }
+
+      // Clean up Drizzle migration tables
       await tx.execute(
         sql`DROP TABLE IF EXISTS "__drizzle_migrations" CASCADE;`
       );
       await tx.execute(
         sql`DROP TABLE IF EXISTS "drizzle"."__drizzle_migrations" CASCADE;`
       );
-
       await tx.execute(sql`DROP SCHEMA IF EXISTS "drizzle" CASCADE;`);
 
+      // Recreate public schema with permissions
       await tx.execute(sql`CREATE SCHEMA IF NOT EXISTS public;`);
-
       await tx.execute(sql`
         GRANT ALL ON SCHEMA public TO public;
         GRANT ALL ON ALL TABLES IN SCHEMA public TO public;
@@ -90,32 +137,49 @@ const main = async () => {
 
     console.info("✅ CLEANING COMPLETED");
     console.info("🌱 PUSHING DATABASE SCHEMA");
-
-    // Push the new schema
-    // execSync("drizzle-kit push", { stdio: "inherit" });
-
     console.info("\n🎉 DATABASE RESET SUCCESSFUL!");
   } catch (error: any) {
     console.error("Error clearing database:", error);
 
-    // Provide helpful error messages for common issues
+    const errorHandlers = {
+      superuser: () => {
+        console.error(
+          "\n💡 SOLUTION: Your database user lacks superuser privileges."
+        );
+        console.error(
+          "   This script has been updated to work without superuser privileges."
+        );
+      },
+      permission: () => {
+        console.error("\n💡 SOLUTION: Check your database user permissions.");
+        console.error("   You may need database owner or admin privileges.");
+      },
+      connection: () => {
+        console.error(
+          "\n💡 SOLUTION: Check your DATABASE_URL and network connectivity."
+        );
+        console.error("   Ensure your database is running and accessible.");
+      },
+      replication: () => {
+        console.error(
+          "\n💡 SOLUTION: session_replication_role permission denied."
+        );
+        console.error(
+          "   This is common with cloud databases. The script now avoids this."
+        );
+      },
+    };
+
     if (error.message?.includes("must be a superuser")) {
-      console.error(
-        "\n💡 SOLUTION: Your database user lacks superuser privileges."
-      );
-      console.error(
-        "   This is common with cloud databases (AWS RDS, Google Cloud SQL, etc.)"
-      );
-      console.error(
-        "   The script has been updated to work without superuser privileges."
-      );
+      errorHandlers.superuser();
     } else if (error.message?.includes("permission denied")) {
-      console.error("\n💡 SOLUTION: Check your database user permissions.");
-      console.error("   You may need CREATEDB or database owner privileges.");
+      if (error.message.includes("session_replication_role")) {
+        errorHandlers.replication();
+      } else {
+        errorHandlers.permission();
+      }
     } else if (error.message?.includes("connection")) {
-      console.error(
-        "\n💡 SOLUTION: Check your DATABASE_URL and network connectivity."
-      );
+      errorHandlers.connection();
     }
 
     throw error;
@@ -128,7 +192,6 @@ main()
     process.exit(1);
   })
   .finally(() => {
-    // Only exit if we're not in a test environment
     if (process.env.NODE_ENV !== "test") {
       process.exit(0);
     }

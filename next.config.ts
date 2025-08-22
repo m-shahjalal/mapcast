@@ -3,6 +3,10 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   distDir: ".next",
   productionBrowserSourceMaps: false,
+  experimental: {
+    viewTransition: true,
+  },
+  transpilePackages: ["next-mdx-remote"],
   eslint: {
     ignoreDuringBuilds: true,
   },
@@ -48,8 +52,8 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "unpkg.com",
-        pathname: "/leaflet@1.9.4/dist/images/**",
+        hostname: "*",
+        pathname: "*/**",
       },
     ],
   },

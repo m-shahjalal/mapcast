@@ -16,14 +16,14 @@ export interface LocationFilters extends BaseFilters {
 }
 
 export interface NewsFilters extends BaseFilters {
-  sourceId?: string;
-  topics?: (typeof newsTopicList)[number][];
+  sourceDomain?: string;
+  topic?: (typeof newsTopicList)[number];
   location?: string;
 }
 
 export interface NewsMapFilters {
-  topics: (typeof newsTopicList)[number][];
-  country: string;
+  topic: (typeof newsTopicList)[number];
+  country?: string;
   search?: string;
   from?: Date;
   to?: Date;
