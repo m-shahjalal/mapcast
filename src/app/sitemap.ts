@@ -8,6 +8,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   try {
     const newsList = await getNewsMapData();
 
+    if (!Array.isArray(newsList))
+      return [
+        {
+          url: baseUrl,
+          lastModified: new Date(),
+          changeFrequency: "hourly" as const,
+          priority: 1,
+        },
+      ];
+
     const newsUrls = newsList
       .filter((news) => !news.deletedAt)
       .map((news) => ({
