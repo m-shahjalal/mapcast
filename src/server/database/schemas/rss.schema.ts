@@ -20,24 +20,24 @@ import { newsTopicEnum } from "./enums.schema";
 export const rssSource = pgTable(
   "rss_source",
   {
-    id: primaryColumn(),
+    id: primaryColumn("id"),
 
     name: varchar("name", { length: 255 }).notNull(),
-    domain: varchar("base_url", { length: 500 }).notNull(),  
+    baseUrl: varchar("base_url", { length: 500 }).notNull(),
     rssUrl: varchar("rss_url", { length: 500 }).notNull().unique(),
     logoUrl: varchar("logo_url", { length: 500 }),
 
     country: varchar("country_name", { length: 100 }),
     language: varchar("language", { length: 10 }).default("en"),
-    timezone: varchar("timezone", { length: 50 }), 
+    timezone: varchar("timezone", { length: 50 }),
     topic: newsTopicEnum("topic").notNull(),
 
-    description: text("description"), 
-    keywords: text("keywords"), 
+    description: text("description"),
+    keywords: text("keywords"),
 
     apiKey: varchar("api_key", { length: 255 }),
-    userAgent: varchar("user_agent", { length: 500 }), 
-    requestHeaders: jsonb("request_headers"), 
+    userAgent: varchar("user_agent", { length: 500 }),
+    requestHeaders: jsonb("request_headers"),
 
     isActive: boolean("is_active").default(true),
     isPremium: boolean("is_premium").default(false),
@@ -45,10 +45,10 @@ export const rssSource = pgTable(
     lastFetch: timestamp("last_fetched"),
     lastSuccessfulFetch: timestamp("last_successful_fetch"),
     totalFetches: integer("total_fetches").default(0),
-    successRate: decimal("success_rate", { precision: 5, scale: 2 }), 
-    avgResponseTime: integer("avg_response_time"), 
+    successRate: decimal("success_rate", { precision: 5, scale: 2 }),
+    avgResponseTime: integer("avg_response_time"),
 
-    avgReadTime: integer("avg_read_time"),  
+    avgReadTime: integer("avg_read_time"),
     avgWordCount: integer("avg_word_count"), // Average article word count
     contentQualityScore: decimal("content_quality_score", {
       precision: 3,
@@ -61,8 +61,8 @@ export const rssSource = pgTable(
 
     ...timestamps,
   },
-  ({ domain, topic, country, isActive, language }) => ({
-    domainIdx: index("rss_source_domain_idx").on(domain),
+  ({ baseUrl, topic, country, isActive, language }) => ({
+    domainIdx: index("rss_source_domain_idx").on(baseUrl),
     categoryIdx: index("rss_source_category_idx").on(topic),
     countryIdx: index("rss_source_country_idx").on(country),
     activeIdx: index("rss_source_active_idx").on(isActive),
@@ -124,5 +124,5 @@ export const updateRssSourceSchema = createInsertSchema(rssSource).partial();
 
 // Type exports
 export type RssSourceType = typeof rssSource.$inferSelect;
-export type NewRssSourceType = z.infer<typeof createRssSourceSchema>;
+export type NewRssSourceType = typeof rssSource.$inferInsert;
 export type UpdateRssSourceType = z.infer<typeof updateRssSourceSchema>;

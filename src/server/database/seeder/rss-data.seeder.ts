@@ -1,0 +1,715 @@
+import { createId } from "@paralleldrive/cuid2";
+import db from "..";
+import { NewRssSourceType, rssSource } from "../schemas";
+
+export const rssSourcesArray: NewRssSourceType[] = [
+  {
+    name: "BBC News",
+    baseUrl: "bbc.com",
+    rssUrl: "http://feeds.bbci.co.uk/news/rss.xml",
+    language: "en",
+    topic: "all",
+    isActive: true,
+    country: "UK",
+    timezone: "Europe/London",
+    description:
+      "BBC News - Breaking news, features, analysis and debate plus audio and video coverage on topical issues from around the world.",
+    keywords: "news, breaking news, world news, BBC",
+  },
+  {
+    name: "CNN",
+    baseUrl: "cnn.com",
+    rssUrl: "http://rss.cnn.com/rss/edition.rss",
+    language: "en",
+    topic: "all",
+    isActive: true,
+    country: "US",
+    timezone: "America/New_York",
+    description:
+      "CNN delivers the latest breaking news and information on the latest top stories, weather, business, entertainment, politics, and more.",
+    keywords: "CNN, news, breaking news, politics, world news",
+  },
+  {
+    name: "Reuters",
+    baseUrl: "reuters.com",
+    rssUrl: "https://www.reuters.com/world/rss",
+    language: "en",
+    topic: "all",
+    isActive: true,
+    country: "UK",
+    timezone: "Europe/London",
+    description:
+      "Reuters provides business, financial, national and international news to professionals via desktop terminals, the world's media organizations, industry events and directly to consumers.",
+    keywords: "Reuters, world news, business news, financial news",
+  },
+  {
+    name: "The Guardian",
+    baseUrl: "theguardian.com",
+    rssUrl: "https://www.theguardian.com/world/rss",
+    language: "en",
+    topic: "all",
+    isActive: true,
+    country: "UK",
+    timezone: "Europe/London",
+    description:
+      "Latest news, sport, business, comment, analysis and reviews from the Guardian.",
+    keywords: "Guardian, news, politics, world news, analysis",
+  },
+  {
+    name: "The New York Times",
+    baseUrl: "nytimes.com",
+    rssUrl: "https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml",
+    language: "en",
+    topic: "all",
+    isActive: true,
+    country: "US",
+    timezone: "America/New_York",
+    description:
+      "The New York Times: Find breaking news, multimedia, reviews & opinion on Washington, business, sports, movies, travel, books, jobs, education, real estate, cars & more.",
+    keywords: "New York Times, NYT, news, politics, business",
+  },
+  {
+    name: "The Washington Post",
+    baseUrl: "washingtonpost.com",
+    rssUrl: "https://feeds.washingtonpost.com/rss/world",
+    language: "en",
+    topic: "all",
+    isActive: true,
+    country: "US",
+    timezone: "America/New_York",
+    description:
+      "Breaking news and analysis on politics, business, world national news, entertainment more.",
+    keywords: "Washington Post, politics, news, analysis",
+  },
+  {
+    name: "The Wall Street Journal",
+    baseUrl: "wsj.com",
+    rssUrl: "https://feeds.a.dj.com/rss/RSSWorldNews.xml",
+    language: "en",
+    topic: "business",
+    isActive: true,
+    country: "US",
+    timezone: "America/New_York",
+    description:
+      "The Wall Street Journal online coverage of breaking news and current headlines from the US and around the world.",
+    keywords: "Wall Street Journal, WSJ, business news, finance, markets",
+  },
+  {
+    name: "Financial Times",
+    baseUrl: "ft.com",
+    rssUrl: "https://www.ft.com/?format=rss",
+    language: "en",
+    topic: "business",
+    isActive: true,
+    country: "UK",
+    timezone: "Europe/London",
+    description:
+      "News, analysis and comment from the Financial Times, the world's leading global business publication.",
+    keywords: "Financial Times, FT, business, finance, markets, economics",
+  },
+  {
+    name: "Al Jazeera English",
+    baseUrl: "aljazeera.com",
+    rssUrl: "https://www.aljazeera.com/xml/rss/all.xml",
+    language: "en",
+    topic: "all",
+    isActive: true,
+    country: "QA",
+    timezone: "Asia/Qatar",
+    description:
+      "Breaking news from around the world. Get the latest news from Europe, the Americas, Asia Pacific, Middle East and Africa.",
+    keywords: "Al Jazeera, international news, Middle East, world news",
+  },
+  {
+    name: "Associated Press (AP)",
+    baseUrl: "apnews.com",
+    rssUrl:
+      "http://associated-press.s3-website-us-east-1.amazonaws.com/topnews.xml",
+    language: "en",
+    topic: "all",
+    isActive: true,
+    country: "US",
+    timezone: "America/New_York",
+    description:
+      "The Associated Press delivers in-depth coverage on today's Big Story including top stories, international, politics, lifestyle, business, entertainment, and more.",
+    keywords: "Associated Press, AP, breaking news, world news",
+  },
+  {
+    name: "NPR News",
+    baseUrl: "npr.org",
+    rssUrl: "https://feeds.npr.org/1001/rss.xml",
+    language: "en",
+    topic: "all",
+    isActive: true,
+    country: "US",
+    timezone: "America/New_York",
+    description:
+      "NPR delivers breaking national and world news. Also top stories from business, politics, health, science, technology, music, arts and culture.",
+    keywords: "NPR, public radio, news, politics, culture",
+  },
+  {
+    name: "Sky News",
+    baseUrl: "news.sky.com",
+    rssUrl: "https://feeds.skynews.com/feeds/rss/home.xml",
+    language: "en",
+    topic: "all",
+    isActive: true,
+    country: "UK",
+    timezone: "Europe/London",
+    description:
+      "Breaking news from the UK and around the world - latest international news, sport, business, entertainment, politics, and technology news.",
+    keywords: "Sky News, UK news, breaking news, world news",
+  },
+  {
+    name: "The Telegraph",
+    baseUrl: "telegraph.co.uk",
+    rssUrl: "https://www.telegraph.co.uk/news/rss.xml",
+    language: "en",
+    topic: "all",
+    isActive: true,
+    country: "UK",
+    timezone: "Europe/London",
+    description:
+      "Latest news, business, sport, comment, lifestyle and culture from the Daily Telegraph and Sunday Telegraph newspapers.",
+    keywords: "Telegraph, UK news, politics, business, sport",
+  },
+  {
+    name: "USA Today",
+    baseUrl: "usatoday.com",
+    rssUrl:
+      "https://news.google.com/rss/search?hl=en-US&gl=US&q=usa+today&um=1&ie=UTF-8&ceid=US:en",
+    language: "en",
+    topic: "all",
+    isActive: true,
+    country: "US",
+    timezone: "America/New_York",
+    description:
+      "Get the latest national, international, and political news at USATODAY.com.",
+    keywords: "USA Today, news, sports, entertainment, life",
+  },
+  {
+    name: "ABC News (US)",
+    baseUrl: "abcnews.go.com",
+    rssUrl: "https://abcnews.go.com/abcnews/topstories?format=xml",
+    language: "en",
+    topic: "all",
+    isActive: true,
+    country: "US",
+    timezone: "America/New_York",
+    description:
+      "ABC News is your trusted source on political news stories and videos. Get the latest coverage and analysis on everything from the Trump presidency, Senate, House and Supreme Court.",
+    keywords: "ABC News, breaking news, politics, world news",
+  },
+  {
+    name: "CBS News",
+    baseUrl: "cbsnews.com",
+    rssUrl: "https://www.cbsnews.com/latest/rss/main",
+    language: "en",
+    topic: "all",
+    isActive: true,
+    country: "US",
+    timezone: "America/New_York",
+    description:
+      "CBS News: CBS Evening News, 48 Hours, 60 Minutes, CBS This Morning, Face The Nation, Sunday Morning, Up to the Minute",
+    keywords: "CBS News, breaking news, politics, world news",
+  },
+  {
+    name: "TIME",
+    baseUrl: "time.com",
+    rssUrl: "https://time.com/feed/",
+    language: "en",
+    topic: "all",
+    isActive: true,
+    country: "US",
+    timezone: "America/New_York",
+    description:
+      "Breaking news and analysis from TIME.com. Politics, world news, photos, video, tech reviews, health, science and entertainment news.",
+    keywords: "TIME, magazine, news, politics, world events",
+  },
+  {
+    name: "POLITICO",
+    baseUrl: "politico.com",
+    rssUrl: "https://www.politico.com/rss/politics-news.xml",
+    language: "en",
+    topic: "politics",
+    isActive: true,
+    country: "US",
+    timezone: "America/New_York",
+    description:
+      "Political news about Congress, the White House, campaigns, lobbyists and issues.",
+    keywords: "POLITICO, politics, Congress, White House, campaigns",
+  },
+  {
+    name: "Los Angeles Times",
+    baseUrl: "latimes.com",
+    rssUrl: "https://www.latimes.com/world-nation/rss2.0.xml",
+    language: "en",
+    topic: "all",
+    isActive: true,
+    country: "US",
+    timezone: "America/Los_Angeles",
+    description:
+      "Los Angeles Times: California, national and world news, along with opinion, entertainment, sports and more.",
+    keywords: "Los Angeles Times, California news, national news",
+  },
+  {
+    name: "ABC News (Australia)",
+    baseUrl: "abc.net.au",
+    rssUrl: "https://www.abc.net.au/news/feed/51120/rss.xml",
+    language: "en",
+    topic: "all",
+    isActive: true,
+    country: "AU",
+    timezone: "Australia/Sydney",
+    description:
+      "Australia's most trusted source of local, national and world news. Comprehensive, independent, in-depth analysis, the latest business, sport, weather and more.",
+    keywords: "ABC Australia, Australian news, world news",
+  },
+  {
+    name: "CBC News",
+    baseUrl: "cbc.ca",
+    rssUrl: "https://www.cbc.ca/cmlink/rss-topstories",
+    language: "en",
+    topic: "all",
+    isActive: true,
+    country: "CA",
+    timezone: "America/Toronto",
+    description:
+      "CBC News brings you the latest news from Canada and around the world.",
+    keywords: "CBC, Canada news, Canadian news, world news",
+  },
+  {
+    name: "The Hindu",
+    baseUrl: "thehindu.com",
+    rssUrl: "https://www.thehindu.com/feeder/default.rss",
+    language: "en",
+    topic: "all",
+    isActive: true,
+    country: "IN",
+    timezone: "Asia/Kolkata",
+    description:
+      "The Hindu News: Latest and Breaking News from India and World, Sports, Business, Health and Lifestyle News.",
+    keywords: "The Hindu, India news, world news, politics",
+  },
+  {
+    name: "The Times of India",
+    baseUrl: "timesofindia.indiatimes.com",
+    rssUrl: "https://timesofindia.indiatimes.com/rssfeedstopstories.cms",
+    language: "en",
+    topic: "all",
+    isActive: true,
+    country: "IN",
+    timezone: "Asia/Kolkata",
+    description:
+      "Times of India brings the Latest & Top Breaking News on Politics and Current Affairs in India & around the World, Sports, Business, Bollywood News and Entertainment, Science, Technology, Health & Fitness news, Cricket and opinions from leading columnists.",
+    keywords: "Times of India, TOI, India news, Bollywood, cricket",
+  },
+  {
+    name: "NDTV",
+    baseUrl: "ndtv.com",
+    rssUrl: "https://feeds.feedburner.com/ndtvnews-top-stories",
+    language: "en",
+    topic: "all",
+    isActive: true,
+    country: "IN",
+    timezone: "Asia/Kolkata",
+    description:
+      "NDTV.com provides latest news from India and the world. Get today's news headlines from Business, Technology, Bollywood, Cricket, videos, photos, live news coverage and exclusive breaking news from India.",
+    keywords: "NDTV, India news, breaking news, politics",
+  },
+  {
+    name: "The Indian Express",
+    baseUrl: "indianexpress.com",
+    rssUrl: "https://indianexpress.com/section/world/feed/",
+    language: "en",
+    topic: "all",
+    isActive: true,
+    country: "IN",
+    timezone: "Asia/Kolkata",
+    description:
+      "Indian Express covers latest news from India, all exclusive current headlines and India news live, including latest breaking news on business, sports, world & entertainment with a complete collection of photos and videos from around the world.",
+    keywords: "Indian Express, India news, world news, politics",
+  },
+  {
+    name: "The Japan Times",
+    baseUrl: "japantimes.co.jp",
+    rssUrl: "https://www.japantimes.co.jp/feed/",
+    language: "en",
+    topic: "all",
+    isActive: true,
+    country: "JP",
+    timezone: "Asia/Tokyo",
+    description:
+      "The Japan Times - News on Japan, Business News, Opinion, Sports, Entertainment and More.",
+    keywords: "Japan Times, Japan news, Asia news, business",
+  },
+  {
+    name: "NHK World",
+    baseUrl: "www3.nhk.or.jp",
+    rssUrl: "https://www3.nhk.or.jp/rss/news/cat0.xml",
+    language: "en",
+    topic: "all",
+    isActive: true,
+    country: "JP",
+    timezone: "Asia/Tokyo",
+    description:
+      "NHK World-Japan is the international service of Japan's public broadcaster NHK. It provides the latest information on Japan and Asia through television, radio and online to a global audience.",
+    keywords: "NHK, Japan news, Asia news, international",
+  },
+  {
+    name: "Yonhap News Agency",
+    baseUrl: "yna.co.kr",
+    rssUrl: "https://en.yna.co.kr/RSS/news.xml",
+    language: "en",
+    topic: "all",
+    isActive: true,
+    country: "KR",
+    timezone: "Asia/Seoul",
+    description:
+      "Yonhap News Agency is South Korea's key news agency. Founded in 1980, it has been at the forefront of covering major news events on the Korean Peninsula.",
+    keywords: "Yonhap, Korea news, Korean Peninsula, Asia",
+  },
+  {
+    name: "The Korea Herald",
+    baseUrl: "koreaherald.com",
+    rssUrl: "https://www.koreaherald.com/rss/newsAll",
+    language: "en",
+    topic: "all",
+    isActive: true,
+    country: "KR",
+    timezone: "Asia/Seoul",
+    description:
+      "The Korea Herald is South Korea's largest English-language daily and the country's sole member of the Asia News Network (ANN).",
+    keywords: "Korea Herald, Korea news, South Korea, English news",
+  },
+  {
+    name: "The Straits Times",
+    baseUrl: "straitstimes.com",
+    rssUrl: "https://www.straitstimes.com/news/world/rss.xml",
+    language: "en",
+    topic: "all",
+    isActive: true,
+    country: "SG",
+    timezone: "Asia/Singapore",
+    description:
+      "Read latest breaking news, updates, and headlines. The Straits Times - get the latest breaking news, lifestyle, sports, multimedia and more news in Singapore.",
+    keywords: "Straits Times, Singapore news, Asia news, world news",
+  },
+  {
+    name: "South China Morning Post (SCMP)",
+    baseUrl: "scmp.com",
+    rssUrl: "https://www.scmp.com/rss/91/feed",
+    language: "en",
+    topic: "all",
+    isActive: true,
+    country: "HK",
+    timezone: "Asia/Hong_Kong",
+    description:
+      "South China Morning Post publishes daily news from Hong Kong, China and Asia, as well as international news stories. Features exclusive interviews, investigative reports and analysis.",
+    keywords: "SCMP, Hong Kong news, China news, Asia",
+  },
+  {
+    name: "TASS",
+    baseUrl: "tass.com",
+    rssUrl: "https://tass.com/rss/v2.xml",
+    language: "en",
+    topic: "all",
+    isActive: true,
+    country: "RU",
+    timezone: "Europe/Moscow",
+    description:
+      "TASS Russian News Agency - Get the latest breaking news, sports, entertainment and obituaries in Russia.",
+    keywords: "TASS, Russia news, international news",
+  },
+  {
+    name: "El País",
+    baseUrl: "elpais.com",
+    rssUrl: "https://feeds.elpais.com/mrss-s/pages/ep/site/elpais.com/portada",
+    language: "es",
+    topic: "all",
+    isActive: true,
+    country: "ES",
+    timezone: "Europe/Madrid",
+    description:
+      "Noticias de última hora sobre la actualidad en España y el mundo: política, economía, deportes, cultura, sociedad, tecnología, gente, opinión, viajes, moda.",
+    keywords: "El País, España, noticias, política, mundo",
+  },
+  {
+    name: "El Mundo",
+    baseUrl: "elmundo.es",
+    rssUrl: "https://e00-elmundo.uecdn.es/elmundo/rss/portada.xml",
+    language: "es",
+    topic: "all",
+    isActive: true,
+    country: "ES",
+    timezone: "Europe/Madrid",
+    description:
+      "Noticias, actualidad, álbumes, debates, sociedad, servicios, entretenimiento y última hora en España y el mundo.",
+    keywords: "El Mundo, España, noticias, actualidad",
+  },
+  {
+    name: "Le Monde",
+    baseUrl: "lemonde.fr",
+    rssUrl: "https://www.lemonde.fr/rss/une.xml",
+    language: "fr",
+    topic: "all",
+    isActive: true,
+    country: "FR",
+    timezone: "Europe/Paris",
+    description:
+      "Le Monde.fr - 1er site d'information. Les articles du journal et toute l'actualité en continu : International, France, Société, Economie, Culture, Environnement, Blogs.",
+    keywords: "Le Monde, France, actualité, politique, international",
+  },
+  {
+    name: "Le Figaro",
+    baseUrl: "lefigaro.fr",
+    rssUrl: "https://www.lefigaro.fr/rss/figaro_actualites.xml",
+    language: "fr",
+    topic: "all",
+    isActive: true,
+    country: "FR",
+    timezone: "Europe/Paris",
+    description:
+      "Retrouvez l'actualité française et internationale sur Le Figaro : politique, économie, sport, culture, opinion, blogs et plus encore.",
+    keywords: "Le Figaro, France, actualité, politique",
+  },
+  {
+    name: "DER SPIEGEL International",
+    baseUrl: "spiegel.de",
+    rssUrl: "https://www.spiegel.de/international/index.rss",
+    language: "en",
+    topic: "all",
+    isActive: true,
+    country: "DE",
+    timezone: "Europe/Berlin",
+    description:
+      "International breaking news, top stories and headlines. Opinion, analysis and feature articles in English from Germany's international newsmagazine.",
+    keywords: "Spiegel, Germany news, international, analysis",
+  },
+  {
+    name: "BILD",
+    baseUrl: "bild.de",
+    rssUrl: "https://www.autobild.de/rss/22590657.xml",
+    language: "de",
+    topic: "all",
+    isActive: true,
+    country: "DE",
+    timezone: "Europe/Berlin",
+    description:
+      "Aktuelle Nachrichten aus Politik, Sport, Unterhaltung, Wirtschaft & Finanzen | Ratgeber Leben, Gesundheit und Heim & Garten | E-Mail und Shopping bei Bild.de.",
+    keywords: "BILD, Deutschland, Nachrichten, Politik, Sport",
+  },
+  {
+    name: "Corriere della Sera",
+    baseUrl: "corriere.it",
+    rssUrl: "https://xml2.corriereobjects.it/rss/homepage.xml",
+    language: "it",
+    topic: "all",
+    isActive: true,
+    country: "IT",
+    timezone: "Europe/Rome",
+    description:
+      "News e ultime notizie oggi da Italia e mondo: cronaca, economia, politica, sport, salute, tecnologia, motori, viaggi e curiosità, meteo.",
+    keywords: "Corriere della Sera, Italia, notizie, politica",
+  },
+  {
+    name: "La Repubblica",
+    baseUrl: "repubblica.it",
+    rssUrl: "https://www.repubblica.it/rss/homepage/rss2.0.xml",
+    language: "it",
+    topic: "all",
+    isActive: true,
+    country: "IT",
+    timezone: "Europe/Rome",
+    description:
+      "Repubblica.it il quotidiano online con tutte le notizie in tempo reale. News e ultime notizie. Tutti i settori: politica, cronaca, economia, sport, esteri, spettacoli, tecnologia, ambiente, cultura.",
+    keywords: "La Repubblica, Italia, notizie, cronaca, politica",
+  },
+  {
+    name: "Folha de S.Paulo",
+    baseUrl: "folha.uol.com.br",
+    rssUrl: "https://feeds.folha.uol.com.br/emcimadahora/rss091.xml", // ← CORRECTED
+    language: "pt",
+    topic: "all",
+    isActive: true,
+    country: "BR",
+    timezone: "America/Sao_Paulo",
+    description:
+      "Acompanhe as últimas notícias do Brasil e do mundo, política, economia, esportes, tecnologia, ciência, saúde, cultura e opinião na Folha.",
+    keywords: "Folha, Brasil, notícias, política, economia",
+  },
+
+  {
+    name: "BILD",
+    baseUrl: "bild.de",
+    rssUrl:
+      "https://www.bild.de/rssfeeds/vw-alles/vw-alles-26970192,dzbildplus=true,sort=1,teaserbildmobil=false,view=rss2.bild.xml", // ← CORRECTED
+    language: "de",
+    topic: "all",
+    isActive: true,
+    country: "DE",
+    timezone: "Europe/Berlin",
+    description:
+      "Aktuelle Nachrichten aus Politik, Sport, Unterhaltung, Wirtschaft & Finanzen | Ratgeber Leben, Gesundheit und Heim & Garten | E-Mail und Shopping bei Bild.de.",
+    keywords: "BILD, Deutschland, Nachrichten, Politik, Sport",
+  },
+  {
+    name: "La Nación (Argentina)",
+    baseUrl: "lanacion.com.ar",
+    rssUrl: "https://www.lanacion.com.ar/arc/outboundfeeds/rss/?outputType=xml",
+    language: "es",
+    topic: "all",
+    isActive: true,
+    country: "AR",
+    timezone: "America/Argentina/Buenos_Aires",
+    description:
+      "Información confiable sobre política, economía, deportes, sociedad, cultura, tecnología, seguridad, salud y Buenos Aires.",
+    keywords: "La Nación, Argentina, política, economía, deportes",
+  },
+  {
+    name: "DW (Deutsche Welle) English",
+    baseUrl: "dw.com",
+    rssUrl: "https://rss.dw.com/rdf/rss-en-all",
+    language: "en",
+    topic: "all",
+    isActive: true,
+    country: "DE",
+    timezone: "Europe/Berlin",
+    description:
+      "DW.COM delivers German and international news, analysis and opinion along with engaging audio and video content from Deutsche Welle's news and information programs.",
+    keywords: "Deutsche Welle, DW, German news, international",
+  },
+  {
+    name: "Gulf Times",
+    baseUrl: "gulf-times.com",
+    rssUrl: "https://www.gulf-times.com/rssFeed/8",
+    language: "en",
+    topic: "all",
+    isActive: true,
+    country: "QA",
+    timezone: "Asia/Qatar",
+    description:
+      "Gulf Times is Qatar's top-selling English daily newspaper published in Qatar and provide the latest information locally and internationally.",
+    keywords: "Gulf Times, Qatar, Middle East, news",
+  },
+  {
+    name: "Anadolu Agency",
+    baseUrl: "aa.com.tr",
+    rssUrl: "https://www.aa.com.tr/en/rss/default?cat=all-news",
+    language: "en",
+    topic: "all",
+    isActive: true,
+    country: "TR",
+    timezone: "Europe/Istanbul",
+    description:
+      "Anadolu Agency is a state-run news agency of Turkey. It was established on April 6, 1920 making it among the oldest news agencies in the world.",
+    keywords: "Anadolu Agency, Turkey, Middle East, international",
+  },
+  {
+    name: "The Sydney Morning Herald",
+    baseUrl: "smh.com.au",
+    rssUrl: "https://www.smh.com.au/rss/national.xml",
+    language: "en",
+    topic: "all",
+    isActive: true,
+    country: "AU",
+    timezone: "Australia/Sydney",
+    description:
+      "The Sydney Morning Herald delivers the latest breaking news from Sydney, Australia and the world. Features, analysis, opinion, photos and videos.",
+    keywords: "Sydney Morning Herald, SMH, Australia, Sydney",
+  },
+  {
+    name: "Prothom Alo",
+    baseUrl: "prothomalo.com",
+    rssUrl: "https://www.prothomalo.com/feed",
+    language: "bn",
+    topic: "all",
+    isActive: true,
+    country: "BD",
+    timezone: "Asia/Dhaka",
+    description:
+      "প্রথম আলো বাংলাদেশের একটি জনপ্রিয় বাংলা দৈনিক পত্রিকা। দেশ ও বিদেশের সর্বশেষ সংবাদ, রাজনীতি, অর্থনীতি, খেলাধুলা।",
+    keywords: "প্রথম আলো, বাংলাদেশ, সংবাদ, রাজনীতি",
+  },
+  {
+    name: "The Daily Star (Bangladesh)",
+    baseUrl: "thedailystar.net",
+    rssUrl: "https://www.thedailystar.net/rss",
+    language: "en",
+    topic: "all",
+    isActive: true,
+    country: "BD",
+    timezone: "Asia/Dhaka",
+    description:
+      "The Daily Star is a Bangladeshi English-language daily newspaper. It is one of the largest circulating newspapers in Bangladesh.",
+    keywords: "Daily Star, Bangladesh, English news, South Asia",
+  },
+  {
+    name: "Kaler Kantho",
+    baseUrl: "kalerkantho.com",
+    rssUrl: "https://www.kalerkantho.com/rss.xml",
+    language: "bn",
+    topic: "all",
+    isActive: true,
+    country: "BD",
+    timezone: "Asia/Dhaka",
+    description:
+      "কালের কণ্ঠ বাংলাদেশের একটি দৈনিক পত্রিকা। দেশ-বিদেশের সংবাদ, রাজনীতি, অর্থনীতি, খেলাধুলা, বিনোদন।",
+    keywords: "কালের কণ্ঠ, বাংলাদেশ, সংবাদ, দৈনিক",
+  },
+  {
+    name: "Globo (G1)",
+    baseUrl: "globo.com",
+    rssUrl: "https://g1.globo.com/rss/g1/",
+    language: "pt",
+    topic: "all",
+    isActive: true,
+    country: "BR",
+    timezone: "America/Sao_Paulo",
+    description:
+      "G1 - O portal de notícias da Globo. Notícias sobre política, economia, esportes, cultura, saúde, educação, ciência, tecnologia e blogs de jornalistas.",
+    keywords: "G1, Globo, Brasil, notícias, jornalismo",
+  },
+  {
+    name: "China Daily",
+    baseUrl: "chinadaily.com.cn",
+    rssUrl: "https://www.chinadaily.com.cn/rss/china_rss.xml",
+    language: "en",
+    topic: "all",
+    isActive: true,
+    country: "CN",
+    timezone: "Asia/Shanghai",
+    description:
+      "China Daily is the largest English portal in China, providing news, business information, BBS, learning materials. The Website has channels as China, BizChina, World, Opinion, Sports/Olympics and so on.",
+    keywords: "China Daily, China news, Asia, business, politics",
+  },
+];
+
+export const insertRssSource = async (): Promise<boolean> => {
+  try {
+    console.log("Starting RSS source insertion...");
+    console.log(`Total sources to insert: ${rssSourcesArray.length}`);
+
+    let totalInserted = 0;
+    const batchSize = 10;
+    const batches = [];
+
+    for (let i = 0; i < rssSourcesArray.length; i += batchSize) {
+      batches.push(rssSourcesArray.slice(i, i + batchSize));
+    }
+
+    for (const [index, batch] of batches.entries()) {
+      console.log(`🔘 Processing batch ${index + 1}/${batches.length}`);
+      const results = await db.insert(rssSource).values(batch).returning();
+
+      totalInserted += results.length;
+      console.log(`✅ Batch ${index + 1} completed: total ${results.length}`);
+    }
+
+    console.log(`🎉 Completed. Inserted: ${totalInserted}`);
+    return totalInserted > 0;
+  } catch (error) {
+    console.error("Failed to insert RSS sources:", error);
+    return false;
+  }
+};

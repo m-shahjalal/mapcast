@@ -2,6 +2,7 @@ import Providers from "@/components/layout/provider";
 import "../globals.css";
 import "leaflet/dist/leaflet.css";
 import { SpinnerProvider } from "@/components/layout/loader-provider";
+import GoogleAnalytics from "@/components/layout/google-analytics";
 
 export const metadata = {
   title: "PiNews News | Stay Updated",
@@ -16,6 +17,7 @@ export default async function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`antialiased`}>
+        <GoogleAnalytics ga_id="G-FGXP13M35X" />
         <Providers>
           <SpinnerProvider />
           {children}
