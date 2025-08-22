@@ -1,12 +1,14 @@
 import db from "@/server/database";
-import { news } from "@/server/database/schemas";
+import { country, news } from "@/server/database/schemas";
 import { ApiPagination } from "@/types/api-response";
 import { NewsFilters, NewsMapFilters } from "@/types/query-filter";
 import {
   and,
   desc,
   eq,
+  getTableColumns,
   gte,
+  ilike,
   inArray,
   isNotNull,
   lte,
@@ -19,42 +21,33 @@ export const NewsService = {
     const { page = 1, limit = 10 } = filters;
     const conditions: SQLWrapper[] = [];
 
-    // Build conditions array
     if (filters.sourceDomain) {
       conditions.push(eq(news.sourceDomain, filters.sourceDomain));
     }
 
-    if (filters.topics) {
-      const topics = ((filters as any).topics ?? "")
-        .split(",")
-        .map((t: string) => t.trim())
-        .filter(Boolean);
-      if (topics.length > 0) {
-        conditions.push(inArray(news.topic, topics as any));
-      }
+    if (filters?.topic) {
+      conditions.push(eq(news.topic, filters.topic));
     }
 
     if (filters.location) {
       conditions.push(
-        sql`lower(${news.locationName}) like lower(${`%${filters.location}%`})`
+        sql`lower(${news.location}) like lower(${`%${filters.location}%`})`
       );
     }
 
     if (filters.search) {
       conditions.push(
-        sql`to_tsvector('english', ${news.title} || ' ' || ${news.summary} || ' ' || ${news.locationName}) @@ plainto_tsquery('english', ${filters.search})`
+        sql`to_tsvector('english', ${news.title} || ' ' || ${news.summary} || ' ' || ${news.location}) @@ plainto_tsquery('english', ${filters.search})`
       );
     }
 
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
-    // Get filtered count (this was the bug - count wasn't using whereClause)
     const [{ count }] = await db
       .select({ count: sql<number>`count(*)` })
       .from(news)
       .where(whereClause);
 
-    // Get paginated data
     const data = await db
       .select()
       .from(news)
@@ -74,7 +67,7 @@ export const NewsService = {
   },
 
   async getMapData(filters?: NewsMapFilters) {
-    const conditions: SQLWrapper[] = [isNotNull(news.locationName)];
+    const conditions: SQLWrapper[] = [isNotNull(news.location)];
 
     const fromDate = filters?.from
       ? new Date(filters.from)
@@ -88,29 +81,51 @@ export const NewsService = {
       ) as SQLWrapper
     );
 
-    if (filters?.topics) {
-      const topics = ((filters as any).topics ?? "")
-        .split(",")
-        .map((t: string) => t.trim())
-        .filter(Boolean);
+    if (filters?.topic) {
+      conditions.push(eq(news.topic, filters.topic));
+    }
 
-      if (topics.length > 0) {
-        conditions.push(inArray(news.topic, topics as any));
-      }
+    if (filters?.country) {
+      conditions.push(eq(news.countryCode, filters.country));
     }
 
     if (filters?.search) {
       conditions.push(
-        sql`to_tsvector('english', ${news.title} || ' ' || ${news.summary} || ' ' || ${news.locationName}) @@ plainto_tsquery('english', ${filters.search})`
+        sql`to_tsvector('english', ${news.title} || ' ' || ${news.summary} || ' ' || ${news.location}) @@ plainto_tsquery('english', ${filters.search})`
       );
     }
 
-    return await db
-      .selectDistinctOn([news.latitude, news.longitude])
+    const result = await db
+      .selectDistinctOn([news.latitude, news.longitude], {
+        ...getTableColumns(news),
+        geojson: country.geojson,
+      })
       .from(news)
       .where(and(...conditions))
       .limit(1000)
-      .orderBy(news.latitude, news.longitude, desc(news.createdAt));
+      .orderBy(news.latitude, news.longitude, desc(news.createdAt))
+      .leftJoin(country, eq(country.code, filters?.country ?? ""));
+
+    if (result.length > 0) return result;
+
+    if (filters?.country) {
+      const location = await db.query.country.findFirst({
+        where: eq(country.code, filters?.country),
+      });
+
+      if (!location) return result;
+
+      const locationData = {
+        latitude: location?.lat,
+        longitude: location?.lon,
+        name: location?.name,
+        geojson: location?.geojson,
+      };
+
+      return locationData;
+    }
+
+    return result;
   },
 
   async findById(id: string) {
@@ -119,9 +134,13 @@ export const NewsService = {
 
   async findBySlug(slug: string) {
     const [result] = await db
-      .select()
+      .selectDistinctOn([news.latitude, news.longitude], {
+        ...getTableColumns(news),
+        geojson: country.geojson,
+      })
       .from(news)
-      .where(eq(news.slug, decodeURIComponent(slug)));
+      .where(eq(news.slug, decodeURIComponent(slug)))
+      .leftJoin(country, eq(country.code, news.countryCode));
     return result;
   },
 };

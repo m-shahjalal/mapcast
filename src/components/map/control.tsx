@@ -1,27 +1,14 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { MAP_LAYERS } from "@/config/map-constraint";
 import { useMapControls } from "@/hooks/use-map-controls";
-import {
-  Check,
-  ChevronDown,
-  ChevronUp,
-  Eraser,
-  Layers,
-  Locate,
-  Minus,
-  Navigation,
-  Plus,
-} from "lucide-react";
+import { Check, Layers, Locate, Minus, Navigation, Plus } from "lucide-react";
 
 import { useMapContext } from "@/config/map-context";
 import { cn } from "@/utils/cn";
 import { useTheme } from "next-themes";
 import { useCallback, useMemo, useState } from "react";
-import { useQueryParams } from "@/hooks/use-query";
-import { NewsMapFilters } from "@/types/query-filter";
 
 export type LayerKey = keyof typeof MAP_LAYERS;
 
@@ -131,8 +118,6 @@ export function LayerSelector() {
 
 export function MapControls() {
   const { zoomIn, zoomOut, locateUser } = useMapControls();
-  const { clearParams } = useQueryParams<NewsMapFilters>();
-  const [isExpanded, setIsExpanded] = useState(false);
 
   const controlButtonClass =
     "h-10 w-10 shadow-md bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 border-gray-200 dark:border-gray-600";
@@ -143,43 +128,9 @@ export function MapControls() {
     { icon: Locate, onClick: locateUser, label: "Find my location" },
   ];
 
-  const toggleControls = () => setIsExpanded(!isExpanded);
-
   return (
     <div className="flex items-end flex-col gap-2 ">
-      <div className="flex justify-center flex-col md:flex-row items-center gap-2">
-        <Button
-          onClick={() => clearParams("all")}
-          size="sm"
-          className="rounded-md px-8 py-2 h-9 shadow-sm flex-shrink-0 bg-red-400 hover:bg-red-500 border-red-300 text-red-100 hidden sm:flex"
-        >
-          <Eraser className="h-3 w-3 mr-1" />
-          <span className="hidden lg:inline"> Clear</span>
-        </Button>
-
-        <Button
-          size="icon"
-          variant="outline"
-          className={controlButtonClass}
-          onClick={toggleControls}
-          aria-label={isExpanded ? "Collapse controls" : "Expand controls"}
-        >
-          {isExpanded ? (
-            <ChevronUp className="h-4 w-4" />
-          ) : (
-            <ChevronDown className="h-4 w-4" />
-          )}
-        </Button>
-      </div>
-
-      {/* Collapsible Controls */}
-      <div
-        className={`flex items-center flex-col gap-2 transition-all duration-500 ease-in-out ${
-          isExpanded
-            ? "max-h-96 opacity-100 translate-y-0"
-            : "max-h-0 opacity-0 -translate-y-4"
-        }`}
-      >
+      <div className="flex items-center flex-col gap-2 transition-all duration-500 ease-in-out max-h-96 opacity-100 translate-y-0">
         <LayerSelector />
         {controls.map(({ icon: Icon, onClick, label }) => (
           <Button

@@ -9,18 +9,40 @@ import { LocationHighlighter } from "./highlighter";
 import { MobileBottomBar } from "./mobile-bottom-bar";
 import { EnhancedNewsMarkers } from "./news-marker";
 import { TopBar } from "./top-bar";
+import { useQueryParams } from "@/hooks/use-query";
+import { NewsMapFilters } from "@/types/query-filter";
 
 type Props = {
-  news: NewsType[];
-  isTopic?: boolean;
+  news: NewsType[] | Record<string, any>;
 };
 
-export function PinPointMap({ news, isTopic }: Props) {
-  const { center, zoom, currentLayer, setMapList } = useMapContext();
+export function PinPointMap({ news }: Props) {
+  const { center, zoom, currentLayer, setMapList, setLocation, setPending } =
+    useMapContext();
   const [isMapReady, setIsMapReady] = useState(false);
+  const { getParams } = useQueryParams<NewsMapFilters>();
+  const country = getParams("country");
 
   const handleMapReady = useCallback(() => setIsMapReady(true), []);
-  useEffect(() => setMapList(news), [news, setMapList]);
+  useEffect(() => {
+    setPending(false);
+    if (!Array.isArray(news)) {
+      return setLocation(news as any);
+    }
+
+    setMapList(news);
+    const firstNews = news.find(
+      (item) => item.latitude && item.longitude && item.country && item.geojson
+    ) as NewsType;
+
+    country &&
+      setLocation({
+        latitude: firstNews.latitude,
+        longitude: firstNews.longitude,
+        name: firstNews.country,
+        geojson: firstNews.geojson,
+      } as any);
+  }, [news, setMapList]);
 
   return (
     <div className="flex h-screen w-full overflow-hidden">

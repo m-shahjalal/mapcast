@@ -32,13 +32,12 @@ const dateRangeOptions = [
 
 const styles = {
   trigger:
-    "group max-w-[180px] h-10 rounded-full bg-gradient-to-r from-white/80 to-white/60 dark:from-gray-900/80 dark:to-gray-800/60 backdrop-blur-xl border border-gray-200/50 dark:border-gray-700/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] focus:ring-0 focus:ring-transparent focus:border-gray-200/50 dark:focus:border-gray-700/50",
+    "w-full h-10 rounded-full bg-gradient-to-r from-white/80 to-white/60 dark:from-gray-900/80 dark:to-gray-800/60 backdrop-blur-xl border border-gray-200/50 dark:border-gray-700/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] focus:ring-0 focus:ring-transparent focus:border-gray-200/50 dark:focus:border-gray-700/50",
   content:
-    "w-[var(--radix-select-trigger-width)] min-w-[180px] max-w-[220px] rounded-xl border border-gray-200/50 dark:border-gray-700/50 bg-gradient-to-br from-white/95 via-white/90 to-gray-50/95 dark:from-gray-900/95 dark:via-gray-900/90 dark:to-gray-800/95 backdrop-blur-2xl shadow-2xl ring-1 ring-black/5 dark:ring-white/10",
+    "w-[var(--radix-select-trigger-width)] min-w-[180px] sm:max-w-[220px] rounded-xl border border-gray-200/50 dark:border-gray-700/50 bg-gradient-to-br from-white/95 via-white/90 to-gray-50/95 dark:from-gray-900/95 dark:via-gray-900/90 dark:to-gray-800/95 backdrop-blur-2xl shadow-2xl ring-1 ring-black/5 dark:ring-white/10",
   item: "rounded-lg hover:bg-gradient-to-r hover:from-blue-50/80 hover:to-indigo-50/80 dark:hover:from-blue-900/30 dark:hover:to-indigo-900/30 focus:bg-gradient-to-r focus:from-blue-50/80 focus:to-indigo-50/80 dark:focus:from-blue-900/30 dark:focus:to-indigo-900/30 transition-all duration-200",
 };
 
-// Pure function for date calculations
 const createDateRange = (option: string): DateRange => {
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -50,8 +49,8 @@ const createDateRange = (option: string): DateRange => {
     new Date(now.getTime() - hours * 60 * 60 * 1000);
 
   const ranges: Record<string, DateRange> = {
-    breaking: { from: hoursAgo(8), to: now }, // Last 8 hours
-    recent: { from: daysAgo(2), to: endOfDay(today) }, // Last 3 days
+    breaking: { from: hoursAgo(8), to: now },
+    recent: { from: daysAgo(2), to: endOfDay(today) },
     last3days: { from: daysAgo(3), to: endOfDay(today) },
     last7days: { from: daysAgo(7), to: endOfDay(today) },
     last14days: { from: daysAgo(14), to: endOfDay(today) },
@@ -89,38 +88,37 @@ const createDateRange = (option: string): DateRange => {
   return ranges[option] || ranges.breaking;
 };
 
-// Helper to find matching preset from URL dates
 const findPresetFromDates = (from: Date | null, to: Date | null): string => {
-  // If no dates in URL, default to breaking
   if (!from || !to) return "breaking";
-
-  const fromTime = from.getTime();
-  const toTime = to.getTime();
-
-  // Check each preset to see if it matches current URL dates (with 1 hour tolerance)
-  const tolerance = 60 * 60 * 1000; // 1 hour
+  const tolerance = 60 * 60 * 1000;
 
   for (const option of dateRangeOptions) {
     const range = createDateRange(option.value);
     if (
-      Math.abs(range.from.getTime() - fromTime) < tolerance &&
-      Math.abs(range.to.getTime() - toTime) < tolerance
+      Math.abs(range.from.getTime() - from.getTime()) < tolerance &&
+      Math.abs(range.to.getTime() - to.getTime()) < tolerance
     ) {
       return option.value;
     }
   }
 
-  return "breaking"; // fallback to breaking if no match
+  return "breaking";
 };
 
-export function DateSelect() {
+export function DateSelect({
+  onChange,
+  from,
+  to,
+}: {
+  onChange?: (key: keyof NewsMapFilters, value: string | null) => void;
+  from?: Date;
+  to?: Date;
+}) {
   const { setMultipleParams, getParams } = useQueryParams<NewsMapFilters>();
 
-  // Get current URL params
-  const fromParam = getParams("from");
-  const toParam = getParams("to");
+  const fromParam = from ?? getParams("from");
+  const toParam = to ?? getParams("to");
 
-  // Convert string params to dates if they exist
   const fromDate = fromParam ? new Date(fromParam) : null;
   const toDate = toParam ? new Date(toParam) : null;
 
@@ -130,41 +128,41 @@ export function DateSelect() {
   }, [fromDate, toDate]);
 
   const handleValueChange = (value: string) => {
-    if (value === "breaking") {
-      // For breaking news (last 8 hours), still set URL params
-      const range = createDateRange(value);
+    const range = createDateRange(value);
+
+    if (onChange) {
+      onChange("from", range.from.toISOString());
+      onChange("to", range.to.toISOString());
+    } else {
       setMultipleParams({
         from: range.from.toISOString(),
         to: range.to.toISOString(),
         dateRange: value,
-      } as any);
-    } else {
-      const range = createDateRange(value);
-      setMultipleParams({
-        from: range.from.toISOString(),
-        to: range.to.toISOString(),
-        dateRange: value, // Optional: store the preset name as well
-      } as any);
+      });
     }
   };
 
   return (
-    <Select value={currentValue} onValueChange={handleValueChange}>
-      <SelectTrigger className={styles.trigger}>
-        <Calendar className="mr-2 h-4 w-4 text-gray-600 dark:text-gray-300" />
-        <SelectValue placeholder="Select a range" />
-      </SelectTrigger>
-      <SelectContent className={styles.content}>
-        {dateRangeOptions.map((option) => (
-          <SelectItem
-            key={option.value}
-            value={option.value}
-            className={styles.item}
-          >
-            {option.label}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+    <div className="flex items-center gap-2 min-w-[160px] w-full sm:max-w-[180px] flex-1">
+      <Select value={currentValue} onValueChange={handleValueChange}>
+        <SelectTrigger className={styles.trigger}>
+          <div className="flex gap-2 items-center">
+            <Calendar className="mr-2 h-4 w-4 text-gray-600 dark:text-gray-300" />
+            <SelectValue placeholder="Select a range" />
+          </div>
+        </SelectTrigger>
+        <SelectContent className={styles.content}>
+          {dateRangeOptions.map((option) => (
+            <SelectItem
+              key={option.value}
+              value={option.value}
+              className={styles.item}
+            >
+              {option.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
   );
 }

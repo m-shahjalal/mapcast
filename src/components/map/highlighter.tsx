@@ -25,9 +25,9 @@ export function LocationHighlighter({
     if (!selectedLocation) return;
 
     // Fit bounds if geojson boundary is available
-    if ((selectedLocation as any)?.geojson) {
+    if (selectedLocation?.geojson) {
       try {
-        const geoJsonLayer = L.geoJSON((selectedLocation as any).geojson);
+        const geoJsonLayer = L.geoJSON(selectedLocation.geojson);
         map.fitBounds(geoJsonLayer.getBounds(), {
           padding: [20, 20],
           maxZoom: 14,
@@ -41,11 +41,11 @@ export function LocationHighlighter({
   if (!selectedLocation) return null;
 
   // If we have geojson boundary data, use it
-  if ((selectedLocation as any).geojson) {
+  if (selectedLocation.geojson) {
     return (
       <GeoJSON
         key={`geojson-${selectedLocation.latitude}-${selectedLocation.longitude}`}
-        data={(selectedLocation as any).geojson}
+        data={selectedLocation.geojson}
         style={{
           color: circleColor,
           weight: 3,

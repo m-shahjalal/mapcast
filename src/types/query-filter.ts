@@ -17,12 +17,12 @@ export interface LocationFilters extends BaseFilters {
 
 export interface NewsFilters extends BaseFilters {
   sourceDomain?: string;
-  topics?: (typeof newsTopicList)[number][];
+  topic?: (typeof newsTopicList)[number];
   location?: string;
 }
 
 export interface NewsMapFilters {
-  topics: (typeof newsTopicList)[number][];
+  topic: (typeof newsTopicList)[number];
   country?: string;
   search?: string;
   from?: Date;

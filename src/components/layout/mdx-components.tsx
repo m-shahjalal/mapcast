@@ -46,19 +46,19 @@ export const mdxComponents = {
     if (language) {
       return (
         <div
-          language={language}
-          PreTag="div"
-          className="rounded-lg shadow-lg"
+          className="rounded-lg shadow-lg bg-gray-100 dark:bg-gray-800 p-4 overflow-x-auto"
           {...props}
         >
-          {String(children).replace(/\n$/, "")}
+          <code className="text-sm font-mono">
+            {String(children).replace(/\n$/, "")}
+          </code>
         </div>
       );
     }
 
     return (
       <code
-        className="text-pink-600 dark:text-pink-400 px-1 py-0.5 rounded text-sm font-mono"
+        className="text-pink-600 dark:text-pink-400 px-1 py-0.5 rounded text-sm font-mono bg-gray-100 dark:bg-gray-800"
         {...props}
       >
         {children}
@@ -121,7 +121,7 @@ export const mdxComponents = {
   table: ({ children, ...props }: React.HTMLAttributes<HTMLTableElement>) => (
     <div className="overflow-x-auto my-6">
       <table
-        className="min-w-full border-collapse shadow-sm rounded-md overflow-hidden"
+        className="min-w-full border-collapse bg-white dark:bg-gray-800 shadow-sm rounded-md overflow-hidden border border-gray-200 dark:border-gray-700"
         {...props}
       >
         {children}
@@ -133,7 +133,7 @@ export const mdxComponents = {
     children,
     ...props
   }: React.HTMLAttributes<HTMLTableSectionElement>) => (
-    <thead className="" {...props}>
+    <thead className="bg-gray-50 dark:bg-gray-700" {...props}>
       {children}
     </thead>
   ),
@@ -147,7 +147,7 @@ export const mdxComponents = {
 
   tr: ({ children, ...props }: React.HTMLAttributes<HTMLTableRowElement>) => (
     <tr
-      className="border-b border-gray-200 dark:border-gray-700 transition-colors"
+      className="border-b border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
       {...props}
     >
       {children}
@@ -156,7 +156,7 @@ export const mdxComponents = {
 
   td: ({ children, ...props }: React.HTMLAttributes<HTMLTableCellElement>) => (
     <td
-      className="px-6 py-3 text-sm text-gray-900 dark:text-gray-100 border-r border-gray-200 dark:border-gray-700 last:border-r-0"
+      className="px-6 py-4 text-sm text-gray-900 dark:text-gray-100 border-r border-gray-200 dark:border-gray-600 last:border-r-0"
       {...props}
     >
       {children}
@@ -165,7 +165,7 @@ export const mdxComponents = {
 
   th: ({ children, ...props }: React.HTMLAttributes<HTMLTableCellElement>) => (
     <th
-      className="px-6 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider border-b-2 border-gray-200 dark:border-gray-700 last:border-r-0"
+      className="px-6 py-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wider border-r border-gray-200 dark:border-gray-600 last:border-r-0"
       {...props}
     >
       {children}
@@ -200,15 +200,5 @@ export const mdxComponents = {
     </em>
   ),
 };
-
-export const MDXWrapper: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => (
-  <div className="max-w-4xl mx-auto px-4 py-8">
-    <article className="prose prose-lg dark:prose-invert max-w-none">
-      {children}
-    </article>
-  </div>
-);
 
 export default mdxComponents;

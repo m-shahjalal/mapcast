@@ -1,6 +1,7 @@
 import Providers from "@/components/layout/provider";
 import "../globals.css";
 import "leaflet/dist/leaflet.css";
+import { SpinnerProvider } from "@/components/layout/loader-provider";
 
 export const metadata = {
   title: "PiNews News | Stay Updated",
@@ -15,7 +16,10 @@ export default async function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`antialiased`}>
-        <Providers>{children}</Providers>
+        <Providers>
+          <SpinnerProvider />
+          {children}
+        </Providers>
       </body>
     </html>
   );

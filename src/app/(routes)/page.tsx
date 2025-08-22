@@ -23,10 +23,8 @@ const SROnlyH1 = ({ params, newsList }: Props & { newsList: NewsType[] }) => (
       ` - ${
         params.topics[0].charAt(0).toUpperCase() + params.topics[0].slice(1)
       } News`}
-    {newsList?.find((news) => news.locationCountry) &&
-      ` in ${newsList.find((news) => news.locationCountry)?.locationCountry}`}
-    {newsList?.find((news) => news.locationCity) &&
-      `, ${newsList.find((news) => news.locationCity)?.locationCity}`}
+    {newsList?.find((news) => news.country) &&
+      ` in ${newsList.find((news) => news.country)?.country}`}
   </h1>
 );
 
@@ -51,7 +49,7 @@ export default async function MapPinsPage(props: Props) {
 
   return (
     <main role="main" aria-label="Interactive news map">
-      <SROnlyH1 {...props} newsList={newsList} />
+      {Array.isArray(newsList) && <SROnlyH1 {...props} newsList={newsList!} />}
       <LazyMap news={newsList!} />
     </main>
   );

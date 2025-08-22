@@ -6,7 +6,7 @@ const formatDate = (date: Date) => new Date(date).toISOString();
 export const generateNewsMetadata = (news: NewsType): Metadata => {
   const publishedTime = formatDate(news.publishedAt);
   const modifiedTime = formatDate(news.updatedAt || news.publishedAt);
-  const tags = news.tags?.split(",").map((tag) => tag.trim()) || [];
+  const tags = news.tags?.map((tag) => tag.trim()) || [];
 
   return {
     title: news.title,
@@ -21,7 +21,7 @@ export const generateNewsMetadata = (news: NewsType): Metadata => {
       title: news.title,
       description: news.summary || news.metaDescription || undefined,
       url: news.originalUrl,
-      siteName: "Your Site Name", // Replace with your site name
+      siteName: "Your Site Name",
       publishedTime,
       modifiedTime,
       authors: [news.sourceDomain],

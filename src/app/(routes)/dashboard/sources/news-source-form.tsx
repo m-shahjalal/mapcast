@@ -67,11 +67,8 @@ export default function CreateRssSourceForm() {
 
   const onSubmit = async (data: NewRssSourceType) => {
     startTransition(async () => {
-      console.log("Submitting data:", data);
-
       try {
         const response = await creteRssSource(data);
-        console.log("Response:", response);
         if (!response.id) {
           toast.error("Failed to create RSS source. Please try again.");
           return;
@@ -232,7 +229,7 @@ export default function CreateRssSourceForm() {
                       </SelectTrigger>
                       <SelectContent>
                         {countries.map((c) => (
-                          <SelectItem key={c.name} value={c.value}>
+                          <SelectItem key={c.name} value={c.code}>
                             <div className="flex items-center gap-2">
                               <div className="py-1">
                                 <span className="pr-1">{c.flag}</span>

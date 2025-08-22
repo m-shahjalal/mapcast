@@ -1,13 +1,14 @@
 "use client";
-import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { Button } from "@/components/ui/button";
 import { SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useQueryParams } from "@/hooks/use-query";
+import { NewsMapFilters } from "@/types/query-filter";
 import { cn } from "@/utils/cn";
-import { Eraser } from "lucide-react";
-import { TopicFilters } from "./topic-filter";
-import { CountrySelect } from "./country-select";
-import { useCallback, useEffect } from "react";
+import { Eraser, Filter } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { CountrySelect } from "./select-country";
+import { DateSelect } from "./select-date";
+import { TopicFilters } from "./select-topic";
 
 interface MobileControlsSheetProps {
   className?: string;
@@ -18,7 +19,8 @@ export function MobileControlsSheet({
   className,
   setOpen,
 }: MobileControlsSheetProps) {
-  const { setMultipleParams, clearParams } = useQueryParams();
+  const { setMultipleParams, clearParams, getParams } = useQueryParams();
+  const [params, setParams] = useState<NewsMapFilters>(getParams());
 
   const handleClose = useCallback(() => setOpen(false), [setOpen]);
 
@@ -27,16 +29,14 @@ export function MobileControlsSheet({
     handleClose();
   }, [clearParams, handleClose]);
 
-  const handleDateUpdate = useCallback(
-    ({ range }: any) => {
-      setMultipleParams({
-        from: range.from.toISOString(),
-        to: range.to?.toISOString() ?? new Date().toISOString(),
-      });
-      handleClose();
-    },
-    [setMultipleParams, handleClose]
-  );
+  const onChangeHandler = (key: keyof NewsMapFilters, value: string | null) => {
+    setParams({ ...params, [key]: value });
+  };
+
+  const handleApplyFilter = () => {
+    setMultipleParams(params as Record<string, any>);
+    setOpen(false);
+  };
 
   useEffect(() => {
     let startY = 0;
@@ -64,7 +64,7 @@ export function MobileControlsSheet({
       if (!isTracking) return;
 
       const distance = e.changedTouches[0].clientY - startY;
-      const velocity = Math.abs(distance) / 100; // Simplified velocity
+      const velocity = Math.abs(distance) / 100;
 
       isTracking = false;
 
@@ -101,20 +101,31 @@ export function MobileControlsSheet({
         </SheetTitle>
       </SheetHeader>
 
-      <div className="flex flex-col gap-4 p-4 overflow-y-auto flex-1">
-        <CountrySelect />
-        <DateRangePicker onUpdate={handleDateUpdate} />
-        <div className="flex-1 flex gap-2">
-          <div className="flex-1 max-w-full">
-            <TopicFilters handleCloseSheet={handleClose} />
-          </div>
+      <div className="flex flex-col gap-2 px-4">
+        <CountrySelect onChange={onChangeHandler} value={params?.country} />
+        <DateSelect
+          onChange={onChangeHandler}
+          from={params?.from}
+          to={params?.to}
+        />
+        <TopicFilters onChange={onChangeHandler} value={params?.topic} />
+        <div className="flex gap-2 mt-8">
           <Button
             onClick={handleClear}
-            size="sm"
-            className="rounded-md px-8 py-2 h-9 shadow-sm flex-shrink-0 bg-red-400 hover:bg-red-500 border-red-300 text-red-100"
+            variant="destructive"
+            className="w-fit max-w-fit flex-1 h-10 rounded backdrop-blur-xl border shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] focus:ring-0 focus:ring-transparent"
           >
-            <Eraser className="h-3 w-3 mr-1" />
+            <Eraser className="h-3 w-3" />
             Clear
+          </Button>
+
+          <Button
+            onClick={handleApplyFilter}
+            variant="default"
+            className="w-full flex-1 h-10 rounded backdrop-blur-xl border shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] focus:ring-0 focus:ring-transparent focus:border-gray-200/50 "
+          >
+            <Filter className="h-3 w-3 mr-1" />
+            Apply Filters
           </Button>
         </div>
       </div>

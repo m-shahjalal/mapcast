@@ -4,6 +4,8 @@ import { NewsType } from "@/server/database/schemas";
 import { newsTopicDropdown } from "@/shared/enum-list";
 import { X } from "lucide-react";
 import { MDXRemote } from "next-mdx-remote/rsc";
+import remarkGfm from "remark-gfm";
+
 import Link from "next/link";
 
 const formatDate = (date: Date) =>
@@ -34,8 +36,10 @@ const getTagColor = (index: number) => {
   return colors[index % colors.length];
 };
 
-export const NewsViewer = ({ news }: { news: NewsType }) => {
-  const topicConfig = getTopicConfig(news.topic || "other");
+export const NewsViewer = async ({ news }: { news: NewsType }) => {
+  const topicConfig = getTopicConfig(news?.topic || "other");
+
+  if (!news) return;
 
   return (
     <article className="max-w-4xl mx-auto bg-white dark:bg-gray-900 min-h-screen">
@@ -83,7 +87,15 @@ export const NewsViewer = ({ news }: { news: NewsType }) => {
 
       <main className="px-4 py-8 sm:px-6 lg:px-8">
         <div>
-          <MDXRemote components={mdxComponents} source={news.content} />
+          <MDXRemote
+            source={news.content}
+            components={mdxComponents}
+            options={{
+              mdxOptions: {
+                remarkPlugins: [remarkGfm],
+              },
+            }}
+          />
         </div>
 
         <TagsSection news={news} />
@@ -176,7 +188,7 @@ const TagsSection = ({ news }: { news: NewsType }) => {
         Related Topics
       </h2>
       <div className="flex flex-wrap gap-2">
-        {news.tags.split(",").map((tag, index) => {
+        {news.tags.map((tag, index) => {
           const tagColor = getTagColor(index);
           const tagTopic = newsTopicDropdown.find(
             (item) => item.topic === tag.trim().toLowerCase()

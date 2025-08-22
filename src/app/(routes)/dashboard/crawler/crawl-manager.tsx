@@ -505,7 +505,6 @@ export function CrawlManager({
   logs: CrawlerLog[];
   pagination?: ApiPagination;
 }) {
-  console.log("size", logs.length);
   return (
     <div className="space-y-6">
       <StatusDashboard />

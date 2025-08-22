@@ -1,10 +1,10 @@
-import { primaryColumn, timestamps } from "@/utils/database";
 import { relations } from "drizzle-orm";
 import {
   boolean,
   decimal,
   index,
   integer,
+  jsonb,
   pgTable,
   text,
   timestamp,
@@ -13,7 +13,9 @@ import {
 } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+import { foreignId, primaryColumn, timestamps } from "@/utils/database";
 import { newsTopicEnum } from "./enums.schema";
+import { country } from "./country.schema";
 import { rssSource } from "./rss.schema";
 
 export const news = pgTable(
@@ -21,47 +23,40 @@ export const news = pgTable(
   {
     id: primaryColumn(),
 
-    title: varchar("title", { length: 200 }).notNull(),
-    metaTitle: varchar("meta_title", { length: 60 }),
-    metaDescription: varchar("meta_description", { length: 160 }),
+    title: varchar("title", { length: 500 }).notNull(),
+    metaTitle: varchar("meta_title", { length: 500 }),
+    metaDescription: varchar("meta_description", { length: 500 }),
     summary: text("summary").notNull(),
     content: text("content").notNull(),
-    imageUrl: varchar("img_url"),
+    imageUrl: varchar("img_url", { length: 1000 }),
 
-    // URL and routing optimization
-    slug: varchar("slug", { length: 200 }).notNull().unique(),
-    originalUrl: varchar("original_url", { length: 500 }).notNull().unique(), // Source article URL
-    ampUrl: varchar("amp_url", { length: 500 }), // AMP version URL
-    sourceDomain: varchar("source_domain", { length: 255 }).notNull(),
+    slug: varchar("slug", { length: 500 }).notNull().unique(),
+    originalUrl: varchar("original_url", { length: 1000 }).notNull().unique(),
+    sourceDomain: varchar("source_domain", { length: 500 }).notNull(),
 
-    // Content categorization and SEO
     topic: newsTopicEnum("topic").notNull(),
-    tags: text("tags"), // Comma-separated tags for topic relevance
-    keywords: text("keywords"), // Primary SEO keywords
+    tags: jsonb("tags").$type<string[]>(),
+    keywords: jsonb("keywords").$type<string[]>(),
 
-    // Geographic targeting for local SEO
-    language: varchar("language", { length: 10 }).default("en"),
-    locationName: varchar("location_name", { length: 255 }),
-    locationCity: varchar("location_city", { length: 100 }),
-    locationState: varchar("location_state", { length: 100 }),
-    locationCountry: varchar("location_country", { length: 100 }),
-    locationCountryCode: varchar("location_country_code", { length: 2 }),
+    language: varchar("language", { length: 20 }).default("en"),
+    location: varchar("location_name", { length: 500 }),
+    city: varchar("location_city", { length: 200 }),
+    state: varchar("location_state", { length: 200 }),
+    country: varchar("country", { length: 200 }),
+    countryCode: foreignId("country_code", () => country.code),
     latitude: decimal("latitude", { precision: 10, scale: 7 }),
     longitude: decimal("longitude", { precision: 10, scale: 7 }),
-    timezone: varchar("timezone", { length: 50 }),
+    timezone: varchar("timezone", { length: 100 }),
 
-    // Time-based SEO factors
     publishedAt: timestamp("published_at").notNull(),
     crawledAt: timestamp("crawled_at").notNull(),
-    readTime: integer("read_time"), // Estimated reading time in minutes
+    readTime: integer("read_time"),
 
-    // SEO performance and engagement metrics
     viewsCount: integer("views_count").default(0),
     sharesCount: integer("shares_count").default(0),
     likesCount: integer("likes_count").default(0),
 
-    // Content status and workflow
-    status: varchar("status", { length: 50 }).default("published"), // draft, published, archived, etc.
+    status: varchar("status", { length: 50 }).default("published"),
     isFeatured: boolean("is_featured").default(false),
     isBreaking: boolean("is_breaking").default(false),
     isPinned: boolean("is_pinned").default(false),
@@ -71,26 +66,22 @@ export const news = pgTable(
   ({
     slug,
     topic,
-    locationCountryCode,
     publishedAt,
     language,
     status,
     viewsCount,
+    countryCode,
   }) => ({
-    // Critical SEO indexes
     slugIdx: index("news_slug_idx").on(slug),
     topicIdx: index("news_topic_idx").on(topic),
     publishedIdx: index("news_published_at_idx").on(publishedAt),
-    countryIdx: index("news_country_code_idx").on(locationCountryCode),
+    countryIdx: index("news_country_code_idx").on(countryCode),
     languageIdx: index("news_language_idx").on(language),
     statusIdx: index("news_status_idx").on(status),
 
     viewsIdx: index("news_views_count_idx").on(viewsCount),
 
-    topicCountryIdx: index("news_topic_country_idx").on(
-      topic,
-      locationCountryCode
-    ),
+    topicCountryIdx: index("news_topic_country_idx").on(topic, countryCode),
     publishedTopicIdx: index("news_published_topic_idx").on(publishedAt, topic),
     statusPublishedIdx: index("news_status_published_idx").on(
       status,
@@ -102,7 +93,6 @@ export const news = pgTable(
   })
 );
 
-// Relations
 export const newsRelations = relations(news, ({ one }) => ({
   source: one(rssSource, {
     fields: [news.sourceDomain],
@@ -111,7 +101,6 @@ export const newsRelations = relations(news, ({ one }) => ({
   }),
 }));
 
-// Validation schemas
 export const createNewsSchema = createInsertSchema(news);
 
 export const updateNewsSchema = createInsertSchema(news).partial().omit({
@@ -120,7 +109,7 @@ export const updateNewsSchema = createInsertSchema(news).partial().omit({
   originalUrl: true,
 });
 
-// Type exports
-export type NewsType = typeof news.$inferSelect;
+export type NewsType = typeof news.$inferSelect & { geojson: any };
+export type NewsSelect = typeof news.$inferSelect;
 export type NewNewsType = z.infer<typeof createNewsSchema>;
 export type UpdateNewsType = z.infer<typeof updateNewsSchema>;

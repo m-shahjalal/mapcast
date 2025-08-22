@@ -1,13 +1,13 @@
 "use client";
 
+import { MapProvider } from "@/config/map-context";
 import { ThemeProvider } from "next-themes";
 import NextTopLoader from "nextjs-toploader";
 import { ReactNode, useEffect, useState } from "react";
 import { Toaster } from "sonner";
 import { SWRConfig } from "swr";
-import { MapProvider } from "@/config/map-context";
-import { SplashScreen } from "./pwa/splash-screen";
 import { PwaManager } from "./pwa/push-manager";
+import { SplashScreen } from "./pwa/splash-screen";
 
 const Providers = ({ children }: { children: ReactNode }) => {
   const [isClient, setIsClient] = useState(false);

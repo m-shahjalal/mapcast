@@ -128,7 +128,7 @@ const PopupContent = memo<{ color: string; emoji: string; news: NewsType }>(
   ({ color, emoji, news }) => {
     const router = useRouter();
 
-    const address = [news.locationName, news.locationCity, news.locationCountry]
+    const address = [news.location, news.location, news.countryCode]
       .filter(Boolean)
       .join(", ");
 

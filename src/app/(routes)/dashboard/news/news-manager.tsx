@@ -1,5 +1,6 @@
 "use client";
 
+import { DataTable } from "@/components/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,10 +12,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { DataTable } from "@/components/table";
-import type { ColumnDef } from "@tanstack/react-table";
-import { NewsType } from "@/server/database/schemas";
+import { NewsSelect, NewsType } from "@/server/database/schemas";
 import type { ApiPagination } from "@/types/api-response";
+import type { ColumnDef } from "@tanstack/react-table";
 import {
   Calendar,
   ChevronLeft,
@@ -41,7 +41,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
 
 interface NewsManagerProps {
-  news: NewsType[] | null | undefined;
+  news: NewsSelect[] | null | undefined;
   pagination?: ApiPagination;
 }
 
@@ -78,7 +78,7 @@ export function NewsManager({ news, pagination }: NewsManagerProps) {
   // Get unique countries from news data
   const uniqueCountries = useMemo(() => {
     const countries = newsArray
-      .map((article) => article.locationCountry)
+      .map((article) => article.country)
       .filter(Boolean)
       .filter((country, index, self) => self.indexOf(country) === index)
       .sort();
@@ -95,7 +95,10 @@ export function NewsManager({ news, pagination }: NewsManagerProps) {
         article.sourceDomain
           ?.toLowerCase()
           .includes(searchQuery.toLowerCase()) ||
-        article.tags?.toLowerCase().includes(searchQuery.toLowerCase());
+        article.tags
+          ?.join(",")
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase());
 
       const matchesTopic =
         selectedTopic === "All" || article.topic === selectedTopic;
@@ -104,8 +107,7 @@ export function NewsManager({ news, pagination }: NewsManagerProps) {
         selectedStatus === "All" || article.status === selectedStatus;
 
       const matchesCountry =
-        selectedCountry === "All" ||
-        article.locationCountry === selectedCountry;
+        selectedCountry === "All" || article.country === selectedCountry;
 
       return matchesSearch && matchesTopic && matchesStatus && matchesCountry;
     });
@@ -196,7 +198,7 @@ export function NewsManager({ news, pagination }: NewsManagerProps) {
     setCurrentPage(1);
   }, []);
 
-  const columns = useMemo<ColumnDef<NewsType>[]>(
+  const columns = useMemo<ColumnDef<NewsSelect>[]>(
     () => [
       {
         id: "title",
@@ -241,11 +243,11 @@ export function NewsManager({ news, pagination }: NewsManagerProps) {
         id: "location",
         header: "Location",
         cell: ({ row }) =>
-          row.original.locationCountry ? (
+          row.original.country ? (
             <div className="flex items-center space-x-1 text-muted-foreground">
               <MapPin className="h-3 w-3" />
               <span className="text-xs">
-                {row.original.locationCity || row.original.locationCountry}
+                {row.original.city || row.original.country}
               </span>
             </div>
           ) : (
@@ -502,7 +504,7 @@ export function NewsManager({ news, pagination }: NewsManagerProps) {
 
           {/* News Table */}
           <div className="overflow-x-auto rounded-lg border dark:border-gray-700">
-            <DataTable<NewsType>
+            <DataTable<NewsSelect>
               columns={columns}
               data={paginatedNews}
               emptyState={"No articles found matching your criteria."}

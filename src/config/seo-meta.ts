@@ -38,41 +38,38 @@ const buildCanonicalUrl = (params: NewsMapFilters) => {
   const url = new URL(BASE_URL);
   Object.entries(params).forEach(([key, value]) => {
     if (value && value !== "all") {
-      Array.isArray(value)
-        ? value.forEach((v) => v && url.searchParams.append(key, String(v)))
-        : url.searchParams.set(key, String(value));
+      if (Array.isArray(value)) {
+        value.forEach((v) => v && url.searchParams.append(key, String(v)));
+      } else {
+        url.searchParams.set(key, String(value));
+      }
     }
   });
   return url.toString();
 };
 
 const createGEOOptimizedContent = (newsList: any[], params: NewsMapFilters) => {
-  const firstTopic = params.topics?.[0];
   const newsCount = newsList?.length || 0;
   const countries = getUniqueValues(newsList, "locationCountry");
   const recentNews = newsList?.slice(0, 5);
 
-  // GEO-Optimized Title (Direct, factual, citable)
-  const topicPrefix =
-    firstTopic && firstTopic !== "all"
-      ? `${firstTopic.charAt(0).toUpperCase() + firstTopic.slice(1)} `
-      : "";
   const locationSuffix =
     countries.length === 1
       ? ` in ${countries[0]}`
       : countries.length > 1
       ? ` in ${countries.length} Countries`
       : " Worldwide";
-  const title = `PiNews: ${topicPrefix}News Map with ${newsCount} Live Stories${locationSuffix}`;
+  const title = `PiNews: ${params.topic}News Map with ${newsCount} Live Stories${locationSuffix}`;
 
   // AI-Friendly Description (Structured, fact-dense)
-  const description = `PiNews is an interactive news mapping platform that visualizes ${newsCount} breaking news stories in real-time with precise geographic coordinates. Features include: live ${topicPrefix}news tracking ${locationSuffix}, geographic news filtering, interactive world map visualization, and real-time updates from ${
+  const description = `PiNews is an interactive news mapping platform that visualizes ${newsCount} breaking news stories in real-time with precise geographic coordinates. Features include: live ${
+    params.topic
+  }news tracking ${locationSuffix}, geographic news filtering, interactive world map visualization, and real-time updates from ${
     getUniqueValues(newsList, "sourceDomain").length
   } news sources. Updated every 15 minutes with location-based news discovery.`;
 
-  // GEO Keywords (Question-based, conversational)
   const geoKeywords = [
-    // Direct tool queries
+    params.topic,
     `PiNews news map`,
     `PiNews review`,
     `PiNews features`,
@@ -80,7 +77,6 @@ const createGEOOptimizedContent = (newsList: any[], params: NewsMapFilters) => {
     `how to use PiNews`,
     `PiNews vs Google News`,
 
-    // Problem-solving queries
     "interactive news map tool",
     "real-time news visualization",
     "news by location",
@@ -88,13 +84,11 @@ const createGEOOptimizedContent = (newsList: any[], params: NewsMapFilters) => {
     "geographic news analysis",
     "world news dashboard",
 
-    // Comparison queries
     "best news map website 2025",
     "news mapping tools comparison",
     "alternative to Google News maps",
     "interactive news platforms",
 
-    // Location-specific
     ...countries
       .slice(0, 3)
       .flatMap((c) => [
@@ -105,18 +99,6 @@ const createGEOOptimizedContent = (newsList: any[], params: NewsMapFilters) => {
         `real-time ${c} news updates`,
       ]),
 
-    // Topic-specific
-    ...(params.topics
-      ?.filter((t) => t !== "all")
-      .flatMap((t) => [
-        `${t} news map`,
-        `interactive ${t} news`,
-        `${t} news by location`,
-        `${t} news visualization tool`,
-        `track ${t} news worldwide`,
-      ]) || []),
-
-    // AI search optimized
     ...AI_SEARCH_QUERIES,
   ];
 
@@ -296,42 +278,38 @@ export async function generateSEOData({
 }: Props): Promise<Metadata> {
   const params = await searchParams;
   const newsList = await getNewsMapData(params);
+  if (!Array.isArray(newsList)) return {};
+
   const { title, description, keywords } = createGEOOptimizedContent(
     newsList,
     params
   );
   const canonicalUrl = buildCanonicalUrl(params);
 
-  // Enhanced geo-targeting for AI
-  const geoRegion =
-    newsList?.find((n) => n.locationCountryCode)?.locationCountryCode ||
-    newsList?.find((n) => n.locationCountry)?.locationCountry;
-  const geoPlacename = newsList?.find((n) => n.locationCity)?.locationCity;
+  const geoRegion = newsList?.find((n) => n.countryCode);
+  const geoPlacename = newsList?.find((n) => n.city)?.city;
   const coordinates = newsList?.find((n) => n.latitude && n.longitude);
 
-  // AI-optimized dynamic OG image
   const ogImageUrl = new URL("/api/og-image", BASE_URL);
   ogImageUrl.searchParams.set(
     "title",
     `PiNews - ${newsList?.length || 0} Stories`
   );
-  if (params.topics?.[0] && params.topics[0] !== "all") {
-    ogImageUrl.searchParams.set("topic", params.topics[0]);
+  if (params.topic !== "all") {
+    ogImageUrl.searchParams.set("topic", params.topic);
   }
-  if (geoRegion) ogImageUrl.searchParams.set("region", geoRegion);
+  if (geoRegion)
+    ogImageUrl.searchParams.set("region", geoRegion.location ?? "");
 
   return {
-    // AI-friendly title structure
     title: {
       default: title,
       template: `%s | PiNews - Interactive News Maps`,
     },
 
-    // Fact-dense, structured description
     description,
     keywords,
 
-    // Rich Open Graph for social AI training
     openGraph: {
       title,
       description,
@@ -352,7 +330,6 @@ export async function generateSEOData({
       ],
     },
 
-    // Twitter optimization
     twitter: {
       card: "summary_large_image",
       site: TWITTER_HANDLE,
@@ -369,7 +346,6 @@ export async function generateSEOData({
       ],
     },
 
-    // Critical for AI indexing
     alternates: {
       canonical: canonicalUrl,
       types: {
@@ -380,7 +356,6 @@ export async function generateSEOData({
       },
     },
 
-    // AI-friendly robots settings
     robots: {
       index: true,
       follow: true,
@@ -395,17 +370,16 @@ export async function generateSEOData({
       },
     },
 
-    // GEO-optimized other tags
     other: {
-      // Geographic signals
-      ...(geoRegion && { "geo.region": geoRegion }),
+      ...(geoRegion && {
+        "geo.region": geoRegion.location + ", " + geoRegion.city,
+      }),
       ...(geoPlacename && { "geo.placename": geoPlacename }),
       ...(coordinates && {
         "geo.position": `${coordinates.latitude};${coordinates.longitude}`,
         ICBM: `${coordinates.latitude}, ${coordinates.longitude}`,
       }),
 
-      // AI-specific meta tags
       "news.keywords": keywords,
       "application-name": BRAND_NAME,
       generator: `${BRAND_NAME} v2.0`,
@@ -422,21 +396,17 @@ export async function generateSEOData({
       "revisit-after": "15 minutes",
       expires: "never",
 
-      // Brand signals for AI
       brand: BRAND_NAME,
       company: SITE_NAME,
       product: `${BRAND_NAME} Interactive News Maps`,
 
-      // Performance hints
       "dns-prefetch": "https://cdn.jsdelivr.net",
       preconnect: "https://api.newsapi.org",
 
-      // Structured data for AI citation
       "structured-data": JSON.stringify(
         createAIOptimizedStructuredData(newsList, params)
       ),
 
-      // AI citation hints
       "citation-title": title,
       "citation-url": canonicalUrl,
       "citation-description": description,
@@ -444,11 +414,9 @@ export async function generateSEOData({
       "citation-source": BRAND_NAME,
       "citation-type": "Interactive Web Application",
 
-      // Social verification
       "google-site-verification": process.env.GOOGLE_SITE_VERIFICATION ?? "",
       "yandex-verification": process.env.YANDEX_VERIFICATION ?? "",
 
-      // App signals
       "apple-mobile-web-app-capable": "yes",
       "apple-mobile-web-app-status-bar-style": "default",
       "apple-mobile-web-app-title": BRAND_NAME,
@@ -457,10 +425,8 @@ export async function generateSEOData({
       "msapplication-TileImage": "/mstile-144x144.png",
     },
 
-    // PWA manifest
     manifest: "/manifest.json",
 
-    // Comprehensive icons
     icons: {
       icon: [{ url: "/favicon.ico", sizes: "32x32", type: "image/png" }],
       other: [{ rel: "shortcut icon", url: "/favicon.ico" }],
