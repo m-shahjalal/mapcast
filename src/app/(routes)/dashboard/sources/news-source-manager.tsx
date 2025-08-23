@@ -67,7 +67,7 @@ export function NewsSourceManager({
       const matchesSearch =
         source.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         source.rssUrl?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        source.domain?.toLowerCase().includes(searchQuery.toLowerCase());
+        source.baseUrl?.toLowerCase().includes(searchQuery.toLowerCase());
 
       const matchesCategory =
         selectedCategory === "All" ||
@@ -161,7 +161,7 @@ export function NewsSourceManager({
         header: "Domain",
         cell: ({ row }) => (
           <span className="text-muted-foreground truncate max-w-[150px] inline-block">
-            {row.original.domain || "—"}
+            {row.original.baseUrl || "—"}
           </span>
         ),
       },

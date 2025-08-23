@@ -96,7 +96,7 @@ export const news = pgTable(
 export const newsRelations = relations(news, ({ one }) => ({
   source: one(rssSource, {
     fields: [news.sourceDomain],
-    references: [rssSource.domain],
+    references: [rssSource.baseUrl],
     relationName: "news_source",
   }),
 }));

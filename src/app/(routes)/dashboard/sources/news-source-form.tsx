@@ -146,13 +146,13 @@ export default function CreateRssSourceForm() {
                   </Label>
                   <Input
                     id="domain"
-                    {...register("domain", { required: "Domain is required" })}
+                    {...register("baseUrl", { required: "Domain is required" })}
                     placeholder="e.g., techcrunch.com"
                     className="h-11"
                   />
-                  {errors.domain && (
+                  {errors.baseUrl && (
                     <p className="text-sm text-red-600">
-                      {errors.domain.message}
+                      {errors.baseUrl.message}
                     </p>
                   )}
                 </div>
@@ -221,7 +221,7 @@ export default function CreateRssSourceForm() {
                       Country
                     </Label>
                     <Select
-                      value={watchCountry}
+                      value={watchCountry ?? ""}
                       onValueChange={(value) => setValue("country", value)}
                     >
                       <SelectTrigger className="h-11">

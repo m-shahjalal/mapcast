@@ -6,7 +6,7 @@ export const newsSourceFiltersSchema = z.object({
   search: z.string().optional(),
   isActive: z.coerce.boolean().optional(),
   minCredibilityScore: z.coerce.number().optional(),
-  domain: z.string().optional(),
+  baseUrl: z.string().optional(),
 });
 
 export type NewsSourceFilters = z.infer<typeof newsSourceFiltersSchema>;
