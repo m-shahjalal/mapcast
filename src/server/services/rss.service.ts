@@ -65,7 +65,7 @@ export const NewsSourceService = {
     return sources.map((s) => ({
       url: s.rssUrl,
       name: s.name,
-      source: s.domain,
+      source: s.baseUrl,
       language: s.language ?? "english",
     }));
   },
@@ -95,7 +95,7 @@ export const NewsSourceService = {
       conditions.push(
         or(
           ilike(rssSource.name, `%${filters.search}%`),
-          ilike(rssSource.domain, `%${filters.search}%`)
+          ilike(rssSource.baseUrl, `%${filters.search}%`)
         ) as SQLWrapper
       );
     }
@@ -104,8 +104,8 @@ export const NewsSourceService = {
       conditions.push(eq(rssSource.isActive, filters.isActive));
     }
 
-    if (filters?.domain) {
-      conditions.push(ilike(rssSource.domain, `%${filters.domain}%`));
+    if (filters?.baseUrl) {
+      conditions.push(ilike(rssSource.baseUrl, `%${filters.baseUrl}%`));
     }
 
     return conditions;

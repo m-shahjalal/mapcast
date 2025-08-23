@@ -1,4 +1,7 @@
+import { LocationService } from "@/server/services/location.service";
 import { NewCountry } from "../schemas/country.schema";
+import geoJsonData from "./countries-with-boundaries.json";
+import { countries } from "@/utils/dropdown-list";
 
 type CountryFlag = {
   name: string;
@@ -348,6 +351,25 @@ class CountryConverter {
     };
   }
 }
+
+export const insertCountriesToDB = async () => {
+  const converter = new CountryConverter(countries);
+
+  const validation = converter.validateGeoJsonData(geoJsonData);
+  if (!validation.isValid || !validation.data) {
+    console.error("GeoJSON validation failed:", validation.errors);
+    process.exit(1);
+  }
+
+  const convertedCountries = converter.convert(validation.data, {
+    filterByFlags: true,
+    debug: true,
+    includeInvalidGeometries: false,
+  });
+  console.info(`Successfully converted ${convertedCountries.length} countries`);
+
+  return await LocationService.create(convertedCountries).catch(console.error);
+};
 
 export {
   CountryConverter,
