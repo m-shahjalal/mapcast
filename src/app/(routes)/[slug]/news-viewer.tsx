@@ -231,7 +231,6 @@ const TagsSection = ({ news }: { news: NewsType }) => {
           return (
             <a
               key={index}
-              href={`/tags/${tag.trim().toLowerCase()}`}
               className="inline-flex items-center gap-1 px-3 py-1 text-xs font-medium text-white rounded-full hover:opacity-80 transition-opacity shadow-sm"
               style={{ backgroundColor: finalColor }}
             >
