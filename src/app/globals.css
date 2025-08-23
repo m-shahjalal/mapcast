@@ -127,12 +127,15 @@
 }
 
 .leaflet-popup {
-  max-width: 80vw;
   @apply dark:bg-gray-800 dark:text-gray-100 rounded-lg;
 }
 
 .leaflet-popup-content-wrapper {
   @apply dark:bg-gray-800 dark:text-gray-100 rounded-lg;
+}
+
+.leaflet-popup-content {
+  @apply !m-0;
 }
 
 .leaflet-popup-close-button {
@@ -161,14 +164,11 @@
     transform: translateY(0);
   }
 }
+
 .animate-fade-in {
   animation: fade-in 0.8s ease-out forwards;
   opacity: 0;
 }
-
-/* #nprogress .spinner {
-  @apply w-screen h-screen top-1/2 right-1/2 -translate-x-1/2;
-} */
 
 .spinner-container {
   position: relative;
@@ -224,5 +224,64 @@
   }
   100% {
     transform: rotate(360deg);
+  }
+}
+
+/* Enhanced Marker Styles - enhanced-marker.css */
+
+.enhanced-marker-base {
+  @apply relative z-[100];
+}
+
+.enhanced-marker-container {
+  @apply relative flex flex-col items-center cursor-pointer transition-all duration-500 ease-out z-[100];
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.enhanced-marker-text {
+  @apply text-white px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap max-w-[140px] overflow-hidden text-ellipsis mb-1 transition-all duration-500 ease-out border-2 border-white/30 backdrop-blur-sm;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  letter-spacing: 0.5px;
+}
+
+.enhanced-marker-icon {
+  @apply flex items-center text-sm p-1 w-8 h-8 justify-center rounded-full transition-all duration-500 ease-out relative;
+}
+
+.enhanced-marker-icon::after {
+  content: "▾";
+  color: var(--arrow-color);
+  z-index: -1;
+  font-size: 30px;
+  position: absolute;
+  top: 8px;
+  right: 6px;
+}
+
+.enhanced-marker-trail {
+  @apply absolute top-[60px] left-1/2 -translate-x-1/2 rotate-45 w-6 h-6 bg-white/50 transition-all duration-500 ease-out -z-[1];
+}
+
+.enhanced-marker-base:hover .enhanced-marker-container {
+  @apply scale-115 z-[9999];
+}
+
+.enhanced-marker-base:hover .enhanced-marker-text {
+  @apply -translate-y-0.5;
+}
+
+/* Individual element hover effects */
+.enhanced-marker-text:hover {
+  @apply -translate-y-0.5 z-[9999];
+}
+
+.enhanced-marker-icon:hover {
+  @apply z-[9999];
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .enhanced-marker-text {
+    @apply text-[10px] px-2 py-1 max-w-[120px];
   }
 }

@@ -8,6 +8,7 @@ import React, {
 } from "react";
 import { MAP_LAYERS } from "./map-constraint";
 import { NewsType } from "@/server/database/schemas";
+import { LatLngExpression } from "leaflet";
 
 export interface TopicItem {
   topic: string;
@@ -23,6 +24,11 @@ export interface MapState {
   currentLayer: keyof typeof MAP_LAYERS;
   isPending: boolean;
   error: string | null;
+  popup: {
+    topic: TopicItem;
+    news: NewsType;
+    position: LatLngExpression;
+  } | null;
 }
 
 export interface MapActions {
@@ -33,6 +39,11 @@ export interface MapActions {
   setCurrentLayer: (layer: keyof typeof MAP_LAYERS) => void;
   setPending: (pending: boolean) => void;
   setError: (error: string | null) => void;
+  setPopup: (
+    topic: TopicItem,
+    news: NewsType,
+    position: LatLngExpression
+  ) => void;
 }
 
 type MapContextType = MapState & MapActions;
@@ -46,7 +57,11 @@ type MapAction =
   | { type: "SET_MAP_LIST"; payload: NewsType[] }
   | { type: "SET_CURRENT_LAYER"; payload: keyof typeof MAP_LAYERS }
   | { type: "SET_PENDING"; payload: boolean }
-  | { type: "SET_ERROR"; payload: string | null };
+  | { type: "SET_ERROR"; payload: string | null }
+  | {
+      type: "SET_POPUP";
+      payload: { topic: TopicItem; news: NewsType; position: LatLngExpression };
+    };
 
 const initialState: MapState = {
   center: [0, 0],
@@ -56,6 +71,7 @@ const initialState: MapState = {
   currentLayer: "satellite",
   isPending: false,
   error: null,
+  popup: null,
 };
 
 function mapReducer(state: MapState, action: MapAction): MapState {
@@ -95,6 +111,9 @@ function mapReducer(state: MapState, action: MapAction): MapState {
     case "SET_PENDING":
       return { ...state, isPending: action.payload };
 
+    case "SET_POPUP":
+      return { ...state, popup: action.payload };
+
     case "SET_ERROR":
       return { ...state, error: action.payload, isPending: false };
 
@@ -125,6 +144,11 @@ export function MapProvider({ children }: MapProviderProps) {
         dispatch({ type: "SET_PENDING", payload: pending }),
       setError: (error: string | null) =>
         dispatch({ type: "SET_ERROR", payload: error }),
+      setPopup: (
+        topic: TopicItem,
+        news: NewsType,
+        position: LatLngExpression
+      ) => dispatch({ type: "SET_POPUP", payload: { topic, news, position } }),
     }),
     []
   );

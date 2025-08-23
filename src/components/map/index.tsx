@@ -7,10 +7,11 @@ import { useCallback, useEffect, useState } from "react";
 import { MapContainer, TileLayer } from "react-leaflet";
 import { LocationHighlighter } from "./highlighter";
 import { MobileBottomBar } from "./mobile-bottom-bar";
-import { EnhancedNewsMarkers } from "./news-marker";
 import { TopBar } from "./top-bar";
 import { useQueryParams } from "@/hooks/use-query";
 import { NewsMapFilters } from "@/types/query-filter";
+import { NewsMarkers } from "./marker";
+import { PopupNews } from "./popup";
 
 type Props = {
   news: NewsType[] | Record<string, any>;
@@ -23,26 +24,40 @@ export function PinPointMap({ news }: Props) {
   const { getParams } = useQueryParams<NewsMapFilters>();
   const country = getParams("country");
 
-  const handleMapReady = useCallback(() => setIsMapReady(true), []);
+  const handleMapReady = useCallback(() => {
+    console.log("Map ready!");
+    setIsMapReady(true);
+  }, []);
+
   useEffect(() => {
     setPending(false);
+
     if (!Array.isArray(news)) {
       return setLocation(news as any);
     }
 
     setMapList(news);
+
     const firstNews = news.find(
       (item) => item.latitude && item.longitude && item.country && item.geojson
     ) as NewsType;
 
-    country &&
+    if (country && firstNews) {
       setLocation({
         latitude: firstNews.latitude,
         longitude: firstNews.longitude,
         name: firstNews.country,
         geojson: firstNews.geojson,
       } as any);
-  }, [news, setMapList]);
+    }
+  }, [news, country, setMapList, setLocation, setPending]);
+
+  console.log("Rendering map with:", {
+    center,
+    zoom,
+    currentLayer,
+    isMapReady,
+  });
 
   return (
     <div className="flex h-screen w-full overflow-hidden">
@@ -63,11 +78,17 @@ export function PinPointMap({ news }: Props) {
             whenReady={handleMapReady}
             style={{ height: "100%", width: "100%", zIndex: 0 }}
           >
-            <TileLayer key={currentLayer} url={MAP_LAYERS[currentLayer].url} />
-            {isMapReady && <EnhancedNewsMarkers />}
-            {isMapReady && <LocationHighlighter />}
-            {isMapReady && <TopBar />}
-            {isMapReady && <MobileBottomBar />}
+            <TileLayer
+              url={MAP_LAYERS[currentLayer].url}
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            />
+
+            {/* Always render components - remove conditional rendering for debugging */}
+            <NewsMarkers />
+            <LocationHighlighter />
+            <TopBar />
+            <MobileBottomBar />
+            <PopupNews />
           </MapContainer>
         </div>
       </div>
