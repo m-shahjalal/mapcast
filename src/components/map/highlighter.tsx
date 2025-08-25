@@ -2,7 +2,7 @@
 import { useEffect } from "react";
 import { Circle, GeoJSON, useMap } from "react-leaflet";
 import { useMapContext } from "@/config/map-context";
-import L from "leaflet";
+import L, { LatLngExpression } from "leaflet";
 
 interface LocationHighlighterProps {
   // Optional: you can pass additional styling props
@@ -62,9 +62,9 @@ export function LocationHighlighter({
     <Circle
       key={`circle-${selectedLocation.latitude}-${selectedLocation.longitude}`}
       center={[
-        parseFloat(selectedLocation.latitude ?? "0"),
-        parseFloat(selectedLocation.longitude ?? "0"),
-      ]}
+        selectedLocation.latitude as number,
+        selectedLocation.longitude as number,
+      ] as LatLngExpression}
       radius={radius}
       pathOptions={{
         color: circleColor,

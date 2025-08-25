@@ -75,7 +75,7 @@ export const rssSource = pgTable(
 );
 
 export const rssSourceRelations = relations(rssSource, ({ many }) => ({
-  articles: many(news),
+  articles: many(news, { relationName: "news_source" }),
 }));
 
 export const createRssSourceSchema = z.object({

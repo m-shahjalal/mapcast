@@ -1,7 +1,7 @@
 import db from "@/server/database";
 import { country, news } from "@/server/database/schemas";
 import { ApiPagination } from "@/types/api-response";
-import { NewsFilters, NewsMapFilters } from "@/types/query-filter";
+import { NewsFilters, NewsMapFilters, MapCastFilters } from "@/types/query-filter";
 import {
   and,
   desc,

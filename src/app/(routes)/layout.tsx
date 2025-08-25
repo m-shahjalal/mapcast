@@ -5,7 +5,7 @@ import { SpinnerProvider } from "@/components/layout/loader-provider";
 import GoogleAnalytics from "@/components/layout/google-analytics";
 
 export const metadata = {
-  title: "PiNews News | Stay Updated",
+  title: "MapCast News | Stay Updated",
   description: "Stay updated with the latest news from around the world.",
 };
 

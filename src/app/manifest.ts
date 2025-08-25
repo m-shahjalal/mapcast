@@ -2,10 +2,10 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "PiNews | update with latest global news",
-    short_name: "PiNews",
+    name: "MapCast | update with latest global news",
+    short_name: "MapCast",
     description:
-      "PiNews is top news app that keeps you updated with the latest global news. Stay informed and stay ahead of the news.",
+      "MapCast is top news app that keeps you updated with the latest global news. Stay informed and stay ahead of the news.",
     start_url: "/",
     display: "standalone",
     orientation: "portrait-primary",
