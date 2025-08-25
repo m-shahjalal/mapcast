@@ -29,6 +29,7 @@
     "pronamespace",
     "schemaname",
     "sequencename",
+    "serwist",
     "sonner",
     "tablename",
     "tsquery",

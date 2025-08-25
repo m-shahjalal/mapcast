@@ -1,4 +1,6 @@
-// Augment TanStack React Table meta to carry arbitrary external state
+import type {  SerwistGlobalConfig } from "@serwist/core";
+import { PrefetchCacheEntry } from "next/dist/client/components/router-reducer/router-reducer-types";
+
 export {};
 
 declare module "@tanstack/react-table" {
@@ -8,3 +10,11 @@ declare module "@tanstack/react-table" {
     updateExtraData?: (key: string, value: unknown) => void;
   }
 }
+
+declare global {
+  interface WorkerGlobalScope extends SerwistGlobalConfig {
+    __SW_MANIFEST: (PrefetchCacheEntry | string)[] | undefined;
+  }
+}
+
+declare const self: WorkerGlobalScope;

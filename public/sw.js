@@ -15,8 +15,8 @@ self.addEventListener("push", (event) => {
   event.waitUntil(self.registration.showNotification(data.title, options));
 });
 
-self.addEventListener("notificationclick", (event) => {
+self.addEventListener("notificationclick", function (event) {
   console.info("Notification click received.");
   event.notification.close();
-  event.waitUntil(clients.openWindow(data.url));
+  event.waitUntil(clients.openWindow("<https://your-website.com>"));
 });

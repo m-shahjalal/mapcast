@@ -607,7 +607,7 @@ export async function generateSEOData({
         yandex: process.env.YANDEX_VERIFICATION || undefined,
         yahoo: process.env.YAHOO_SITE_VERIFICATION || undefined,
         other: {
-          "msvalidate.01": process.env.BING_SITE_VERIFICATION || '',
+          "msvalidate.01": process.env.BING_SITE_VERIFICATION || "",
         },
       },
 
