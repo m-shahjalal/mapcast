@@ -21,10 +21,13 @@ export interface NewsFilters extends BaseFilters {
   location?: string;
 }
 
-export interface NewsMapFilters {
+export interface MapCastFilters {
   topic: (typeof newsTopicList)[number];
   country?: string;
   search?: string;
   from?: Date;
   to?: Date;
 }
+
+// Keeping NewsMapFilters for backward compatibility
+export type NewsMapFilters = MapCastFilters;

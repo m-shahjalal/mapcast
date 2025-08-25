@@ -1,5 +1,5 @@
 import { generateSEOData } from "@/config/seo-meta";
-import { getNewsMapData } from "@/server/actions/news.action";
+import { getMapCastData } from "@/server/actions/news.action";
 import { NewsType } from "@/server/database/schemas";
 import { NewsMapFilters } from "@/types/query-filter";
 import { Viewport } from "next";
@@ -16,7 +16,7 @@ const LazyMap = dynamic(() =>
 
 const SROnlyH1 = ({ params, newsList }: Props & { newsList: NewsType[] }) => (
   <h1 className="sr-only">
-    Interactive News Map -Pinews
+    Interactive News Map -MapCast
     {params.topics &&
       params.topics.length > 0 &&
       params.topics[0] !== "all" &&
@@ -45,7 +45,7 @@ export const viewport: Viewport = {
 
 export default async function MapPinsPage(props: Props) {
   const params = await props.searchParams;
-  const newsList = await getNewsMapData(params);
+  const newsList = await getMapCastData(params);
 
   return (
     <main role="main" aria-label="Interactive news map">

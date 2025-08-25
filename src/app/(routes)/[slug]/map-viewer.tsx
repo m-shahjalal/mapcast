@@ -37,10 +37,7 @@ const MapOverLay = () => {
 export const MapViewer = ({ news }: { news: NewsType }) => {
   const { currentLayer, zoom } = useMapContext();
 
-  const position = [
-    parseFloat(news.latitude ?? "0"),
-    parseFloat(news.longitude ?? "0"),
-  ] as LatLngExpression;
+  const position = [news.latitude, news.longitude] as LatLngExpression;
 
   return (
     <div className="w-full h-full sticky top-0">

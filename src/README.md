@@ -1,6 +1,6 @@
 # News Location - Source Directory
 
-This directory contains all the source code for the News Location (pinews) application.
+This directory contains all the source code for the News Location (mapcast) application.
 
 ## Project Structure
 

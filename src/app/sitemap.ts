@@ -1,4 +1,4 @@
-import { getNewsMapData } from "@/server/actions/news.action";
+import { getMapCastData } from "@/server/actions/news.action";
 import { newsTopicList } from "@/shared/enum-list";
 import { MetadataRoute } from "next";
 
@@ -6,7 +6,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL!;
 
   try {
-    const newsList = await getNewsMapData();
+    const newsList = await getMapCastData();
 
     if (!Array.isArray(newsList))
       return [
