@@ -23,24 +23,24 @@ export const newsTopicList = [
 ] as const;
 
 export const newsTopicDropdown = [
-  { topic: "politics", emoji: "🏛️", color: "#ef4444" }, // red-500
-  { topic: "sports", emoji: "⚽️", color: "#f97316" }, // orange-500
-  { topic: "entertainment", emoji: "🎭", color: "#ec4899" }, // pink-500
-  { topic: "business", emoji: "💼", color: "#22c55e" }, // green-500
-  { topic: "crime", emoji: "🚔", color: "#dc2626" }, // red-600
-  { topic: "technology", emoji: "💻", color: "#3b82f6" }, // blue-500
-  { topic: "health", emoji: "🩺", color: "#eab308" }, // yellow-500
-  { topic: "weather", emoji: "🌤️", color: "#0ea5e9" }, // sky-500
-  { topic: "education", emoji: "📚", color: "#6366f1" }, // indigo-500
-  { topic: "environment", emoji: "🌿", color: "#16a34a" }, // green-600
-  { topic: "lifestyle", emoji: "💅", color: "#f472b6" }, // pink-400
-  { topic: "food", emoji: "🍕", color: "#f59e0b" }, // amber-500
-  { topic: "travel", emoji: "✈️", color: "#3b82f6" }, // blue-500
-  { topic: "opinion", emoji: "🖋️", color: "#9333ea" }, // purple-600
-  { topic: "fact-check", emoji: "✔️", color: "#22d3ee" }, // cyan-400
-  { topic: "science", emoji: "🔬", color: "#8b5cf6" }, // violet-500
-  { topic: "finance", emoji: "💰", color: "#84cc16" }, // lime-500
-  { topic: "religion", emoji: "🛐", color: "#a16207" }, // yellow-700
-  { topic: "automobile", emoji: "🚗", color: "#f43f5e" }, // rose-500
-  { topic: "other", emoji: "📰", color: "#6b7280" }, // gray-500
+  { topic: "politics", emoji: "🗳️", color: "#1d4ed8" }, // blue-700 - distinct for common topic
+  { topic: "sports", emoji: "🏆", color: "#f97316" }, // orange-500 - energetic
+  { topic: "entertainment", emoji: "🎬", color: "#d946ef" }, // fuchsia-500 - glamorous
+  { topic: "business", emoji: "📈", color: "#059669" }, // emerald-600 - professional green
+  { topic: "crime", emoji: "🚨", color: "#dc2626" }, // red-600 - kept for urgency
+  { topic: "technology", emoji: "🚀", color: "#6366f1" }, // indigo-500 - modern tech feel
+  { topic: "health", emoji: "⚕️", color: "#10b981" }, // emerald-500 - medical green
+  { topic: "weather", emoji: "⛅", color: "#0ea5e9" }, // sky-500 - kept, works well
+  { topic: "education", emoji: "🎓", color: "#7c3aed" }, // violet-600 - academic
+  { topic: "environment", emoji: "🌍", color: "#16a34a" }, // green-600 - kept, perfect
+  { topic: "lifestyle", emoji: "✨", color: "#f59e0b" }, // amber-500 - warm lifestyle
+  { topic: "food", emoji: "🍽️", color: "#ea580c" }, // orange-600 - appetite appeal
+  { topic: "travel", emoji: "🗺️", color: "#0891b2" }, // cyan-600 - exploration
+  { topic: "opinion", emoji: "💭", color: "#7c2d12" }, // amber-800 - thoughtful brown
+  { topic: "fact-check", emoji: "🔍", color: "#15803d" }, // green-700 - verification
+  { topic: "science", emoji: "🧬", color: "#8b5cf6" }, // violet-500 - kept, scientific
+  { topic: "finance", emoji: "💎", color: "#14b8a6" }, // teal-500 - wealth/value
+  { topic: "religion", emoji: "🕊️", color: "#92400e" }, // amber-700 - spiritual earth tone
+  { topic: "automobile", emoji: "🏎️", color: "#be185d" }, // pink-700 - dynamic racing
+  { topic: "other", emoji: "📄", color: "#64748b" }, // slate-500 - neutral
 ];
