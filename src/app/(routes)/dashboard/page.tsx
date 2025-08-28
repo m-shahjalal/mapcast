@@ -9,14 +9,11 @@ import { Progress } from "@/components/ui/progress";
 import {
   ArrowDown,
   ArrowUp,
-  Cpu,
   Database,
   Eye,
   Filter,
   Globe,
-  HardDrive,
   MapPin,
-  MemoryStick,
   Minus,
   PieChart,
   Search,
@@ -24,9 +21,13 @@ import {
   Users,
   Zap,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function AdminPage() {
+  const [client, isClient] = useState(false);
+  useEffect(() => isClient(true), []);
+  if (!client) return;
+
   const stats = {
     totalArticles: 15_247,
     todayArticles: 342,

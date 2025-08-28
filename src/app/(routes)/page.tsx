@@ -29,7 +29,8 @@ const SROnlyH1 = ({ params, newsList }: Props & { newsList: NewsType[] }) => (
 );
 
 export async function generateMetadata(props: Props) {
-  return await generateSEOData(props);
+  const params = await props.searchParams;
+  return await generateSEOData({ searchParams: params });
 }
 
 export const viewport: Viewport = {

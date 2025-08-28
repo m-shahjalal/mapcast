@@ -2,7 +2,7 @@ import { getMapCastData } from "@/server/actions/news.action";
 import { MapCastFilters, NewsMapFilters } from "@/types/query-filter";
 import { Metadata } from "next";
 
-type Props = { searchParams: Promise<MapCastFilters> };
+type Props = { searchParams: MapCastFilters }; // Remove Promise wrapper
 
 // Environment variables with fallbacks
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://mapcast.live";
@@ -11,7 +11,7 @@ const BRAND_NAME = "MapCast";
 const TWITTER_HANDLE = "@mapcastlive";
 const CURRENT_YEAR = new Date().getFullYear();
 
-// Enhanced AI search queries for better GEO
+// Enhanced AI search queries for better SEO
 const AI_SEARCH_QUERIES = [
   "best news map website 2025",
   "interactive news visualization tool",
@@ -112,7 +112,7 @@ const createGEOOptimizedContent = (
     sources.length
   } trusted sources. Free interactive news mapping platform with advanced filtering and live updates.`;
 
-  // Enhanced GEO keywords with long-tail variations
+  // Enhanced SEO keywords with long-tail variations
   const geoKeywords = [
     // Brand keywords
     `${BRAND_NAME} news map`,
@@ -470,31 +470,69 @@ const createOGImageUrl = (
   }
 };
 
-// Main metadata generation function with comprehensive error handling
-export async function generateSEOData({
-  searchParams,
-}: Props): Promise<Metadata> {
+// Create fallback metadata for when data fetching fails
+const createFallbackMetadata = (params: MapCastFilters | undefined  ): Metadata => {
+  const topic = params?.topic && params.topic !== "all" ? params.topic : "";
+  const topicPrefix = topic ? `${topic} ` : "";
+  
+  const title = `${topicPrefix}News Map - Interactive Global News Visualization | ${BRAND_NAME}`;
+  const description = `${BRAND_NAME} visualizes breaking news stories on an interactive world map with real-time updates every 15 minutes. Track ${topicPrefix.toLowerCase()}news worldwide, explore geographic patterns, and discover location-based stories from trusted sources. Free interactive news mapping platform.`;
+  
+  return {
+    title: title.slice(0, 60),
+    description: description.slice(0, 160),
+    keywords: AI_SEARCH_QUERIES.slice(0, 10).join(", "),
+    robots: { index: true, follow: true },
+    alternates: { canonical: BASE_URL },
+    openGraph: {
+      title: title.slice(0, 95),
+      description: description.slice(0, 200),
+      type: "website",
+      url: BASE_URL,
+      siteName: BRAND_NAME,
+      locale: "en_US",
+      images: [
+        {
+          url: `${BASE_URL}/images/og-default.jpg`,
+          width: 1200,
+          height: 630,
+          alt: `${BRAND_NAME} - Real-time interactive news visualization platform`,
+          type: "image/jpeg",
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      site: TWITTER_HANDLE,
+      creator: TWITTER_HANDLE,
+      title: title.slice(0, 70),
+      description: `🗺️ ${description.slice(0, 140)}...`,
+    },
+  };
+};
+
+// Main function with improved error handling and static generation support
+export async function generateSEOData({ searchParams }: Props): Promise<Metadata> {
   try {
-    const params = await searchParams;
+    // Handle both Promise and direct searchParams for Next.js compatibility
+    const params = searchParams || {};
     let newsList: any[] = [];
 
-    // Safe data fetching with error handling
+    // Safe data fetching with comprehensive error handling
     try {
-      const data = await getMapCastData(params || {});
+      const data = await getMapCastData(params);
       newsList = Array.isArray(data) ? data : [];
     } catch (error) {
       console.error("Error fetching MapCast data:", error);
-      newsList = []; // Fallback to empty array
+      // Return fallback metadata if data fetching fails
+      return createFallbackMetadata(params);
     }
 
     const { title, description, keywords, newsCount, countries, sources } =
-      createGEOOptimizedContent(newsList, params || {});
+      createGEOOptimizedContent(newsList, params);
 
-    const canonicalUrl = buildCanonicalUrl(params || {});
-    const structuredData = createAIOptimizedStructuredData(
-      newsList,
-      params || {}
-    );
+    const canonicalUrl = buildCanonicalUrl(params);
+    const structuredData = createAIOptimizedStructuredData(newsList, params);
 
     // Safe geographic data extraction
     const geoRegion =
@@ -503,7 +541,7 @@ export async function generateSEOData({
     const coordinates =
       newsList.find((item) => item?.latitude && item?.longitude) || null;
 
-    const ogImageUrl = createOGImageUrl(params || {}, newsCount, countries);
+    const ogImageUrl = createOGImageUrl(params, newsCount, countries);
 
     // Enhanced metadata object
     const metadata: Metadata = {
@@ -731,13 +769,6 @@ export async function generateSEOData({
   } catch (error) {
     console.error("Critical error in generateSEOData:", error);
 
-    // Return minimal fallback metadata
-    return {
-      title: `${BRAND_NAME} - Interactive News Mapping Platform`,
-      description:
-        "Real-time interactive news visualization on world maps. Track breaking news with geographic context and live updates.",
-      robots: { index: true, follow: true },
-      alternates: { canonical: BASE_URL },
-    };
+    return createFallbackMetadata(searchParams);
   }
 }
