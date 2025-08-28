@@ -45,7 +45,7 @@ export const NewsViewer = async ({ news }: { news: NewsType }) => {
   return (
     <article className="max-w-4xl mx-auto bg-white dark:bg-gray-900 min-h-screen">
       {news.topic && news.topic !== "all" && (
-        <div className="sticky top-32 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 px-4 py-3 shadow-sm">
+        <div className="sticky top-32 md:top-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 px-4 py-3 shadow-sm">
           <div className="flex items-center gap-3">
             <span
               className="inline-flex items-center gap-1 px-3 py-1 text-xs font-medium text-white rounded-full shadow-sm"
