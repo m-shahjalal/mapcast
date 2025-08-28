@@ -19,7 +19,7 @@ import {
   Search,
   TrendingUp,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const stats = {
   totalArticles: 15247,
@@ -46,6 +46,19 @@ const getTrendIcon = (value: number) => {
 
 export default function Page() {
   const [timeRange, setTimeRange] = useState("24h");
+  const [client, isClient] = useState(false)
+
+  const handleSearchClick = () => {
+    console.log("Search clicked");
+  };
+
+  const handleFilterClick = () => {
+    console.log("Filter clicked");
+  };
+
+  useEffect(() => isClient(true), [])
+
+  if(!client) return
 
   return (
     <div className="space-y-6">
@@ -143,7 +156,7 @@ export default function Page() {
                 <Globe className="h-5 w-5 mr-2" />
                 Geographic Distribution
               </span>
-              <Button variant="ghost" size="sm">
+              <Button variant="ghost" size="sm" onClick={handleSearchClick}>
                 <Search className="h-4 w-4" />
               </Button>
             </CardTitle>
@@ -191,7 +204,7 @@ export default function Page() {
                 <PieChart className="h-5 w-5 mr-2" />
                 Top News Categories
               </span>
-              <Button variant="ghost" size="sm">
+              <Button variant="ghost" size="sm" onClick={handleFilterClick}>
                 <Filter className="h-4 w-4" />
               </Button>
             </CardTitle>

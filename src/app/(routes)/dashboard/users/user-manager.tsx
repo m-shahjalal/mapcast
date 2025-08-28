@@ -75,21 +75,21 @@ export function UserManager() {
   )
 
   const handleAddUser = () => {
-    if (newUserName && newUserEmail) {
-      const newUser: User = {
-        id: (users.length + 1).toString(),
-        name: newUserName,
-        email: newUserEmail,
-        role: newUserRole,
-        status: "active",
-        lastLogin: new Date().toLocaleString(),
-      }
-      setUsers([...users, newUser])
-      setNewUserName("")
-      setNewUserEmail("")
-      setNewUserRole("viewer")
-      setIsAddUserDialogOpen(false)
+    if (!(newUserName && newUserEmail)) return;
+    
+    const newUser: User = {
+      id: (users.length + 1).toString(),
+      name: newUserName,
+      email: newUserEmail,
+      role: newUserRole,
+      status: "active",
+      lastLogin: new Date().toLocaleString(),
     }
+    setUsers([...users, newUser])
+    setNewUserName("")
+    setNewUserEmail("")
+    setNewUserRole("viewer")
+    setIsAddUserDialogOpen(false)
   }
 
   const handleDeleteUser = (id: string) => {
