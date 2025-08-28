@@ -18,8 +18,8 @@ const formatDate = (date: Date) =>
 
 const formatCount = (num: number | null) => {
   if (!num) return "0";
-  return num >= 1000000
-    ? `${(num / 1000000).toFixed(1)}M`
+  return num >= 1_000_000
+    ? `${(num / 1_000_000).toFixed(1)}M`
     : num >= 1000
     ? `${(num / 1000).toFixed(1)}K`
     : num.toString();
