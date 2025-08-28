@@ -20,6 +20,11 @@ import { Globe } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { Fragment } from "react";
 
+export const metadata = {
+  title: "MapCast | Dashboard",
+  description: "Manage and Operate your MapCast Portal",
+};
+
 export default function DashboardLayout({
   children,
 }: {

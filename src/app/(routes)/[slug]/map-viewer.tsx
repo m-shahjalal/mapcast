@@ -29,7 +29,7 @@ const MapOverLay = () => {
       className="absolute right-0 left-0 top-0 bottom-0 z-[999] w-full h-full bg-gray-800/70 flex justify-center items-center cursor-pointer hover:bg-gray-800/50 transition-all"
       onClick={router.back}
     >
-      <ArrowLeftIcon className="w-28 h-28 opacity-40 absolute top-8 left-4" />
+      <ArrowLeftIcon className="w-28 h-28 opacity-40 md:opacity-80 absolute top-2 left-0" />
     </div>
   );
 };

@@ -21,7 +21,7 @@ export default async function DynamicNews({ params }: Props) {
   return (
     <div className="w-full min-h-screen">
       <div className="md:hidden">
-        <div className="sticky top-0 h-48 md:h-64 z-10 bg-white">
+        <div className="sticky top-0 h-32 md:h-64 z-10 bg-white">
           <LazyMap news={data} />
         </div>
         <div>
