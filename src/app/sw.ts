@@ -1,78 +1,185 @@
-/// <reference lib="webworker" />
+import { defaultCache } from "@serwist/next/worker";
+import type {
+  PrecacheEntry,
+  SerwistGlobalConfig,
+  RuntimeCaching,
+} from "serwist";
+import { Serwist, CacheFirst, NetworkFirst } from "serwist";
 
-import type { PrecacheEntry } from "@serwist/precaching";
-import { CacheFirst, StaleWhileRevalidate } from "@serwist/strategies";
-import { installSerwist } from "@serwist/sw";
+declare global {
+  interface WorkerGlobalScope extends SerwistGlobalConfig {
+    __SW_MANIFEST: (PrecacheEntry | string)[] | undefined;
+  }
+}
 
-declare const self: DedicatedWorkerGlobalScope & {
-  __SW_MANIFEST: (PrecacheEntry | string)[] | undefined;
-  registration: ServiceWorkerRegistration;
-  clients: any;
-  addEventListener: (type: string, listener: (event: any) => void) => void;
-};
+declare const self: ServiceWorkerGlobalScope;
 
-installSerwist({
+// Custom runtime caching with external resources - properly typed
+const customRuntimeCaching: RuntimeCaching[] = [
+  // Handle ArcGIS map tiles
+  {
+    matcher: ({ request }) => {
+      return (
+        request.url.includes("server.arcgisonline.com") ||
+        request.url.includes("arcgis.com")
+      );
+    },
+    handler: new CacheFirst({
+      cacheName: "arcgis-tiles",
+      plugins: [
+        {
+          cacheWillUpdate: async ({ response }) => {
+            return response.status === 200 ? response : null;
+          },
+        },
+      ],
+    }),
+  },
+  // Handle OpenStreetMap tiles
+  {
+    matcher: ({ request }) => {
+      return (
+        request.url.includes("tile.openstreetmap.org") ||
+        request.url.includes("tile.openstreetmap.fr")
+      );
+    },
+    handler: new CacheFirst({
+      cacheName: "osm-tiles",
+      plugins: [
+        {
+          cacheWillUpdate: async ({ response }) => {
+            return response.status === 200 ? response : null;
+          },
+        },
+      ],
+    }),
+  },
+  // Handle CartoDB/CARTO tiles
+  {
+    matcher: ({ request }) => {
+      return request.url.includes("basemaps.cartocdn.com");
+    },
+    handler: new CacheFirst({
+      cacheName: "carto-tiles",
+      plugins: [
+        {
+          cacheWillUpdate: async ({ response }) => {
+            return response.status === 200 ? response : null;
+          },
+        },
+      ],
+    }),
+  },
+  // Handle OpenTopoMap tiles
+  {
+    matcher: ({ request }) => {
+      return request.url.includes("tile.opentopomap.org");
+    },
+    handler: new CacheFirst({
+      cacheName: "topo-tiles",
+      plugins: [
+        {
+          cacheWillUpdate: async ({ response }) => {
+            return response.status === 200 ? response : null;
+          },
+        },
+      ],
+    }),
+  },
+  // Handle Google Tag Manager and Analytics
+  {
+    matcher: ({ request }) => {
+      return (
+        request.url.includes("www.googletagmanager.com") ||
+        request.url.includes("www.google-analytics.com") ||
+        request.url.includes("analytics.google.com")
+      );
+    },
+    handler: new NetworkFirst({
+      cacheName: "google-analytics",
+      networkTimeoutSeconds: 3,
+      plugins: [
+        {
+          cacheWillUpdate: async ({ response }) => {
+            return response.status === 200 ? response : null;
+          },
+        },
+      ],
+    }),
+  },
+  // Include default cache strategies
+  ...defaultCache,
+];
+
+const serwist = new Serwist({
   precacheEntries: self.__SW_MANIFEST,
   skipWaiting: true,
   clientsClaim: true,
   navigationPreload: true,
-  disableDevLogs: true,
-  runtimeCaching: [
-    // Aggressively cache all app routes and pages
-    {
-      matcher: ({ request }: { request: Request }) => {
-        return request.mode === "navigate";
-      },
-      handler: new CacheFirst({
-        cacheName: "pages-cache",
-      }),
-    },
-    // Cache static assets aggressively
-    {
-      matcher:
-        /\.(?:js|css|woff|woff2|ttf|eot|ico|png|jpg|jpeg|svg|gif|webp)$/i,
-      handler: new CacheFirst({
-        cacheName: "static-assets",
-      }),
-    },
-    // Cache Next.js specific files
-    {
-      matcher: /\/_next\/static\/.*/,
-      handler: new CacheFirst({
-        cacheName: "next-static",
-      }),
-    },
-    // Cache Next.js data files
-    {
-      matcher: /\/_next\/data\/.*/,
-      handler: new StaleWhileRevalidate({
-        cacheName: "next-data",
-      }),
-    },
-  ],
+  runtimeCaching: customRuntimeCaching,
 });
 
-// Keep your existing push notification functionality
-self.addEventListener("push", (event: any) => {
-  if (!event.data) return;
-  const data = event.data.json();
-  const options = {
-    body: data.body,
-    icon: data.icon || "/icon.png",
-    badge: "/badge.png",
-    vibrate: [100, 50, 100],
-    data: {
-      dateOfArrival: Date.now(),
-      primaryKey: "2",
-      url: data.url || "/",
-    },
-  };
-  event.waitUntil(self.registration.showNotification(data.title, options));
+// Add custom fetch event handling for external resources
+self.addEventListener("fetch", (event: FetchEvent) => {
+  const url = new URL(event.request.url);
+
+  // Handle all map tile providers with proper CORS
+  const isMapTile =
+    url.hostname.includes("arcgisonline.com") ||
+    url.hostname.includes("arcgis.com") ||
+    url.hostname.includes("tile.openstreetmap.org") ||
+    url.hostname.includes("tile.openstreetmap.fr") ||
+    url.hostname.includes("basemaps.cartocdn.com") ||
+    url.hostname.includes("tile.opentopomap.org");
+
+  if (isMapTile) {
+    event.respondWith(
+      caches.match(event.request).then((cachedResponse) => {
+        if (cachedResponse) {
+          return cachedResponse;
+        }
+
+        return fetch(event.request.clone(), {
+          mode: "cors",
+          credentials: "omit",
+          headers: {
+            Accept: "image/png,image/jpeg,image/webp,image/*,*/*",
+          },
+        })
+          .then((response) => {
+            // Cache successful responses
+            if (response.ok) {
+              const responseClone = response.clone();
+              // Determine cache name based on provider
+              let cacheName = "map-tiles";
+              if (url.hostname.includes("arcgis")) cacheName = "arcgis-tiles";
+              else if (url.hostname.includes("openstreetmap"))
+                cacheName = "osm-tiles";
+              else if (url.hostname.includes("cartocdn"))
+                cacheName = "carto-tiles";
+              else if (url.hostname.includes("opentopomap"))
+                cacheName = "topo-tiles";
+
+              caches.open(cacheName).then((cache) => {
+                cache.put(event.request, responseClone);
+              });
+            }
+            return response;
+          })
+          .catch((error) => {
+            console.log("Map tile fetch failed:", error);
+            // Return a transparent 1x1 PNG as fallback for missing tiles
+            const transparentPng =
+              "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=";
+            return fetch(transparentPng);
+          });
+      })
+    );
+    return;
+  }
+
+  // Let Serwist handle other requests - this is important!
+  // Don't interfere with Serwist's handling of other requests
 });
 
-self.addEventListener("notificationclick", (event: any) => {
-  console.info("Notification click received.");
-  event.notification.close();
-  const url = event.notification.data?.url || "/";
-  event.waitUntil(self.clients.openWindow(url));
-});
+serwist.addEventListeners();

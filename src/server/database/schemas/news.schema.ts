@@ -189,9 +189,7 @@ export const updateNewsSchema = createNewsSchema.partial().omit({
 });
 
 // Enhanced type definitions
-export type NewsType = typeof news.$inferSelect & {
-  geojson?: any; // Keep optional geojson for backward compatibility
-};
+export type NewsType = typeof news.$inferSelect
 export type NewsSelect = typeof news.$inferSelect;
 export type NewNewsType = typeof news.$inferInsert;
 export type UpdateNewsType = z.infer<typeof updateNewsSchema>;

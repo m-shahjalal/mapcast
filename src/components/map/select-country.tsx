@@ -37,8 +37,8 @@ const styles = {
 export function CountrySelect({ onChange, value }: CountrySelectProps) {
   const map = useMap();
   const { setParams, getParams } = useQueryParams<NewsMapFilters>();
-  const { setLocation, isPending, selectedLocation, setZoom } = useMapContext();
-  const country = value !== undefined ? value : getParams("country");
+  const { setCountry, isPending, country, setZoom } = useMapContext();
+  const countryParam = value !== undefined ? value : getParams("country");
 
   const handleCountryChange = async (value: string) => {
     if (onChange) return onChange("country", value);
@@ -54,25 +54,25 @@ export function CountrySelect({ onChange, value }: CountrySelectProps) {
 
     e.preventDefault();
     e.stopPropagation();
-    setLocation(null);
+    setCountry(null);
     setZoom(map.getZoom());
   };
 
   const currentCountry = countries.find(
-    (c) => c.code.toLowerCase() === selectedLocation?.countryCode?.toLowerCase()
+    (c) => c.code.toLowerCase() === country?.countryCode?.toLowerCase()
   );
 
   return (
     <div className="relative flex items-center gap-2 min-w-0 w-full sm:max-w-[220px] flex-1 group">
       <Select
-        value={value ? value : country}
+        value={value ? value : countryParam}
         onValueChange={handleCountryChange}
       >
         <SelectTrigger className={styles.trigger}>
           <div className="flex items-center justify-between w-full">
             <div className="flex items-center gap-2 flex-1 min-w-0 relative">
               <SelectValue placeholder="country" />
-              {!country && (
+              {!countryParam && (
                 <>
                   <Globe className=" h-4 w-4 text-gray-600 dark:text-gray-300 flex-shrink-0" />
                   <span>Country</span>
@@ -82,7 +82,7 @@ export function CountrySelect({ onChange, value }: CountrySelectProps) {
           </div>
         </SelectTrigger>
 
-        {country && (
+        {countryParam && (
           <button onClick={handleClear} className={styles.clearButton}>
             <X className={styles.clearIcon} />
           </button>

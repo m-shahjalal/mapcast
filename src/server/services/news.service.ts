@@ -1,11 +1,8 @@
+import { MapCountry } from "@/config/map-context";
 import db from "@/server/database";
 import { country, news } from "@/server/database/schemas";
 import { ApiPagination } from "@/types/api-response";
-import {
-  NewsFilters,
-  NewsMapFilters,
-  MapCastFilters,
-} from "@/types/query-filter";
+import { NewsFilters, NewsMapFilters } from "@/types/query-filter";
 import {
   and,
   count,
@@ -13,8 +10,6 @@ import {
   eq,
   getTableColumns,
   gte,
-  ilike,
-  inArray,
   isNotNull,
   lt,
   lte,
@@ -73,6 +68,83 @@ export const NewsService = {
   },
 
   async getMapData(filters?: NewsMapFilters) {
+    const fromDate = filters?.from
+      ? new Date(filters.from)
+      : new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+
+    const conditions: SQLWrapper[] = [
+      isNotNull(news.location),
+      gte(news.createdAt, fromDate),
+      lte(news.createdAt, filters?.to ? new Date(filters.to) : new Date()),
+    ];
+
+    if (filters?.topic) {
+      conditions.push(eq(news.topic, filters.topic));
+    }
+
+    if (filters?.country) {
+      conditions.push(eq(news.countryCode, filters.country));
+    }
+
+    if (filters?.search) {
+      conditions.push(
+        sql`to_tsvector('english', ${news.title} || ' ' || ${news.summary} || ' ' || ${news.location}) @@ plainto_tsquery('english', ${filters.search})`
+      );
+    }
+
+    const hasFilters =
+      filters?.topic ||
+      filters?.country ||
+      filters?.search ||
+      filters?.from ||
+      filters?.to;
+
+    const subqueryBuilder = db
+      .select({ country: news.country })
+      .from(news)
+      .where(and(...conditions))
+      .groupBy(news.country);
+
+    const subquery = hasFilters
+      ? subqueryBuilder.as("filtered_countries")
+      : subqueryBuilder
+          .having(lt(count(news.country), 8))
+          .as("filtered_countries");
+
+    const result = await db
+      .selectDistinctOn([news.latitude, news.longitude], {
+        ...getTableColumns(news),
+      })
+      .from(news)
+      .innerJoin(subquery, eq(news.country, subquery.country))
+      .where(and(...conditions))
+      .orderBy(news.latitude, news.longitude, desc(news.createdAt))
+      .limit(500);
+
+    if (filters?.country) {
+      const location = await db.query.country.findFirst({
+        where: eq(country.code, filters?.country),
+      });
+
+      if (!location) {
+        return { data: result, country: null };
+      }
+
+      const countryData: MapCountry = {
+        name: location.name,
+        geojson: location.geojson,
+        latitude: Number(location.lat),
+        longitude: Number(location.lon),
+        countryCode: location.code,
+      };
+
+      return { data: result, country: countryData };
+    }
+
+    return { data: result, country: null };
+  },
+
+  async getSiteMapData(filters?: NewsMapFilters) {
     const conditions: SQLWrapper[] = [isNotNull(news.location)];
 
     const fromDate = filters?.from
@@ -112,15 +184,13 @@ export const NewsService = {
     const result = await db
       .selectDistinctOn([news.latitude, news.longitude], {
         ...getTableColumns(news),
-        geojson: country.geojson,
       })
       .from(news)
-      .leftJoin(country, eq(country.code, news.countryCode))
       .innerJoin(subquery, eq(news.country, subquery.country))
       .where(and(...conditions))
       .orderBy(news.latitude, news.longitude, desc(news.createdAt))
       .limit(500);
-      
+
     if (result.length > 0) return result;
 
     if (filters?.country) {
@@ -130,14 +200,12 @@ export const NewsService = {
 
       if (!location) return result;
 
-      const locationData = {
+      return {
         latitude: location?.lat,
         longitude: location?.lon,
         name: location?.name,
         geojson: location?.geojson,
       };
-
-      return locationData;
     }
 
     return result;

@@ -18,7 +18,7 @@ export interface DateRange {
 }
 
 const dateRangeOptions = [
-  { value: "breaking", label: "Breaking" },
+  { value: "breaking", label: "🔥 Breaking" },
   { value: "recent", label: "Recent" },
   { value: "last3days", label: "Last 3 days" },
   { value: "last7days", label: "Last 7 days" },

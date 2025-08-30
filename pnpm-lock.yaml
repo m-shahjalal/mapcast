@@ -56,9 +56,6 @@ importers:
       '@radix-ui/react-tooltip':
         specifier: ^1.2.7
         version: 1.2.7(@types/react-dom@19.1.6(@types/react@19.1.8))(@types/react@19.1.8)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
-      '@serwist/core':
-        specifier: ^9.1.1
-        version: 9.1.1(typescript@5.8.3)
       '@serwist/next':
         specifier: ^9.1.1
         version: 9.1.1(next@15.4.4(@babel/core@7.28.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(typescript@5.8.3)
@@ -198,6 +195,9 @@ importers:
       eslint-config-next:
         specifier: 15.4.4
         version: 15.4.4(eslint@9.31.0(jiti@2.4.2))(typescript@5.8.3)
+      serwist:
+        specifier: ^9.2.0
+        version: 9.2.0(typescript@5.8.3)
       tailwindcss:
         specifier: ^4
         version: 4.1.11
@@ -2022,14 +2022,6 @@ packages:
   '@serwist/build@9.1.1':
     resolution: {integrity: sha512-AYUwA9KtHWCYaUuo68hctm69MeT7YnYPtvoceY88C4CzjoNBrNkUZsPoDs5xde+8lX7tHYaKfM3KDpmEH1PuNQ==}
     engines: {node: '>=18.0.0'}
-    peerDependencies:
-      typescript: '>=5.0.0'
-    peerDependenciesMeta:
-      typescript:
-        optional: true
-
-  '@serwist/core@9.1.1':
-    resolution: {integrity: sha512-bR1TtvfqA9JJIL1cf+scy9NCUfraLxLN7FEgrQj8xh7t4nd08bVq1EadYcstmVkx9iqUhRnmngkFOpAbtvJRjw==}
     peerDependencies:
       typescript: '>=5.0.0'
     peerDependenciesMeta:
@@ -4481,6 +4473,14 @@ packages:
       typescript:
         optional: true
 
+  serwist@9.2.0:
+    resolution: {integrity: sha512-T5ZVNQeJ0ivVbDQtvlCm+KCy0JXFpmr+UCXdzg/Ep7bePWfQA405GfITZzbSZkwl2WpJSICGwGpggYJOBuud6A==}
+    peerDependencies:
+      typescript: '>=5.0.0'
+    peerDependenciesMeta:
+      typescript:
+        optional: true
+
   set-function-length@1.2.2:
     resolution: {integrity: sha512-pgRc4hJ4/sNjWCSS9AmnS40x3bNMDTknHgL5UaMBTMyJnU90EgWh1Rz+MC9eFu4BuN/UwZjKQuY/1v3rM7HMfg==}
     engines: {node: '>= 0.4'}
@@ -6842,12 +6842,6 @@ snapshots:
       pretty-bytes: 6.1.1
       source-map: 0.8.0-beta.0
       zod: 4.0.5
-    optionalDependencies:
-      typescript: 5.8.3
-
-  '@serwist/core@9.1.1(typescript@5.8.3)':
-    dependencies:
-      serwist: 9.1.1(typescript@5.8.3)
     optionalDependencies:
       typescript: 5.8.3
 
@@ -9727,6 +9721,12 @@ snapshots:
       randombytes: 2.1.0
 
   serwist@9.1.1(typescript@5.8.3):
+    dependencies:
+      idb: 8.0.3
+    optionalDependencies:
+      typescript: 5.8.3
+
+  serwist@9.2.0(typescript@5.8.3):
     dependencies:
       idb: 8.0.3
     optionalDependencies:

@@ -33,7 +33,7 @@ export default async function MapPinsPage(props: Props) {
   return (
     <main role="main" aria-label="Interactive news map">
       {Array.isArray(newsList) && <SROnlyH1 {...props} newsList={newsList!} />}
-      <LazyMap news={newsList!} />
+      <LazyMap news={newsList.data} location={newsList.country } />
     </main>
   );
 }
