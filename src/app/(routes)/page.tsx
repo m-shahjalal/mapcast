@@ -1,7 +1,6 @@
 import { getMapCastData } from "@/server/actions/news.action";
 import { NewsType } from "@/server/database/schemas";
 import { NewsMapFilters } from "@/types/query-filter";
-import { Viewport } from "next";
 import dynamic from "next/dynamic";
 
 type Props = {
@@ -26,17 +25,6 @@ const SROnlyH1 = ({ params, newsList }: Props & { newsList: NewsType[] }) => (
       ` in ${newsList.find((news) => news.country)?.country}`}
   </h1>
 );
-
-export const viewport: Viewport = {
-  viewportFit: "auto",
-  initialScale: 1,
-  maximumScale: 1.5,
-  width: "device-width",
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-    { media: "(prefers-color-scheme: dark)", color: "#0f0f23" },
-  ],
-};
 
 export default async function MapPinsPage(props: Props) {
   const params = await props.searchParams;
