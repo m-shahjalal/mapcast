@@ -105,8 +105,6 @@ const PopupContent = ({
 
 export const PopupNews = () => {
   const { popup } = useMapContext();
-
-  console.log("popup", popup);
   if (!popup) return;
 
   const { news, topic, position } = popup;
