@@ -19,7 +19,7 @@ export interface TopicItem {
 export interface MapState {
   center: [number, number];
   zoom: number;
-  selectedLocation: NewsType | null;
+  country: MapCountry  | null;
   mapList: NewsType[];
   currentLayer: keyof typeof MAP_LAYERS;
   isPending: boolean;
@@ -31,11 +31,19 @@ export interface MapState {
   } | null;
 }
 
+export interface MapCountry {
+  name: string;
+  geojson: any;
+  latitude: number;
+  longitude: number;
+  countryCode: string;
+}
+
 export interface MapActions {
   setCenter: (center: [number, number]) => void;
   setZoom: (zoom: number) => void;
   setMapList: (results: NewsType[]) => void;
-  setLocation: (location: NewsType | null) => void;
+  setCountry: (location: MapCountry | null) => void;
   setCurrentLayer: (layer: keyof typeof MAP_LAYERS) => void;
   setPending: (pending: boolean) => void;
   setError: (error: string | null) => void;
@@ -47,13 +55,12 @@ export interface MapActions {
 }
 
 type MapContextType = MapState & MapActions;
-
 const MapContext = createContext<MapContextType | undefined>(undefined);
 
 type MapAction =
   | { type: "SET_CENTER"; payload: [number, number] }
   | { type: "SET_ZOOM"; payload: number }
-  | { type: "SET_LOCATION"; payload: NewsType | null }
+  | { type: "SET_COUNTRY"; payload: MapCountry | null }
   | { type: "SET_MAP_LIST"; payload: NewsType[] }
   | { type: "SET_CURRENT_LAYER"; payload: keyof typeof MAP_LAYERS }
   | { type: "SET_PENDING"; payload: boolean }
@@ -66,7 +73,7 @@ type MapAction =
 const initialState: MapState = {
   center: [0, 0],
   zoom: 3,
-  selectedLocation: null,
+  country: null,
   mapList: [],
   currentLayer: "satellite",
   isPending: false,
@@ -90,10 +97,10 @@ function mapReducer(state: MapState, action: MapAction): MapState {
         error: null,
       };
 
-    case "SET_LOCATION":
+    case "SET_COUNTRY":
       return {
         ...state,
-        selectedLocation: action.payload,
+        country: action.payload || null,
         center: [
           typeof action.payload?.latitude === "number"
             ? action.payload.latitude
@@ -134,8 +141,8 @@ export function MapProvider({ children }: MapProviderProps) {
       setCenter: (center: [number, number]) =>
         dispatch({ type: "SET_CENTER", payload: center }),
       setZoom: (zoom: number) => dispatch({ type: "SET_ZOOM", payload: zoom }),
-      setLocation: (location: NewsType | null) =>
-        dispatch({ type: "SET_LOCATION", payload: location }),
+      setCountry: (location: MapCountry | null) =>
+        dispatch({ type: "SET_COUNTRY", payload: location }),
       setMapList: (results: NewsType[]) =>
         dispatch({ type: "SET_MAP_LIST", payload: results }),
       setCurrentLayer: (layer: keyof typeof MAP_LAYERS) =>

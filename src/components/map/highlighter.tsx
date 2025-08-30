@@ -5,47 +5,42 @@ import { useMapContext } from "@/config/map-context";
 import L, { LatLngExpression } from "leaflet";
 
 interface LocationHighlighterProps {
-  // Optional: you can pass additional styling props
-  circleColor?: string;
+   circleColor?: string;
   fillColor?: string;
   fillOpacity?: number;
   radius?: number;
 }
 
 export function LocationHighlighter({
-  circleColor = "#2563eb", // Professional blue
-  fillColor = "#3b82f6", // Slightly lighter blue for fill
+  circleColor = "#2563eb", 
+  fillColor = "#3b82f6", 
   fillOpacity = 0.2,
   radius = 2000,
 }: LocationHighlighterProps) {
   const map = useMap();
-  const { selectedLocation } = useMapContext();
+  const { country } = useMapContext();
 
   useEffect(() => {
-    if (!selectedLocation) return;
+    if (!country) return;
 
-    // Fit bounds if geojson boundary is available
-    if (selectedLocation?.geojson) {
-      try {
-        const geoJsonLayer = L.geoJSON(selectedLocation.geojson);
-        map.fitBounds(geoJsonLayer.getBounds(), {
-          padding: [20, 20],
-          maxZoom: 14,
-        });
-      } catch (error) {
-        console.error("Error fitting bounds:", error);
-      }
+    try {
+      const geoJsonLayer = L.geoJSON(country.geojson);
+      map.fitBounds(geoJsonLayer.getBounds(), {
+        padding: [20, 20],
+        maxZoom: 14,
+      });
+    } catch (error) {
+      console.error("Error fitting bounds:", error);
     }
-  }, [selectedLocation, map]);
+  }, [country, map]);
 
-  if (!selectedLocation) return null;
+  if (!country) return null;
 
-  // If we have geojson boundary data, use it
-  if (selectedLocation.geojson) {
+  if (country.geojson) {
     return (
       <GeoJSON
-        key={`geojson-${selectedLocation.latitude}-${selectedLocation.longitude}`}
-        data={selectedLocation.geojson}
+        key={`geojson-${country.latitude}-${country.longitude}`}
+        data={country.geojson}
         style={{
           color: circleColor,
           weight: 3,
@@ -57,14 +52,15 @@ export function LocationHighlighter({
     );
   }
 
-  // Fallback to circle if no boundary data
   return (
     <Circle
-      key={`circle-${selectedLocation.latitude}-${selectedLocation.longitude}`}
-      center={[
-        selectedLocation.latitude as number,
-        selectedLocation.longitude as number,
-      ] as LatLngExpression}
+      key={`circle-${country.latitude}-${country.longitude}`}
+      center={
+        [
+          country.latitude as number,
+          country.longitude as number,
+        ] as LatLngExpression
+      }
       radius={radius}
       pathOptions={{
         color: circleColor,

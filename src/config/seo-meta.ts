@@ -1,4 +1,4 @@
-import { getMapCastData } from "@/server/actions/news.action";
+import { getSiteMapData } from "@/server/actions/news.action";
 import { MapCastFilters, NewsMapFilters } from "@/types/query-filter";
 import { Metadata } from "next";
 
@@ -241,7 +241,7 @@ export async function generateSEOData({
     let newsList: any[] = [];
 
     try {
-      const data = await getMapCastData(params);
+      const data = await getSiteMapData(params);
       newsList = Array.isArray(data) ? data : [];
     } catch (error) {
       console.error("Error fetching MapCast data:", error);
