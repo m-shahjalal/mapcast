@@ -12,6 +12,8 @@ export default function manifest(): MetadataRoute.Manifest {
     categories: ["productivity", "utilities"],
     lang: "en",
     dir: "ltr",
+    theme_color: "rgba(0,0,0,0.3)",
+    background_color: "rgba(0,0,0,0.3)",
     icons: [
       {
         purpose: "maskable",
