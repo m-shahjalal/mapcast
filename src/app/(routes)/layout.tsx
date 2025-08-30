@@ -1,15 +1,14 @@
+import GoogleAnalytics from "@/components/layout/google-analytics";
+import { SpinnerProvider } from "@/components/layout/loader-provider";
 import Providers from "@/components/layout/provider";
+import { generateSEOData } from "@/config/seo-meta";
 import "../globals.css";
 import "leaflet/dist/leaflet.css";
-import { SpinnerProvider } from "@/components/layout/loader-provider";
-import GoogleAnalytics from "@/components/layout/google-analytics";
-import { Metadata } from "next";
 
-export const metadata: Metadata = {
-  title: "MapCast News | Stay Updated",
-  description: "Stay updated with the latest news from around the world.",
-  verification: { google: "_V-psXwKrv-EDgVThwlKUgdLWRKXycLEfPAPmCsx6hE" },
-};
+export async function generateMetadata(props: any) {
+  const params = await props.searchParams;
+  return await generateSEOData({ searchParams: params });
+}
 
 export default async function RootLayout({
   children,
@@ -18,8 +17,8 @@ export default async function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <GoogleAnalytics ga_id="G-FGXP13M35X" />
       <body className={`antialiased`}>
-        <GoogleAnalytics ga_id="G-FGXP13M35X" />
         <Providers>
           <SpinnerProvider />
           {children}

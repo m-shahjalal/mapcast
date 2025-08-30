@@ -1,4 +1,3 @@
-import { generateSEOData } from "@/config/seo-meta";
 import { getMapCastData } from "@/server/actions/news.action";
 import { NewsType } from "@/server/database/schemas";
 import { NewsMapFilters } from "@/types/query-filter";
@@ -27,11 +26,6 @@ const SROnlyH1 = ({ params, newsList }: Props & { newsList: NewsType[] }) => (
       ` in ${newsList.find((news) => news.country)?.country}`}
   </h1>
 );
-
-export async function generateMetadata(props: Props) {
-  const params = await props.searchParams;
-  return await generateSEOData({ searchParams: params });
-}
 
 export const viewport: Viewport = {
   viewportFit: "auto",
