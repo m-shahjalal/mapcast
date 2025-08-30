@@ -3,10 +3,11 @@ import { newsTopicDropdown } from "@/shared/enum-list";
 import { NewsMapFilters } from "@/types/query-filter";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "../ui/select";
 import { Component } from "lucide-react";
+import { useState } from "react";
 
 const styles = {
   trigger:
-    "w-full h-10 rounded-full backdrop-blur-xl border border-gray-200/50 dark:border-gray-700/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] focus:ring-0 focus:ring-transparent focus:border-gray-200/50 dark:focus:border-gray-700/50",
+    "w-full h-10 rounded-full bg-gradient-to-r from-white/80 to-white/60 dark:from-gray-900/80 dark:to-gray-800/60 backdrop-blur-xl border border-gray-200/50 dark:border-gray-700/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] focus:ring-0 focus:ring-transparent focus:border-gray-200/50 dark:focus:border-gray-700/50",
   content:
     "w-[var(--radix-select-trigger-width)] min-w-[180px] sm:max-w-[220px] rounded-xl border border-gray-200/50 dark:border-gray-700/50 bg-gradient-to-br from-white/95 via-white/90 to-gray-50/95 dark:from-gray-900/95 dark:via-gray-900/90 dark:to-gray-800/95 backdrop-blur-2xl shadow-2xl ring-1 ring-black/5 dark:ring-white/10",
   item: "rounded-lg hover:bg-gradient-to-r hover:from-blue-50/80 hover:to-indigo-50/80 dark:hover:from-blue-900/30 dark:hover:to-indigo-900/30 focus:bg-gradient-to-r focus:from-blue-50/80 focus:to-indigo-50/80 dark:focus:from-blue-900/30 dark:focus:to-indigo-900/30 transition-all duration-200",
@@ -47,20 +48,23 @@ export function TopicFilters({
   const { getParams, setParams } = useQueryParams<NewsMapFilters>();
   const topicParam = value ?? getParams("topic");
   const topic = newsTopicDropdown.find((i) => i.topic === topicParam);
-
-  const dynamicBackground = topic?.color
-    ? createGradientBackground(topic.color)
-    : "linear-gradient(135deg, rgb(255, 255, 255, 0.8), rgb(255, 255, 255, 0.6))";
+  const [bgColor, setBgColor] = useState<string>(
+    topic?.color ? createGradientBackground(topic.color) : ""
+  );
 
   const dynamicTextColor = topic?.color
     ? getTextColor(topic.color)
     : "text-gray-700 dark:text-gray-200";
 
-  const handleChange = (v: string) => {
-    const value = v !== "all" ? v : null;
+  const handleChange = async (v: string) => {
+    const value = v === "all" ? null : v;
+    const topic = newsTopicDropdown.find((i) => i.topic === v);
 
-    if (onChange) return onChange("topic", value);
-    setParams("topic", value);
+    if (v === "all" || !topic?.color) setBgColor("");
+    else setBgColor(createGradientBackground(topic.color));
+
+    if (onChange) onChange("topic", value);
+    else setParams("topic", value);
   };
 
   return (
@@ -72,9 +76,7 @@ export function TopicFilters({
       >
         <SelectTrigger
           className={styles.trigger}
-          style={{
-            background: dynamicBackground,
-          }}
+          style={bgColor ? { background: bgColor } : {}}
         >
           <div className="flex items-center justify-between w-full">
             <div className="flex items-center gap-2 flex-1">

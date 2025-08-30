@@ -1,9 +1,14 @@
 import db from "@/server/database";
 import { country, news } from "@/server/database/schemas";
 import { ApiPagination } from "@/types/api-response";
-import { NewsFilters, NewsMapFilters, MapCastFilters } from "@/types/query-filter";
+import {
+  NewsFilters,
+  NewsMapFilters,
+  MapCastFilters,
+} from "@/types/query-filter";
 import {
   and,
+  count,
   desc,
   eq,
   getTableColumns,
@@ -11,6 +16,7 @@ import {
   ilike,
   inArray,
   isNotNull,
+  lt,
   lte,
   sql,
   SQLWrapper,
@@ -95,17 +101,26 @@ export const NewsService = {
       );
     }
 
+    const subquery = db
+      .select({ country: news.country })
+      .from(news)
+      .where(and(...conditions))
+      .groupBy(news.country)
+      .having(lt(count(news.country), 8))
+      .as("filtered_countries");
+
     const result = await db
       .selectDistinctOn([news.latitude, news.longitude], {
         ...getTableColumns(news),
         geojson: country.geojson,
       })
       .from(news)
+      .leftJoin(country, eq(country.code, news.countryCode))
+      .innerJoin(subquery, eq(news.country, subquery.country))
       .where(and(...conditions))
-      .limit(1000)
       .orderBy(news.latitude, news.longitude, desc(news.createdAt))
-      .leftJoin(country, eq(country.code, filters?.country ?? ""));
-
+      .limit(500);
+      
     if (result.length > 0) return result;
 
     if (filters?.country) {

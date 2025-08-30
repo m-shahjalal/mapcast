@@ -52,13 +52,6 @@ export function PinPointMap({ news }: Props) {
     }
   }, [news, country, setMapList, setLocation, setPending]);
 
-  console.log("Rendering map with:", {
-    center,
-    zoom,
-    currentLayer,
-    isMapReady,
-  });
-
   return (
     <div className="flex h-screen w-full overflow-hidden">
       <div className="relative flex-1 min-h-0">
@@ -70,6 +63,7 @@ export function PinPointMap({ news }: Props) {
             maxZoom={18}
             className="h-full w-full"
             zoomControl={false}
+            preferCanvas
             maxBounds={[
               [-85, -180],
               [85, 180],
@@ -83,7 +77,6 @@ export function PinPointMap({ news }: Props) {
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             />
 
-            {/* Always render components - remove conditional rendering for debugging */}
             <NewsMarkers />
             <LocationHighlighter />
             <TopBar />
