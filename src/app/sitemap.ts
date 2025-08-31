@@ -1,4 +1,4 @@
-import { getMapCastData } from "@/server/actions/news.action";
+import { getSiteMapData } from "@/server/actions/news.action";
 import { newsTopicList } from "@/shared/enum-list";
 import { MetadataRoute } from "next";
 
@@ -17,7 +17,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL!;
 
   try {
-    const newsList = await getMapCastData();
+    const newsList = await getSiteMapData();
     if (!Array.isArray(newsList)) return defaultSitemap();
 
     const newsUrls = newsList
@@ -78,17 +78,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const now = new Date();
     const dateRanges = [
       {
-        from: new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000), // Yesterday
+        from: new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000),
         to: now,
         label: "today",
       },
       {
-        from: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000), // Last week
+        from: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000),
         to: now,
         label: "week",
       },
       {
-        from: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000), // Last month
+        from: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000),
         to: now,
         label: "month",
       },
@@ -115,7 +115,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       "crisis",
       "update",
       "report",
-    ]; // You can populate this from your analytics or most common searches
+    ];
 
     popularSearchTerms.forEach((searchTerm) => {
       searchParamUrls.push({
