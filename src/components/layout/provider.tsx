@@ -6,15 +6,13 @@ import NextTopLoader from "nextjs-toploader";
 import { ReactNode, useEffect, useState } from "react";
 import { Toaster } from "sonner";
 import { PwaManager } from "./pwa/push-manager";
-import { SplashScreen } from "./pwa/splash-screen";
-import { SpinnerProvider } from "./loader-provider";
+import { SSRLoader } from "./ssr-loader";
 
 const Providers = ({ children }: { children: ReactNode }) => {
   const [isClient, setIsClient] = useState(false);
-  const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
-    setTimeout(() => setIsClient(true), 100)
+    setTimeout(() => setIsClient(true), 100);
 
     return () => {
       window.addEventListener("beforeunload", () =>
@@ -22,11 +20,6 @@ const Providers = ({ children }: { children: ReactNode }) => {
       );
     };
   }, []);
-
-  if (showSplash) {
-    return <SplashScreen onComplete={() => setShowSplash(false)} />;
-  }
-
 
   return (
     <div
@@ -41,7 +34,10 @@ const Providers = ({ children }: { children: ReactNode }) => {
         disableTransitionOnChange
       >
         <NextTopLoader color="#3b82f6" showSpinner={false} height={3} />
-        <MapProvider>{children}</MapProvider>
+        <SSRLoader />
+        <MapProvider>
+          <div className="relative z-10">{children}</div>
+        </MapProvider>
         <Toaster
           position="top-right"
           duration={5000}

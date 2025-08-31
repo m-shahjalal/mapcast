@@ -9,7 +9,7 @@ import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { adjustColor } from "./marker";
 import { NewsType } from "@/server/database/schemas";
-import { Spinner } from "../ui/spinner";
+import { IconSpinner } from "../ui/spinner";
 
 const PopupContent = ({
   news,
@@ -91,7 +91,6 @@ const PopupContent = ({
         </div>
       </div>
 
-      {/* CTA Button */}
       <Button
         onClick={handleRead}
         style={{
@@ -103,7 +102,7 @@ const PopupContent = ({
         className="w-full text-white border-0 text-xs py-2 rounded-lg shadow-md hover:shadow-lg hover:scale-[1.02] transition-all duration-200"
       >
         {isLoading ? (
-          <Spinner variant="circle" />
+          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-1" />
         ) : (
           <FileSpreadsheet className="w-3 h-3 mr-1" />
         )}

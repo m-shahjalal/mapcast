@@ -1,5 +1,4 @@
 import GoogleAnalytics from "@/components/layout/google-analytics";
-import { SpinnerProvider } from "@/components/layout/loader-provider";
 import Providers from "@/components/layout/provider";
 import { generateSEOData } from "@/config/seo-meta";
 import "../globals.css";
@@ -32,7 +31,6 @@ export default async function RootLayout({
       <GoogleAnalytics ga_id="G-FGXP13M35X" />
       <body className={`antialiased`}>
         <Providers>
-          <SpinnerProvider />
           {children}
         </Providers>
       </body>

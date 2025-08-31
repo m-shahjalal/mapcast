@@ -1,4 +1,5 @@
 "use client";
+
 import { MAP_LAYERS } from "@/config/map-constraint";
 import { useMapContext } from "@/config/map-context";
 import { NewsType } from "@/server/database/schemas";
@@ -34,7 +35,6 @@ const MapOverLay = () => {
 
 export const MapViewer = ({ news }: { news: NewsType }) => {
   const { currentLayer, zoom } = useMapContext();
-
   const position = [news.latitude, news.longitude] as LatLngExpression;
 
   return (

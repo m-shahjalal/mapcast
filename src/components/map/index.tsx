@@ -5,21 +5,21 @@ import { MapCountry, useMapContext } from "@/config/map-context";
 import { useQueryParams } from "@/hooks/use-query";
 import { NewsType } from "@/server/database/schemas";
 import { NewsMapFilters } from "@/types/query-filter";
+import { useTheme } from "next-themes";
 import { useEffect } from "react";
 import { MapContainer, TileLayer } from "react-leaflet";
+import { IconSpinner } from "../ui/spinner";
 import { LocationHighlighter } from "./highlighter";
 import { NewsMarkers } from "./marker";
 import { MobileBottomBar } from "./mobile-bottom-bar";
 import { PopupNews } from "./popup";
 import { TopBar } from "./top-bar";
 
-type Props = {
-  news: NewsType[];
-  location: MapCountry | null;
-};
+type Props = { news: NewsType[]; location: MapCountry | null };
 
 export function PinPointMap({ news, location }: Props) {
   const map = useMapContext();
+  const { theme } = useTheme();
 
   const { getParams } = useQueryParams<NewsMapFilters>();
   const country = getParams("country");
@@ -32,6 +32,14 @@ export function PinPointMap({ news, location }: Props) {
 
   return (
     <div className="flex h-screen w-full overflow-hidden">
+      {map.isPending && (
+        <div className="fixed left-0 top-0 right-0 bottom-0 flex justify-center items-center w-screen z-50 bg-transparent">
+          <IconSpinner
+            color={theme === "dark" ? "white" : "black"}
+            size={100}
+          />
+        </div>
+      )}
       <div className="relative flex-1 min-h-0">
         <div className="h-full w-full relative">
           <MapContainer
