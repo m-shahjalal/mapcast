@@ -99,26 +99,62 @@ export const NewsService = {
       filters?.from ||
       filters?.to;
 
-    const subqueryBuilder = db
-      .select({ country: news.country })
-      .from(news)
-      .where(and(...conditions))
-      .groupBy(news.country);
+    const latestPerSource = db.$with("latest_per_source").as(
+      db
+        .select({
+          ...getTableColumns(news),
+          rn: sql`row_number() over (partition by ${news.sourceDomain} order by ${news.createdAt} desc)`.as(
+            "rn"
+          ),
+        })
+        .from(news)
+        .where(and(...conditions))
+    );
 
-    const subquery = hasFilters
-      ? subqueryBuilder.as("filtered_countries")
-      : subqueryBuilder
-          .having(lt(count(news.country), 8))
-          .as("filtered_countries");
+    const whereCondition = hasFilters ? undefined : lte(latestPerSource.rn, 8);
 
     const result = await db
-      .selectDistinctOn([news.latitude, news.longitude], {
-        ...getTableColumns(news),
+      .with(latestPerSource)
+      .selectDistinctOn([latestPerSource.latitude, latestPerSource.longitude], {
+        id: latestPerSource.id,
+        title: latestPerSource.title,
+        metaTitle: latestPerSource.metaTitle,
+        metaDescription: latestPerSource.metaDescription,
+        summary: latestPerSource.summary,
+        content: latestPerSource.content,
+        slug: latestPerSource.slug,
+        originalUrl: latestPerSource.originalUrl,
+        sourceDomain: latestPerSource.sourceDomain,
+        topic: latestPerSource.topic,
+        tags: latestPerSource.tags,
+        keywords: latestPerSource.keywords,
+        language: latestPerSource.language,
+
+        countryCode: latestPerSource.countryCode,
+        latitude: latestPerSource.latitude,
+        longitude: latestPerSource.longitude,
+        publishedAt: latestPerSource.publishedAt,
+        readTime: latestPerSource.readTime,
+        viewsCount: latestPerSource.viewsCount,
+        sharesCount: latestPerSource.sharesCount,
+        likesCount: latestPerSource.likesCount,
+        status: latestPerSource.status,
+        isFeatured: latestPerSource.isFeatured,
+        isBreaking: latestPerSource.isBreaking,
+        isPinned: latestPerSource.isPinned,
+        isVerified: latestPerSource.isVerified,
+        seoScore: latestPerSource.seoScore,
+        qualityScore: latestPerSource.qualityScore,
+        createdAt: latestPerSource.createdAt,
+        updatedAt: latestPerSource.updatedAt,
       })
-      .from(news)
-      .innerJoin(subquery, eq(news.country, subquery.country))
-      .where(and(...conditions))
-      .orderBy(news.latitude, news.longitude, desc(news.createdAt))
+      .from(latestPerSource)
+      .where(whereCondition)
+      .orderBy(
+        latestPerSource.latitude,
+        latestPerSource.longitude,
+        desc(latestPerSource.createdAt)
+      )
       .limit(500);
 
     if (filters?.country) {

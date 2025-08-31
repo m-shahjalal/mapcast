@@ -9,10 +9,8 @@ import { MapContainer, Marker, TileLayer, useMapEvents } from "react-leaflet";
 
 const createDefaultIcon = (): L.Icon => {
   return L.icon({
-    iconUrl:
-      "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png",
-    shadowUrl:
-      "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
+    iconUrl: `/images/map-pin.png`,
+    shadowUrl: `/images/map-pin-shadow.png`,
     iconSize: [25, 41],
     iconAnchor: [12, 41],
     popupAnchor: [1, -34],

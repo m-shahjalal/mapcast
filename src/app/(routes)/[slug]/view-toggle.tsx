@@ -5,7 +5,6 @@ import { Maximize, Minimize, X } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 
-// Extend the interfaces to include vendor-prefixed methods
 declare global {
   interface HTMLElement {
     webkitRequestFullscreen?: () => Promise<void>;
@@ -43,7 +42,6 @@ export const ActionButtons = () => {
     document.addEventListener("msfullscreenchange", handleFullscreenChange);
     document.addEventListener("mozfullscreenchange", handleFullscreenChange);
 
-    // Cleanup
     return () => {
       document.removeEventListener("fullscreenchange", handleFullscreenChange);
       document.removeEventListener(
