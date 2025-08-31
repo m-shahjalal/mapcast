@@ -2,6 +2,7 @@ import { getNewsBySlug } from "@/server/actions/news.action";
 import dynamic from "next/dynamic";
 import { NewsViewer } from "./news-viewer";
 import { generateNewsMetadata } from "./metadata";
+import { redirect } from "next/navigation";
 
 type Props = { params: Promise<{ slug: string }> };
 const LazyMap = dynamic(() => import("./map-viewer").then((i) => i.MapViewer));
@@ -17,6 +18,7 @@ export async function generateMetadata({ params }: Props) {
 export default async function DynamicNews({ params }: Props) {
   const { slug } = await params;
   const data = await getNewsBySlug(slug);
+  if (!data) redirect("/");
 
   return (
     <div className="w-full min-h-screen">

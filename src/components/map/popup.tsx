@@ -3,12 +3,13 @@ import { formatDate, truncateText } from "@/utils/cn";
 import { FileSpreadsheet, Calendar, MapPin, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Popup } from "react-leaflet";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { adjustColor } from "./marker";
 import { NewsType } from "@/server/database/schemas";
+import { Spinner } from "../ui/spinner";
 
 const PopupContent = ({
   news,
@@ -18,12 +19,17 @@ const PopupContent = ({
   topic: TopicItem;
 }) => {
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
   const address = [news.location, news.city, news.countryCode]
     .filter(Boolean)
     .join(", ");
+
   const handleRead = useCallback(() => {
+    setIsLoading(true);
     router.push(news.slug?.startsWith("/") ? news.slug : `/${news.slug}`);
-  }, [news.slug, router]);
+  }, [news.slug, router, isLoading]);
+
+  useEffect(() => () => setIsLoading(false), []);
 
   return (
     <div className="relative p-4 bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 rounded-xl shadow-xl backdrop-blur">
@@ -96,7 +102,11 @@ const PopupContent = ({
         }}
         className="w-full text-white border-0 text-xs py-2 rounded-lg shadow-md hover:shadow-lg hover:scale-[1.02] transition-all duration-200"
       >
-        <FileSpreadsheet className="w-3 h-3 mr-1" />
+        {isLoading ? (
+          <Spinner variant="circle" />
+        ) : (
+          <FileSpreadsheet className="w-3 h-3 mr-1" />
+        )}
         Read Full Story
       </Button>
     </div>

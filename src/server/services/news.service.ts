@@ -119,6 +119,7 @@ export const NewsService = {
         ...getTableColumns(news),
       })
       .from(latestPerSource)
+      .leftJoin(news, eq(news.id, latestPerSource.id))
       .where(whereCondition)
       .orderBy(
         latestPerSource.latitude,
