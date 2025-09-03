@@ -2,6 +2,35 @@ import { getSiteMapData } from "@/server/actions/news.action";
 import { newsTopicList } from "@/shared/enum-list";
 import { MetadataRoute } from "next";
 
+// Helper to clean XML-breaking characters from data
+const cleanXMLString = (str: string | null | undefined): string => {
+  if (!str) return '';
+  
+  return str
+    .replace(/&/g, '&amp;')     // Must be first
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;')
+    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, ''); // Remove control characters
+};
+
+// Helper to validate and clean URLs
+const createSafeUrl = (baseUrl: string, path: string): string => {
+  try {
+    // Clean the path of XML-breaking characters
+    const cleanPath = cleanXMLString(path);
+    const url = `${baseUrl}/${cleanPath}`;
+    
+    // Validate URL format
+    new URL(url);
+    return url;
+  } catch (error) {
+    console.error(`Invalid URL created: ${baseUrl}/${path}`, error);
+    return baseUrl; // Fallback to base URL
+  }
+};
+
 const defaultSitemap = (): MetadataRoute.Sitemap => {
   return [
     {
@@ -16,22 +45,51 @@ const defaultSitemap = (): MetadataRoute.Sitemap => {
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL!;
 
-  // Validate base URL exists
   if (!baseUrl) {
     console.error('NEXT_PUBLIC_SITE_URL is not defined');
     return defaultSitemap();
   }
 
   try {
+    console.log('Starting sitemap generation...');
     const newsList = await getSiteMapData();
     
-    // Ensure we have a valid array
     if (!Array.isArray(newsList)) {
-      console.log('getSiteMapData did not return an array, using default sitemap');
+      console.log('getSiteMapData did not return an array');
       return defaultSitemap();
     }
 
-    // Process news URLs with proper validation and encoding
+    console.log(`Processing ${newsList.length} news items`);
+
+    // Debug: Check for problematic characters in the data
+    const problematicItems: any[] = [];
+    
+    newsList.forEach((news, index) => {
+      if (news && news.slug) {
+        const hasAmpersand = news.slug.includes('&');
+        const hasOtherXMLChars = /[<>"']/.test(news.slug);
+        const hasTitle = news.title && (/[&<>"']/.test(news.title));
+        
+        if (hasAmpersand || hasOtherXMLChars || hasTitle) {
+          problematicItems.push({
+            index,
+            id: news.id,
+            slug: news.slug,
+            title: news.title?.substring(0, 100),
+            hasAmpersand,
+            hasOtherXMLChars,
+            hasTitle
+          });
+        }
+      }
+    });
+
+    if (problematicItems.length > 0) {
+      console.log('Found problematic items with XML-breaking characters:');
+      console.log(JSON.stringify(problematicItems.slice(0, 10), null, 2));
+    }
+
+    // Process news URLs with XML cleaning
     const newsUrls = newsList
       .filter((news) => {
         return news && 
@@ -40,13 +98,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
                news.slug.trim().length > 0 &&
                !news.deletedAt;
       })
-      .map((news) => ({
-        // Key fix: Next.js automatically handles XML encoding, just ensure clean URLs
-        url: `${baseUrl}/${news.slug}`,
-        lastModified: news.updatedAt || news.createdAt,
-        changeFrequency: "daily" as const,
-        priority: news.isFeatured ? 0.9 : news.isBreaking ? 0.95 : 0.7,
-      }));
+      .map((news, index) => {
+        try {
+          return {
+            url: createSafeUrl(baseUrl, news.slug),
+            lastModified: news.updatedAt || news.createdAt,
+            changeFrequency: "daily" as const,
+            priority: news.isFeatured ? 0.9 : news.isBreaking ? 0.95 : 0.7,
+          };
+        } catch (error) {
+          console.error(`Error processing news item at index ${index}:`, error);
+          console.error('News item:', { id: news.id, slug: news.slug, title: news.title?.substring(0, 50) });
+          return null;
+        }
+      })
+      .filter(Boolean) as MetadataRoute.Sitemap;
 
     const rootPage = {
       url: baseUrl,
@@ -65,11 +131,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     const searchParamUrls: MetadataRoute.Sitemap = [];
 
-    // Topic URLs - Next.js handles URL encoding automatically
+    // Clean topic names and create URLs
     newsTopicList.forEach((topic) => {
       if (topic && typeof topic === 'string') {
+        const cleanTopic = cleanXMLString(topic);
         searchParamUrls.push({
-          url: `${baseUrl}?topic=${topic}`,
+          url: `${baseUrl}?topic=${encodeURIComponent(cleanTopic)}`,
           lastModified: new Date(),
           changeFrequency: "hourly",
           priority: 0.8,
@@ -77,11 +144,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       }
     });
 
-    // Country URLs
+    // Clean country codes and create URLs
     uniqueCountries.forEach((country) => {
       if (country && typeof country === 'string') {
+        const cleanCountry = cleanXMLString(country);
         searchParamUrls.push({
-          url: `${baseUrl}?country=${country}`,
+          url: `${baseUrl}?country=${encodeURIComponent(cleanCountry)}`,
           lastModified: new Date(),
           changeFrequency: "daily",
           priority: 0.7,
@@ -89,12 +157,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       }
     });
 
-    // Topic + Country combinations (limited to prevent sitemap explosion)
-    newsTopicList.slice(0, 10).forEach((topic) => {
-      uniqueCountries.slice(0, 5).forEach((country) => {
-        if (topic && country && typeof topic === 'string' && typeof country === 'string') {
+    // Topic + Country combinations (limited)
+    newsTopicList.slice(0, 5).forEach((topic) => {
+      uniqueCountries.slice(0, 3).forEach((country) => {
+        if (topic && country) {
+          const cleanTopic = cleanXMLString(topic);
+          const cleanCountry = cleanXMLString(country);
           searchParamUrls.push({
-            url: `${baseUrl}?topic=${topic}&country=${country}`,
+            url: `${baseUrl}?topic=${encodeURIComponent(cleanTopic)}&country=${encodeURIComponent(cleanCountry)}`,
             lastModified: new Date(),
             changeFrequency: "daily",
             priority: 0.6,
@@ -103,33 +173,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       });
     });
 
+    // Simple date ranges
     const now = new Date();
+    const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
     const dateRanges = [
-      {
-        from: new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000),
-        to: now,
-        label: "today",
-      },
-      {
-        from: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000),
-        to: now,
-        label: "week",
-      },
-      {
-        from: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000),
-        to: now,
-        label: "month",
-      },
+      { from: yesterday, to: now, label: "today" },
+      { from: weekAgo, to: now, label: "week" },
     ];
 
-    // Topic + Date range combinations
-    newsTopicList.slice(0, 5).forEach((topic) => {
+    // Add some date range URLs
+    newsTopicList.slice(0, 3).forEach((topic) => {
       dateRanges.forEach(({ from, to }) => {
-        if (topic && typeof topic === 'string') {
+        if (topic) {
+          const cleanTopic = cleanXMLString(topic);
           const fromStr = from.toISOString().split("T")[0];
           const toStr = to.toISOString().split("T")[0];
           searchParamUrls.push({
-            url: `${baseUrl}?topic=${topic}&from=${fromStr}&to=${toStr}`,
+            url: `${baseUrl}?topic=${encodeURIComponent(cleanTopic)}&from=${fromStr}&to=${toStr}`,
             lastModified: new Date(),
             changeFrequency: "daily",
             priority: 0.5,
@@ -138,29 +200,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       });
     });
 
-    // Popular search terms
-    const popularSearchTerms = [
-      "breaking",
-      "election",
-      "crisis", 
-      "update",
-      "report",
-    ];
-
-    popularSearchTerms.forEach((searchTerm) => {
-      searchParamUrls.push({
-        url: `${baseUrl}?search=${searchTerm}`,
-        lastModified: new Date(),
-        changeFrequency: "daily",
-        priority: 0.4,
-      });
+    const allUrls = [rootPage, ...newsUrls, ...searchParamUrls.slice(0, 200)];
+    
+    console.log(`Generated sitemap with ${allUrls.length} URLs`);
+    
+    // Final validation
+    const validUrls = allUrls.filter((item, index) => {
+      try {
+        new URL(item.url);
+        return true;
+      } catch (error) {
+        console.error(`Invalid URL at index ${index}: ${item.url}`);
+        return false;
+      }
     });
 
-    // Combine all URLs (Google's limit is 50,000 URLs per sitemap)
-    const allUrls = [rootPage, ...newsUrls, ...searchParamUrls];
-    
-    // Return limited sitemap (Next.js will handle XML encoding)
-    return allUrls.slice(0, 45000); // Leave room for safety margin
+    console.log(`Final sitemap has ${validUrls.length} valid URLs`);
+    return validUrls.length > 0 ? validUrls : defaultSitemap();
 
   } catch (error) {
     console.error("Error generating sitemap:", error);
