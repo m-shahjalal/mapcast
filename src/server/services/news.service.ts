@@ -152,64 +152,75 @@ export const NewsService = {
   },
 
   async getSiteMapData(filters?: NewsMapFilters) {
-    const conditions: SQLWrapper[] = [isNotNull(news.location)];
+  const conditions: SQLWrapper[] = [];
 
-    const fromDate = filters?.from
-      ? new Date(filters.from)
-      : new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-    const toDate = filters?.to ? new Date(filters.to) : new Date();
+  // Date range filtering
+  const fromDate = filters?.from
+    ? new Date(filters.from)
+    : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000); // Default to 30 days
+  const toDate = filters?.to ? new Date(filters.to) : new Date();
 
+  conditions.push(
+    and(
+      gte(news.createdAt, fromDate),
+      lte(news.createdAt, toDate)
+    ) as SQLWrapper
+  );
+
+  // Only include published news with valid slugs for sitemap
+  conditions.push(
+    and(
+      eq(news.status, 'published'),
+      isNotNull(news.slug),
+      ne(news.slug, ''), // Ensure slug is not empty
+      isNull(news.deletedAt) // Assuming soft deletes
+    ) as SQLWrapper
+  );
+
+  // Apply additional filters if provided
+  if (filters?.topic) {
+    conditions.push(eq(news.topic, filters.topic));
+  }
+
+  if (filters?.country) {
+    conditions.push(eq(news.countryCode, filters.country));
+  }
+
+  if (filters?.search) {
     conditions.push(
-      and(
-        gte(news.createdAt, fromDate),
-        lte(news.createdAt, toDate)
-      ) as SQLWrapper
+      sql`to_tsvector('english', ${news.title} || ' ' || ${news.summary} || ' ' || COALESCE(${news.location}, '')) @@ plainto_tsquery('english', ${filters.search})`
     );
+  }
 
-    if (filters?.topic) {
-      conditions.push(eq(news.topic, filters.topic));
-    }
-
-    if (filters?.country) {
-      conditions.push(eq(news.countryCode, filters.country));
-    }
-
-    if (filters?.search) {
-      conditions.push(
-        sql`to_tsvector('english', ${news.title} || ' ' || ${news.summary} || ' ' || ${news.location}) @@ plainto_tsquery('english', ${filters.search})`
-      );
-    }
-
-    // Option 1: Simple approach - remove the problematic subquery logic
+  try {
+    // For sitemap, select only necessary fields to reduce memory usage
     const result = await db
-      .selectDistinctOn([news.latitude, news.longitude], {
-        ...getTableColumns(news),
+      .select({
+        id: news.id,
+        title: news.title,
+        slug: news.slug,
+        createdAt: news.createdAt,
+        updatedAt: news.updatedAt,
+        publishedAt: news.publishedAt,
+        isFeatured: news.isFeatured,
+        isBreaking: news.isBreaking,
+        countryCode: news.countryCode,
+        topic: news.topic,
+        deletedAt: news.deletedAt,
       })
       .from(news)
       .where(and(...conditions))
-      .orderBy(news.latitude, news.longitude, desc(news.createdAt))
-      .limit(500);
+      .orderBy(desc(news.publishedAt), desc(news.createdAt))
+      .limit(10000); // Reasonable limit for sitemap
 
-    if (result.length > 0) return result;
-
-    // Fallback for country-specific queries
-    if (filters?.country) {
-      const location = await db.query.country.findFirst({
-        where: eq(country.code, filters?.country),
-      });
-
-      if (!location) return result;
-
-      return {
-        latitude: location?.lat,
-        longitude: location?.lon,
-        name: location?.name,
-        geojson: location?.geojson,
-      };
-    }
-
+    console.log(`Retrieved ${result.length} news items for sitemap`);
     return result;
-  },
+
+  } catch (error) {
+    console.error('Error fetching sitemap data:', error);
+    return []; // Always return an array for consistent typing
+  }
+},
 
   async findById(id: string) {
     return await db.select().from(news).where(eq(news.id, id));
