@@ -14,6 +14,7 @@ import {
   lt,
   lte,
   sql,
+  ne,
   SQLWrapper,
 } from "drizzle-orm";
 
