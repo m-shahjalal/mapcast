@@ -15,43 +15,12 @@ export default function manifest(): MetadataRoute.Manifest {
     theme_color: "rgba(0,0,0,0.3)",
     background_color: "rgba(0,0,0,0.3)",
     icons: [
-      // Regular icons (purpose: "any" is default)
       {
-        sizes: "48x48",
-        src: "/icons/icon_x48.png", // Create regular versions of your icons
+        purpose: "maskable",
+        sizes: "1024x1024",
+        src: "/icons/maskable_icon.png",
         type: "image/png",
       },
-      {
-        sizes: "72x72",
-        src: "/icons/icon_x72.png",
-        type: "image/png",
-      },
-      {
-        sizes: "96x96",
-        src: "/icons/icon_x96.png",
-        type: "image/png",
-      },
-      {
-        sizes: "128x128",
-        src: "/icons/icon_x128.png",
-        type: "image/png",
-      },
-      {
-        sizes: "192x192",
-        src: "/icons/icon_x192.png",
-        type: "image/png",
-      },
-      {
-        sizes: "384x384",
-        src: "/icons/icon_x384.png",
-        type: "image/png",
-      },
-      {
-        sizes: "512x512",
-        src: "/icons/icon_x512.png",
-        type: "image/png",
-      },
-      // Maskable icons
       {
         purpose: "maskable",
         sizes: "48x48",
