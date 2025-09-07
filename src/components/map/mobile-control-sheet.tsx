@@ -5,6 +5,7 @@ import { useQueryParams } from "@/hooks/use-query";
 import { NewsMapFilters } from "@/types/query-filter";
 import { cn } from "@/utils/cn";
 import { Eraser, Filter } from "lucide-react";
+import Image from "next/image";
 import { useCallback, useEffect, useState } from "react";
 import { CountrySelect } from "./select-country";
 import { DateSelect } from "./select-date";
@@ -97,7 +98,18 @@ export function MobileControlsSheet({
           <div className="w-16 h-2 bg-gray-400 dark:bg-gray-500 rounded-full" />
         </div>
         <SheetTitle className="text-center text-lg font-semibold dark:text-gray-200">
-          Explore Map
+          <div className="w-full h-10 flex items-center justify-center rounded bg-gradient-to-r from-white/80 to-white/60 dark:from-gray-900/80 dark:to-gray-800/60 backdrop-blur-xl gap-0.5">
+            <Image
+              src="/logo.png"
+              className="-translate-x-1"
+              alt="MapCast Logo"
+              width={32}
+              height={32}
+            />
+            <span className="capitalize text-lg font-bold text-gray-800 dark:text-gray-100 -translate-x-1">
+              MapCast
+            </span>
+          </div>
         </SheetTitle>
       </SheetHeader>
 
