@@ -90,9 +90,9 @@ const createGEOOptimizedContent = (
     return ` in ${countries.length} Countries`;
   })();
 
-  const title = `${topicPrefix}News Map - ${newsCount} Live Stories${locationSuffix} | ${BRAND_NAME}`;
+  const title = `${topicPrefix}News Map - Live Stories${locationSuffix} | ${BRAND_NAME}`;
 
-  const description = `${BRAND_NAME} visualizes ${newsCount} breaking news stories on an interactive world map with real-time updates every 15 minutes. Track ${
+  const description = `${BRAND_NAME} visualizes breaking news stories on an interactive world map with real-time updates every 15 minutes. Track ${
     topicPrefix.toLowerCase() ?? ""
   } news ${
     locationSuffix.toLowerCase() ?? ""
@@ -168,10 +168,7 @@ const createOGImageUrl = (
   try {
     const ogImageUrl = new URL("/api/og-image", BASE_URL);
 
-    ogImageUrl.searchParams.set(
-      "title",
-      `${SITE_NAME} - ${newsCount} Live Stories`
-    );
+    ogImageUrl.searchParams.set("title", `${SITE_NAME} - Live Stories`);
 
     if (params?.topic && params.topic !== "all") {
       ogImageUrl.searchParams.set("topic", params.topic);
@@ -249,7 +246,7 @@ export async function generateSEOData({
     }
 
     const og = createGEOOptimizedContent(newsList, params);
-    const { title, description, keywords, newsCount, countries, sources } = og;
+    const { title, description, keywords, newsCount, countries } = og;
     const canonicalUrl = buildCanonicalUrl(params);
     const ogImageUrl = createOGImageUrl(params, newsCount, countries);
 

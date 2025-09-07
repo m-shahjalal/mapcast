@@ -213,7 +213,7 @@ export const NewsService = {
       .from(news)
       .where(and(...conditions))
       .orderBy(desc(news.publishedAt), desc(news.createdAt))
-      .limit(10000); // Reasonable limit for sitemap
+      .limit(9000); // Reasonable limit for sitemap
 
     console.log(`Retrieved ${result.length} news items for sitemap`);
     return result;
