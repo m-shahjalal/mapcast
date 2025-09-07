@@ -24,6 +24,7 @@ import {
 import { useEffect, useState } from "react";
 
 export default function AdminPage() {
+  const [timeRange, setTimeRange] = useState("24h");
   const [client, isClient] = useState(false);
   useEffect(() => isClient(true), []);
   if (!client) return;
@@ -36,16 +37,14 @@ export default function AdminPage() {
     avgProcessingTime: "1.8s",
     systemHealth: 98.5,
     activeUsers: 1247,
-    pageViews: 23456,
-    apiCalls: 45678,
+    pageViews: 23_456,
+    apiCalls: 45_678,
     errorRate: 0.12,
     uptime: "99.97%",
     storageUsed: 67.3,
     memoryUsage: 45.2,
     cpuUsage: 23.8,
   };
-
-  const [timeRange, setTimeRange] = useState("24h");
 
   const getTrendIcon = (value: number) => {
     if (value > 0) return <ArrowUp className="h-3 w-3 text-green-500" />;
