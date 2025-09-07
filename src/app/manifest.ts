@@ -3,7 +3,7 @@ import type { MetadataRoute } from "next";
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "MapCast | update with latest global news",
-    short_name: "MapCast",
+    short_name: "Map Cast",
     description:
       "MapCast is top news app that keeps you updated with the latest global news. Stay informed and stay ahead of the news.",
     start_url: "/",
@@ -12,53 +12,53 @@ export default function manifest(): MetadataRoute.Manifest {
     categories: ["productivity", "utilities"],
     lang: "en",
     dir: "ltr",
-    theme_color: "rgba(0,0,0,0.3)",
-    background_color: "rgba(0,0,0,0.3)",
+    theme_color: "#476EAE",
+    background_color: "#476EAE",
     icons: [
       {
-        purpose: "maskable",
+        purpose: "any",
         sizes: "1024x1024",
         src: "/icons/maskable_icon.png",
         type: "image/png",
       },
       {
-        purpose: "maskable",
+        purpose: "any",
         sizes: "48x48",
         src: "/icons/maskable_icon_x48.png",
         type: "image/png",
       },
       {
-        purpose: "maskable",
+        purpose: "any",
         sizes: "72x72",
         src: "/icons/maskable_icon_x72.png",
         type: "image/png",
       },
       {
-        purpose: "maskable",
+        purpose: "any",
         sizes: "96x96",
         src: "/icons/maskable_icon_x96.png",
         type: "image/png",
       },
       {
-        purpose: "maskable",
+        purpose: "any",
         sizes: "128x128",
         src: "/icons/maskable_icon_x128.png",
         type: "image/png",
       },
       {
-        purpose: "maskable",
+        purpose: "any",
         sizes: "192x192",
         src: "/icons/maskable_icon_x192.png",
         type: "image/png",
       },
       {
-        purpose: "maskable",
+        purpose: "any",
         sizes: "384x384",
         src: "/icons/maskable_icon_x384.png",
         type: "image/png",
       },
       {
-        purpose: "maskable",
+        purpose: "any",
         sizes: "512x512",
         src: "/icons/maskable_icon_x512.png",
         type: "image/png",
